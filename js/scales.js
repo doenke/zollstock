@@ -31,7 +31,7 @@ window.Scales = (function () {
     }
   };
 
-  var state = load() || { a: 'cm', b: 'in', crossways: false, reversed: false };
+  var state = load() || { a: 'cm', b: 'in', reversed: false };
   var listeners = [];
   var els = {};
 
@@ -39,12 +39,7 @@ window.Scales = (function () {
     try {
       var parsed = JSON.parse(localStorage.getItem(STORE_KEY));
       if (!parsed || !UNITS[parsed.a] || !UNITS[parsed.b]) return null;
-      return {
-        a: parsed.a,
-        b: parsed.b,
-        crossways: !!parsed.crossways,
-        reversed: !!parsed.reversed
-      };
+      return { a: parsed.a, b: parsed.b, reversed: !!parsed.reversed };
     } catch (err) {
       return null;
     }
@@ -105,19 +100,11 @@ window.Scales = (function () {
     emit();
   }
 
-  /* Längs oder quer zur längeren Bildschirmkante. Läuft das Lineal senkrecht,
+  /* Das Lineal läuft entlang der längeren Bildschirmkante. Läuft es senkrecht,
    * liegen seine beiden Skalen an der linken und rechten Kante, sonst oben
    * und unten. */
   function vertical() {
-    return (window.innerHeight >= window.innerWidth) !== state.crossways;
-  }
-
-  function setAxis(crossways) {
-    if (state.crossways === crossways) return;
-    state.crossways = crossways;
-    persist();
-    render();
-    emit();
+    return window.innerHeight >= window.innerWidth;
   }
 
   /* Zählrichtung: Null an der oberen bzw. linken Kante – oder an der
@@ -136,14 +123,6 @@ window.Scales = (function () {
   }
 
   function render() {
-    if (els.axis) {
-      els.axis.querySelectorAll('[data-axis]').forEach(function (btn) {
-        var on = (btn.dataset.axis === 'cross') === state.crossways;
-        btn.classList.toggle('is-active', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-    }
-
     els.groups.forEach(function (group) {
       var edge = group.dataset.edge;
       group.querySelectorAll('[data-unit]').forEach(function (btn) {
@@ -159,14 +138,8 @@ window.Scales = (function () {
     els = {
       labelA: document.getElementById('scale-a-label'),
       labelB: document.getElementById('scale-b-label'),
-      axis: document.getElementById('scale-axis'),
       groups: Array.prototype.slice.call(document.querySelectorAll('.seg--units'))
     };
-
-    els.axis.addEventListener('click', function (event) {
-      var btn = event.target.closest('[data-axis]');
-      if (btn) setAxis(btn.dataset.axis === 'cross');
-    });
 
     els.groups.forEach(function (group) {
       group.addEventListener('click', function (event) {
@@ -188,7 +161,6 @@ window.Scales = (function () {
     set: set,
     swap: swap,
     vertical: vertical,
-    crossways: function () { return state.crossways; },
     reversed: function () { return state.reversed; },
     toggleDirection: toggleDirection,
     format: format,

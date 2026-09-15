@@ -114,15 +114,13 @@ zur Wahl stehen Zentimeter, Millimeter und Zoll (Sechzehntel-Teilung).
 Voreingestellt ist cm links bzw. oben und Zoll rechts bzw. unten. Die Auswahl
 liegt in `localStorage` (`zollstock.scales.v1`).
 
-Das Lineal läuft normalerweise entlang der längeren Bildschirmkante und folgt
-der Geräteausrichtung; unter *Einstellungen → Skalen → Lage* lässt es sich auf
-die kurze Kante legen.
+Das Lineal läuft entlang der längeren Bildschirmkante und folgt der
+Geräteausrichtung.
 
 Der Pfeil in der Kopfzeile dreht die **Zählrichtung** um: Die Null sitzt
-wahlweise an der oberen oder an der unteren Kante (quer: links oder rechts).
-Er zeigt, wohin gezählt wird. Die Randmessung folgt mit – die Karte wird dann
-an der Kante angelegt, an der die Null liegt – und die Kantenbezeichnungen in
-den Einstellungen richten sich nach der Lage. Während des Messens hält die App den Bildschirm wach
+wahlweise an der oberen oder an der unteren Kante (im Querformat links oder
+rechts). Er zeigt, wohin gezählt wird. Die Randmessung folgt mit – die Karte
+wird an der Kante angelegt, an der die Null liegt. Während des Messens hält die App den Bildschirm wach
 (Wake-Lock, sofern vom Browser unterstützt).
 
 ## Winkelmesser
