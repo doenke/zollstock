@@ -13,10 +13,9 @@ Browser geben die physische Pixeldichte nicht direkt preis. Verfügbar sind nur:
 | --- | --- |
 | `screen.width` / `screen.height` | logische Auflösung in CSS-Pixeln |
 | `devicePixelRatio` | Verhältnis physischer zu logischen Pixeln |
+| Modell aus User-Agent bzw. Client Hints | nur Android, z. B. `SM-S911B` |
 
-Daraus errechnet die App die physische Auflösung und schlägt sie in einer
-Gerätetabelle nach (`js/devices.js`). Trifft sie zu, steht die echte Pixeldichte
-fest:
+Daraus leitet `js/devices.js` die Pixeldichte ab:
 
 ```
 physische Pixel     = CSS-Pixel × devicePixelRatio
@@ -24,9 +23,26 @@ CSS-Pixel pro Zoll  = ppi ÷ devicePixelRatio
 CSS-Pixel pro mm    = ppi ÷ devicePixelRatio ÷ 25,4
 ```
 
+**Android** nennt sein Modell – damit wird die Dichte in einer Modelltabelle
+nachgeschlagen (Galaxy S/Note/A/Z, Pixel). Chrome kürzt den User-Agent
+allerdings auf `Android 10; K`; das echte Modell liefert dann erst
+`navigator.userAgentData.getHighEntropyValues(['model'])`, und zwar asynchron –
+die App reicht die Korrektur nach. Meldet das Gerät weniger Pixel als das
+Panel hat (etwa FHD+ statt WQHD+ eingestellt), wird die Dichte im selben
+Verhältnis heruntergerechnet.
+
+**Apple** nennt kein Modell, dort sind CSS-Auflösung und Pixelverhältnis je
+Gerät aber eindeutig. Diese Tabelle gilt ausschließlich für iOS-Geräte: die
+Schlüssel sind nicht herstellerübergreifend eindeutig – ein Galaxy S22/S23
+meldet mit 360 × 780 bei dpr 3 genau dasselbe wie ein iPhone 13 mini.
+
 Ohne Treffer greift die Konvention der Plattform (Mobilgeräte ≈ 160 dpi,
 Desktop = 96 dpi) – das ist nur eine Näherung, deshalb weist die App dann auf
-die Kalibrierung hin.
+die Kalibrierung hin. Unter *Einstellungen → Kalibrierung* steht, was erkannt
+wurde und wie sicher.
+
+Die Tabellenwerte sind Herstellerangaben und ein guter Startwert. Wer es
+genau braucht, kalibriert – das überstimmt die Erkennung immer.
 
 ### Kalibrierung
 
@@ -71,7 +87,7 @@ Geräteausrichtung. Während des Messens hält die App den Bildschirm wach
 ```
 index.html              Gerüst beider Ansichten
 css/style.css           Darstellung
-js/devices.js           Bildschirmerkennung, Gerätetabelle
+js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
 js/scales.js            Einheiten der beiden Skalen
 js/ruler.js             Lineal (Canvas)

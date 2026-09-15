@@ -104,21 +104,51 @@ window.Calibration = (function () {
     renderFacts();
   }
 
+  var SOURCES = {
+    apple: 'Gerätetabelle (Apple)',
+    model: 'Gerätemodell',
+    'mobile-default': 'Schätzung, 160 dpi angenommen',
+    'desktop-default': 'Schätzung, 96 dpi angenommen'
+  };
+
+  function escape(text) {
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
   function renderFacts() {
     var s = detected.screen;
     var rows = [
       ['Auflösung', s.pixelWidth + ' × ' + s.pixelHeight + ' px'],
       ['CSS-Auflösung', s.cssWidth + ' × ' + s.cssHeight + ' px'],
-      ['Pixelverhältnis', String(Math.round(s.dpr * 100) / 100) + '×'],
-      ['Gerät', detected.device || 'nicht erkannt'],
-      ['Automatik', fmt(detected.pxPerMm, 2) + ' px/mm (' + detected.confidence + ')'],
-      ['Aktiv', fmt(state.pxPerMm, 2) + ' px/mm · ' +
-        (state.source === 'auto' ? 'automatisch' : 'kalibriert')]
+      ['Pixelverhältnis', String(Math.round(s.dpr * 100) / 100) + '×']
     ];
 
+    if (detected.model) rows.push(['Modell', detected.model]);
+
+    rows.push(['Gerät', detected.device || 'nicht erkannt']);
+    rows.push(['Erkennung', (SOURCES[detected.source] || detected.source) +
+      ' · ' + detected.confidence]);
+    rows.push(['Automatik', fmt(detected.pxPerMm, 2) + ' px/mm']);
+    rows.push(['Aktiv', fmt(state.pxPerMm, 2) + ' px/mm · ' +
+      (state.source === 'auto' ? 'automatisch' : 'kalibriert')]);
+
     els.facts.innerHTML = rows.map(function (row) {
-      return '<dt>' + row[0] + '</dt><dd>' + row[1] + '</dd>';
+      return '<dt>' + escape(row[0]) + '</dt><dd>' + escape(row[1]) + '</dd>';
     }).join('');
+  }
+
+  /* Nachträglich verbesserte Erkennung übernehmen (Client Hints kommen
+   * asynchron). Eine eigene Kalibrierung bleibt davon unberührt. */
+  function updateDetected(next) {
+    if (!next || !isFinite(next.pxPerMm)) return;
+    detected = next;
+
+    if (state.source === 'auto') {
+      state.pxPerMm = next.pxPerMm;
+      draft = next.pxPerMm;
+      emit();
+    }
+    if (els.facts) renderFacts();
   }
 
   function selectMethod(name) {
@@ -233,7 +263,8 @@ window.Calibration = (function () {
     close: close,
     pxPerMm: pxPerMm,
     ppi: ppi,
-    detected: detected,
+    detected: function () { return detected; },
+    updateDetected: updateDetected,
     state: function () { return state; },
     onChange: function (fn) { listeners.push(fn); }
   };

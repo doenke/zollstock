@@ -37,15 +37,18 @@
     });
   }
 
-  function setupHint() {
+  /* Ist die Erkennung unsicher, weist der Hinweis auf die Kalibrierung hin. */
+  function updateHint() {
     var hint = document.getElementById('ruler-hint');
-    var detected = window.Calibration.detected;
-    var calibrated = window.Calibration.state().source !== 'auto';
+    var button = document.getElementById('btn-calibrate');
+    var detected = window.Calibration.detected();
+    var unsure = window.Calibration.state().source === 'auto' &&
+      detected.confidence !== 'hoch';
 
-    if (!calibrated && detected.confidence !== 'hoch') {
-      hint.textContent = 'Bildschirm nicht erkannt – bitte einmalig kalibrieren (Zahnrad oben rechts)';
-      document.getElementById('btn-calibrate').classList.add('is-on');
-    }
+    hint.textContent = unsure
+      ? 'Bildschirm nicht sicher erkannt – bitte einmalig kalibrieren (Zahnrad oben rechts)'
+      : 'Tippen oder ziehen, um die Messmarke zu setzen';
+    button.classList.toggle('is-on', unsure);
   }
 
   /* Bildschirm während des Messens wach halten. */
@@ -95,7 +98,7 @@
     window.Protractor.init();
 
     window.Calibration.onChange(function () {
-      document.getElementById('btn-calibrate').classList.remove('is-on');
+      updateHint();
       redraw();
     });
 
@@ -103,10 +106,19 @@
 
     setupTabs();
     setupToolbar();
-    setupHint();
+    updateHint();
     setupLifecycle();
     registerServiceWorker();
     requestWakeLock();
+
+    /* Das Gerätemodell verrät Chrome nur über die Client Hints und nur
+     * asynchron – nachreichen, sobald es da ist. */
+    window.Devices.refine().then(function (better) {
+      if (!better) return;
+      window.Calibration.updateDetected(better);
+      updateHint();
+      redraw();
+    });
 
     redraw();
     /* Nach dem Laden der Systemschrift erneut zeichnen, damit die
