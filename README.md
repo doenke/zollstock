@@ -188,6 +188,13 @@ python3 -m http.server 8000
 
 Ein Service Worker wird nur über HTTPS oder auf `localhost` registriert.
 
+Die App liefert ihre Dateien aus dem Cache aus – anders ginge Offline-Betrieb
+nicht. Nach einem Deploy fällt dem Browser beim Öffnen auf, dass `sw.js` sich
+geändert hat; er lädt den neuen Stand in einen Cache mit dem neuen Namen und
+die App blendet „Neue Version – tippen zum Laden" ein. Eine installierte App,
+die nur aus dem Hintergrund geholt wird, prüft beim Sichtbarwerden selbst
+nach.
+
 ## Veröffentlichen
 
 Die App wird per SFTP aus GitHub auf den Webspace gespiegelt – der Workflow

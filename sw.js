@@ -24,7 +24,16 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(ASSETS))
+      .then((cache) => Promise.all(ASSETS.map((url) => {
+        // cache: 'reload' umgeht den HTTP-Cache des Browsers. Sonst könnte
+        // der neue Stand mit alten Dateien aus dem Browsercache gefüllt
+        // werden, wenn der Webspace lange Haltbarkeiten mitschickt.
+        const request = new Request(url, { cache: 'reload' });
+        return fetch(request).then((response) => {
+          if (!response.ok) throw new Error(`${url}: ${response.status}`);
+          return cache.put(url, response);
+        });
+      })))
       .then(() => self.skipWaiting())
   );
 });

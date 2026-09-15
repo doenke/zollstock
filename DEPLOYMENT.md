@@ -74,6 +74,16 @@ Branch.
 - Der Commit-SHA wird vor dem Upload als Cache-Version in `sw.js` gestempelt
   (Platzhalter `__BUILD__`). Dadurch erkennen installierte Apps das Update und
   verwerfen den alten Cache.
+- **Wie ein Update beim Nutzer ankommt:** Die App liefert ihre Dateien aus dem
+  Cache aus – sonst wäre sie nicht offline nutzbar. Beim Öffnen prüft der
+  Browser im Hintergrund, ob `sw.js` sich geändert hat, lädt dann den neuen
+  Stand und meldet ihn mit „Neue Version – tippen zum Laden"; ein Tipp lädt
+  neu. Eine installierte App, die nur aus dem Hintergrund geholt wird, prüft
+  beim Sichtbarwerden selbst nach. Ohne diesen Hinweis sähe man beim ersten
+  Öffnen nach einem Deploy immer noch den alten Stand und erst beim zweiten
+  den neuen.
+- Der Push-Auslöser hängt an `main`. Solange es diesen Branch nicht gibt,
+  läuft nur der manuelle Start über *Run workflow*.
 - Weil ein frischer Checkout alle Zeitstempel auf „jetzt" setzt, lädt lftp
   jedes Mal alle Dateien neu hoch. Bei rund 60 kB fällt das nicht ins Gewicht.
 - Zwei Deploys gleichzeitig verhindert die `concurrency`-Gruppe.

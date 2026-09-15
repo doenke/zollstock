@@ -269,6 +269,32 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 .gate p { margin: 0; font-size: 13.5px; color: var(--text-dim); }
 .gate button[hidden] { display: none; }
 
+/* ---------- Hinweis auf eine neue Fassung ---------- */
+.update {
+  position: fixed;
+  left: 50%;
+  top: calc(var(--safe-t) + 58px);
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .45);
+}
+
+.update[hidden] { display: none; }
+.update svg { width: 16px; height: 16px; stroke-width: 2.2; }
+
 /* ---------- Sheet ---------- */
 .sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
 .sheet[hidden] { display: none; }

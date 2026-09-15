@@ -87,8 +87,27 @@
   function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
     if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
+
+    /* Beim ersten Besuch gibt es noch keinen Service Worker. Übernimmt dann
+     * der erste die Seite, ist das keine neue Fassung, sondern der Anfang. */
+    var hadController = !!navigator.serviceWorker.controller;
+    var chip = document.getElementById('update-chip');
+
+    chip.addEventListener('click', function () { location.reload(); });
+
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (hadController) chip.hidden = false;
+    });
+
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {
+      navigator.serviceWorker.register('sw.js').then(function (registration) {
+        /* Eine installierte App wird oft nur aus dem Hintergrund geholt und
+         * nie neu geladen – dann muss sie selbst nach einer neuen Fassung
+         * sehen. */
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState === 'visible') registration.update();
+        });
+      }).catch(function () {
         /* Ohne Service Worker läuft die App weiterhin, nur nicht offline. */
       });
     });
