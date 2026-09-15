@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Zollstock</title>
+<meta name="description" content="Lineal und Winkelmesser in Originalgröße auf dem Bildschirm.">
+<meta name="theme-color" content="#111418">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zollstock">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<main id="views">
+  <!-- ---------- Lineal ---------- -->
+  <section class="view is-active" id="view-ruler">
+    <canvas id="ruler-canvas"></canvas>
+
+    <div class="readout" id="readout" hidden>
+      <span class="readout__main" id="readout-main">0,0 cm</span>
+      <span class="readout__sub" id="readout-sub">0 mm · 0″</span>
+    </div>
+
+    <p class="hint" id="ruler-hint">Tippen oder ziehen, um die Messmarke zu setzen</p>
+  </section>
+
+  <!-- ---------- Winkelmesser ---------- -->
+  <section class="view" id="view-protractor">
+    <canvas id="protractor-canvas"></canvas>
+    <div class="badge badge--wip">Vorschau – Winkelmesser folgt</div>
+    <p class="hint">Halbkreis in Originalgröße, Gradskala 0–180°</p>
+  </section>
+</main>
+
+<!-- ---------- Kopfzeile ---------- -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <svg class="topbar__logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
+    <span>Zollstock</span>
+  </div>
+  <div class="topbar__actions">
+    <button class="iconbtn" id="btn-flip" type="button" title="Skala spiegeln" aria-label="Skala spiegeln">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>
+    </button>
+    <button class="iconbtn" id="btn-units" type="button" title="Zoll-Skala ein/aus" aria-label="Zoll-Skala ein/aus">
+      <span class="iconbtn__text" id="btn-units-text">cm+in</span>
+    </button>
+    <button class="iconbtn" id="btn-calibrate" type="button" title="Kalibrierung" aria-label="Kalibrierung">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ---------- Tableiste ---------- -->
+<nav class="tabbar">
+  <button class="tab is-active" data-view="ruler" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
+    <span>Lineal</span>
+  </button>
+  <button class="tab" data-view="protractor" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17a9 9 0 0 1 18 0z"/><path d="M12 17V9M7.5 17v-3M16.5 17v-3"/></svg>
+    <span>Winkel</span>
+  </button>
+</nav>
+
+<!-- ---------- Kalibrierung ---------- -->
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet__backdrop" data-close></div>
+  <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet__head">
+      <h1 id="sheet-title">Kalibrierung</h1>
+      <button class="iconbtn" type="button" data-close aria-label="Schließen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet__body">
+      <dl class="facts" id="facts"></dl>
+
+      <div class="seg" role="tablist" aria-label="Kalibriermethode">
+        <button class="seg__btn is-active" data-method="card" role="tab" type="button">EC-/Kreditkarte</button>
+        <button class="seg__btn" data-method="line" role="tab" type="button">Linie messen</button>
+        <button class="seg__btn" data-method="ppi" role="tab" type="button">PPI eingeben</button>
+      </div>
+
+      <!-- Methode: Karte -->
+      <div class="method is-active" id="method-card">
+        <p class="method__text">Die genaueste Methode: Eine EC- oder Kreditkarte misst genormt 85,6 × 54,0 mm. Lege sie auf den Bildschirm und passe den Umriss an, bis er exakt deckungsgleich ist.</p>
+        <button class="btn btn--ghost" id="cal-card-open" type="button">Karte anlegen</button>
+      </div>
+
+      <!-- Methode: Linie -->
+      <div class="method" id="method-line">
+        <p class="method__text">Miss die Linie mit einem echten Lineal und trage die Länge in Millimetern ein.</p>
+        <div class="linebox"><div class="linebox__line" id="cal-line"></div></div>
+        <label class="field">
+          <span>Gemessene Länge</span>
+          <span class="field__input"><input type="number" id="cal-line-mm" inputmode="decimal" step="0.5" min="1" placeholder="z. B. 80"><em>mm</em></span>
+        </label>
+        <button class="btn btn--ghost" id="cal-line-apply" type="button">Übernehmen</button>
+      </div>
+
+      <!-- Methode: PPI -->
+      <div class="method" id="method-ppi">
+        <p class="method__text">Trage die physische Pixeldichte des Displays ein (Herstellerangabe, z. B. 460 ppi).</p>
+        <label class="field">
+          <span>Pixeldichte</span>
+          <span class="field__input"><input type="number" id="cal-ppi" inputmode="decimal" step="1" min="30" placeholder="z. B. 460"><em>ppi</em></span>
+        </label>
+        <button class="btn btn--ghost" id="cal-ppi-apply" type="button">Übernehmen</button>
+      </div>
+
+      <label class="slider">
+        <span class="slider__label">Feinabstimmung <output id="cal-out"></output></span>
+        <input type="range" id="cal-range" min="1.5" max="20" step="0.001">
+      </label>
+      <div class="nudge">
+        <button class="btn btn--nudge" data-nudge="-0.05" type="button">−0,05</button>
+        <button class="btn btn--nudge" data-nudge="-0.01" type="button">−0,01</button>
+        <button class="btn btn--nudge" data-nudge="0.01" type="button">+0,01</button>
+        <button class="btn btn--nudge" data-nudge="0.05" type="button">+0,05</button>
+      </div>
+
+      <p class="note">Tipp: Die Nulllinie liegt am Rand des sichtbaren Bereichs. Für randgenaues Messen die App zum Startbildschirm hinzufügen – dann läuft sie im Vollbild ohne Adressleiste.</p>
+    </div>
+
+    <div class="sheet__foot">
+      <button class="btn btn--ghost" id="cal-reset" type="button">Automatik</button>
+      <button class="btn btn--primary" id="cal-save" type="button">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Karte anlegen (Vollbild) ---------- -->
+<div class="calview" id="calview" hidden>
+  <div class="calview__card" id="calview-card">
+    <span class="calview__cardlabel">Karte genau auf<br>diesen Umriss legen</span>
+  </div>
+  <div class="calview__bar">
+    <p class="calview__text">Regler schieben, bis der Umriss exakt unter der Karte verschwindet.</p>
+    <label class="slider">
+      <span class="slider__label">Maßstab <output id="calview-out"></output></span>
+      <input type="range" id="calview-range" min="1.5" max="20" step="0.001">
+    </label>
+    <div class="nudge">
+      <button class="btn btn--nudge" data-nudge="-0.05" type="button">−0,05</button>
+      <button class="btn btn--nudge" data-nudge="-0.01" type="button">−0,01</button>
+      <button class="btn btn--nudge" data-nudge="0.01" type="button">+0,01</button>
+      <button class="btn btn--nudge" data-nudge="0.05" type="button">+0,05</button>
+    </div>
+    <div class="calview__actions">
+      <button class="btn btn--ghost" id="calview-rotate" type="button">Drehen</button>
+      <button class="btn btn--primary" id="calview-done" type="button">Passt</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/devices.js"></script>
+<script src="js/calibration.js"></script>
+<script src="js/ruler.js"></script>
+<script src="js/protractor.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

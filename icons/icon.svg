@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Zollstock">
+  <rect width="512" height="512" fill="#111418"/>
+  <rect x="56" y="182" width="400" height="148" rx="18" fill="#ffb020"/>
+  <g fill="#1a1205">
+    <rect x="102" y="182" width="11" height="81" rx="4"/>
+    <rect x="152" y="182" width="11" height="47" rx="4"/>
+    <rect x="202" y="182" width="11" height="81" rx="4"/>
+    <rect x="252" y="182" width="11" height="47" rx="4"/>
+    <rect x="302" y="182" width="11" height="81" rx="4"/>
+    <rect x="352" y="182" width="11" height="47" rx="4"/>
+    <rect x="402" y="182" width="11" height="81" rx="4"/>
+  </g>
+</svg>
