@@ -160,10 +160,19 @@ window.Protractor = (function () {
 
   function reading() { return mode === 'edge' ? edgeAngle() : slope(); }
 
+  /* Ausrichten: Null auf die nächste Vierteldrehung. Das Gerät darf hochkant,
+   * quer oder auf dem Kopf anliegen und zeigt trotzdem die Abweichung von der
+   * Waagerechten bzw. Senkrechten – vier mögliche Nullstellungen. */
+  function align() {
+    if (mode !== 'edge') return;
+    zeroRef = Math.round(rawEdge() / 90) * 90;
+  }
+
+  /* Nullen: die aktuelle Lage wird zur Null, ohne jede Rundung. Damit lässt
+   * sich gegen eine beliebige Bezugskante messen. */
   function zero() {
     if (mode !== 'edge') return;
-    /* Auf die nächste Vierteldrehung runden: vier mögliche Nullstellungen. */
-    zeroRef = Math.round(rawEdge() / 90) * 90;
+    zeroRef = rawEdge();
   }
 
   /* ---------- Grobe Skala: Ringteilung ---------- */
@@ -281,58 +290,90 @@ window.Protractor = (function () {
 
   /* ---------- Feine Skala: Bandteilung ---------- */
 
+  var FINE_SPAN = 14;      /* sichtbarer Bereich in Grad, je Seite */
+  var FINE_CLEAR = 10;     /* bis hierher voll sichtbar */
+  var FINE_GONE = 14.5;    /* ab hier ausgeblendet */
+
+  /* Abweichung eines Winkels von der nächsten 45-Grad-Marke. */
+  function toGrid(deg) {
+    return deg - Math.round(deg / 45) * 45;
+  }
+
+  /* Nur der Bereich um jede Null herum ist von Interesse; dazwischen
+   * verblasst die Teilung. */
+  function fade(distance) {
+    if (distance <= FINE_CLEAR) return 1;
+    if (distance >= FINE_GONE) return 0;
+    return (FINE_GONE - distance) / (FINE_GONE - FINE_CLEAR);
+  }
+
   function drawTape(x, y, width, height) {
     var value = reading();
-    var perDeg = width / (FINE_RANGE * 2);
+    var perDeg = width / (FINE_SPAN * 2);
     var cx = x + width / 2;
     var text = css('--text');
     var dim = css('--text-dim');
     var accent = css('--accent');
+    var labelSize = Math.max(11, Math.min(14, height * 0.17));
 
     ctx.save();
     ctx.beginPath();
     ctx.rect(x, y, width, height);
     ctx.clip();
 
-    var first = Math.ceil((value - FINE_RANGE) * 10) / 10;
-    var last = value + FINE_RANGE;
+    /* In Vierteln rechnen, damit sich die Schritte nicht aufsummieren. */
+    var first = Math.ceil((value - FINE_SPAN) * 4);
+    var last = Math.floor((value + FINE_SPAN) * 4);
 
-    for (var v = first; v <= last; v = Math.round((v + 0.1) * 10) / 10) {
-      var px = cx + (v - value) * perDeg;
-      var whole = Math.abs(v - Math.round(v)) < 0.001;
-      var half = Math.abs(v * 2 - Math.round(v * 2)) < 0.001;
-      var len = whole ? height * 0.42 : half ? height * 0.28 : height * 0.16;
+    for (var q = first; q <= last; q++) {
+      var deg = q / 4;
+      var grid = toGrid(deg);
+      var alpha = fade(Math.abs(grid));
+      if (alpha <= 0.02) continue;
 
-      ctx.strokeStyle = whole ? text : dim;
-      ctx.lineWidth = whole ? 1.6 : 1;
+      var steps = Math.round(grid * 4);
+      var whole = steps % 4 === 0;
+      var five = steps % 20 === 0;
+      /* Viertelgrade nur im wirklich genutzten Bereich – sonst Brei. */
+      if (!whole && Math.abs(grid) > FINE_CLEAR) continue;
+
+      var len = five ? height * 0.5 : whole ? height * 0.34 : height * 0.18;
+      var px = cx + (deg - value) * perDeg;
+
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = five ? text : whole ? text : dim;
+      ctx.lineWidth = five ? 2 : whole ? 1.4 : 1;
       ctx.beginPath();
       ctx.moveTo(px, y);
       ctx.lineTo(px, y + len);
       ctx.stroke();
 
-      if (whole && px > x + 14 && px < x + width - 14) {
-        ctx.fillStyle = dim;
-        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+      if (five && px > x + 16 && px < x + width - 16) {
+        var shown = Math.round(grid);
+        ctx.fillStyle = shown === 0 ? accent : dim;
+        ctx.font = '600 ' + labelSize + 'px system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText(String(Math.round(v)), px, y + len + 3);
+        ctx.fillText(shown > 0 ? '+' + shown : String(shown), px, y + len + 4);
       }
+      ctx.globalAlpha = 1;
     }
 
     ctx.restore();
 
+    /* Fester Zeiger */
     ctx.strokeStyle = accent;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx, y - 4);
-    ctx.lineTo(cx, y + height * 0.55);
+    ctx.moveTo(cx, y - 5);
+    ctx.lineTo(cx, y + height * 0.62);
     ctx.stroke();
 
     ctx.fillStyle = dim;
     ctx.font = '11px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('Feinskala 0,1°', x + width - 4, y + height);
+    ctx.fillText('Abweichung von ' + fmt(Math.round(value / 45) * 45, 0), x + width - 4, y + height);
   }
 
   /* ---------- Anzeige ---------- */
@@ -393,7 +434,7 @@ window.Protractor = (function () {
     /* Wie viel Platz Werkzeug- und Tableiste brauchen, hängt davon ab, ob die
      * Schaltflächen umbrechen – deshalb wird die Leiste ausgemessen. */
     var bottom = els.tools.getBoundingClientRect().top - 14;
-    var tapeHeight = 58;
+    var tapeHeight = 84;
 
     if (w > h) {
       /* Querformat: Skala links, Anzeige und Feinskala rechts daneben. */
@@ -470,6 +511,7 @@ window.Protractor = (function () {
       btn.classList.toggle('is-active', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
+    els.align.disabled = mode !== 'edge';
     els.zero.disabled = mode !== 'edge';
     draw();
   }
@@ -502,11 +544,13 @@ window.Protractor = (function () {
       gate: document.getElementById('sensor-gate'),
       gateText: document.getElementById('sensor-gate-text'),
       gateButton: document.getElementById('btn-sensor'),
+      align: document.getElementById('btn-align'),
       zero: document.getElementById('btn-zero'),
       hold: document.getElementById('btn-hold'),
       modeButtons: Array.prototype.slice.call(document.querySelectorAll('[data-mode]'))
     };
 
+    els.align.addEventListener('click', align);
     els.zero.addEventListener('click', zero);
     els.hold.addEventListener('click', toggleHold);
     /* Die Skala selbst ist die größte Fläche – auch sie hält an. */

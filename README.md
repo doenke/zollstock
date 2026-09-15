@@ -102,7 +102,8 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | Schild in der Kopfzeile | zwischen „Ohne Hülle" und „Mit Hülle" wechseln |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
-| Nullen (Winkelmesser) | 0° nach oben legen, auf 90° gerundet |
+| Ausrichten | 0° nach oben legen, auf die nächste Vierteldrehung gerundet |
+| Nullen | aktuelle Lage zur Null machen, ohne Rundung |
 | Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
 | Kante / Fläche | Messart des Winkelmessers |
 
@@ -142,8 +143,13 @@ Zwei Messarten, umschaltbar unter der Anzeige:
 Angezeigt wird auf zwei Skalen: grob als Ringteilung mit 1°-Strichen, die wie
 ein Lot im Raum stehen bleibt, während der feste Zeiger oben den Wert
 abgreift – im Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5°
-und 10°. Fein als Bandskala darunter, ± 5° um den aktuellen Wert mit
-0,1°-Teilung.
+und 10°.
+
+Fein als Bandskala darunter. Sie hat **alle 45° eine Null** und zählt von dort
+nach beiden Seiten, in Viertelgrad-Schritten. Gebraucht wird ohnehin nur der
+Bereich um die jeweilige Null, deshalb ist die Teilung bis ± 10° voll sichtbar
+und verblasst dahinter – zwischen zwei Nullen bleibt das Band dunkel. Rechts
+steht, auf welche Marke sich die Skala gerade bezieht.
 
 **Halten** friert die Lage ein: Ring, Libelle, Bandskala und Anzeige stehen
 still, bis erneut gedrückt wird – gedacht für Stellen, an denen das Gerät
@@ -151,12 +157,18 @@ angelegt werden muss, ohne dass man den Bildschirm dabei sieht. Ein Tipp auf
 die Skala selbst tut dasselbe, sie ist die größere Fläche. Während des Haltens
 ruht auch die Zeichenschleife.
 
-**Nullen** legt die 0 der Ringskala nach oben und rundet dabei auf die nächste
-Vierteldrehung: `Math.round(Winkel / 90) * 90`. Damit gibt es vier
-Nullstellungen – das Gerät kann hochkant, quer oder auf dem Kopf angelegt
-werden und zeigt trotzdem die Abweichung von der Waagerechten bzw.
-Senkrechten. Im Flächenmodus gibt es nichts zu nullen, dort ist die Taste
-gesperrt.
+Zwei Arten, den Nullpunkt zu setzen:
+
+**Ausrichten** legt die 0 nach oben und rundet auf die nächste Vierteldrehung:
+`Math.round(Winkel / 90) * 90`. Damit gibt es vier Nullstellungen – das Gerät
+kann hochkant, quer oder auf dem Kopf angelegt werden und zeigt trotzdem die
+Abweichung von der Waagerechten bzw. Senkrechten.
+
+**Nullen** macht die aktuelle Lage zur Null, ohne jede Rundung. Dafür, wenn
+gegen eine beliebige Bezugskante gemessen werden soll: anlegen, nullen, und
+alles Weitere zählt von dort.
+
+Im Flächenmodus gibt es nichts zu nullen, dort sind beide Tasten gesperrt.
 
 Auf iOS muss der Zugriff auf den Lagesensor einmal bestätigt werden
 (`DeviceOrientationEvent.requestPermission`); dafür erscheint eine
