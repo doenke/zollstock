@@ -51,11 +51,16 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 
 | Element | Funktion |
 | --- | --- |
-| Tippen / Ziehen auf der Skala | Messmarke setzen, Anzeige in cm, mm, Zoll (dezimal und als Bruch) |
-| ⟨\|⟩ | Skala auf die andere Kante spiegeln |
-| cm+in | Zollskala ein- und ausblenden |
-| ⚙ | Kalibrierung |
+| Tippen / Ziehen auf der Skala | Messmarke setzen; angezeigt werden beide eingestellten Einheiten |
+| ⟨\|⟩ | Skalen tauschen |
+| ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
+
+Es werden immer **zwei Skalen** gezeichnet – eine an jeder Kante. Welche
+Einheit auf welcher Kante liegt, steht in den Einstellungen unter *Skalen*;
+zur Wahl stehen Zentimeter, Millimeter und Zoll (Sechzehntel-Teilung).
+Voreingestellt ist cm links bzw. oben und Zoll rechts bzw. unten. Die Auswahl
+liegt in `localStorage` (`zollstock.scales.v1`).
 
 Das Lineal läuft immer entlang der längeren Bildschirmkante und folgt der
 Geräteausrichtung. Während des Messens hält die App den Bildschirm wach
@@ -68,6 +73,7 @@ index.html              Gerüst beider Ansichten
 css/style.css           Darstellung
 js/devices.js           Bildschirmerkennung, Gerätetabelle
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
+js/scales.js            Einheiten der beiden Skalen
 js/ruler.js             Lineal (Canvas)
 js/protractor.js        Winkelmesser (Vorschau)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
@@ -97,7 +103,7 @@ auch in einem Unterverzeichnis.
 
 ## Stand
 
-- [x] Lineal in Originalgröße, cm/mm und Zoll
+- [x] Lineal in Originalgröße, zwei frei wählbare Skalen (cm, mm, Zoll)
 - [x] Bildschirmerkennung und Kalibrierung
 - [x] Offline-Betrieb, installierbar
 - [ ] Winkelmesser: interaktive Messung mit beweglichen Schenkeln

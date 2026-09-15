@@ -45,13 +45,10 @@
     <span>Zollstock</span>
   </div>
   <div class="topbar__actions">
-    <button class="iconbtn" id="btn-flip" type="button" title="Skala spiegeln" aria-label="Skala spiegeln">
+    <button class="iconbtn" id="btn-swap" type="button" title="Skalen tauschen" aria-label="Skalen tauschen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>
     </button>
-    <button class="iconbtn" id="btn-units" type="button" title="Zoll-Skala ein/aus" aria-label="Zoll-Skala ein/aus">
-      <span class="iconbtn__text" id="btn-units-text">cm+in</span>
-    </button>
-    <button class="iconbtn" id="btn-calibrate" type="button" title="Kalibrierung" aria-label="Kalibrierung">
+    <button class="iconbtn" id="btn-calibrate" type="button" title="Einstellungen" aria-label="Einstellungen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
     </button>
   </div>
@@ -74,16 +71,44 @@
   <div class="sheet__backdrop" data-close></div>
   <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
     <div class="sheet__head">
-      <h1 id="sheet-title">Kalibrierung</h1>
+      <h1 id="sheet-title">Einstellungen</h1>
       <button class="iconbtn" type="button" data-close aria-label="Schließen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
       </button>
     </div>
 
     <div class="sheet__body">
+      <section class="group">
+        <h2 class="group__title">Skalen</h2>
+        <p class="group__text">Das Lineal zeigt immer zwei Skalen – eine an jeder Kante.</p>
+
+        <div class="unitrow">
+          <span class="unitrow__label" id="scale-a-label">Linke Kante</span>
+          <div class="seg seg--units" data-edge="a" role="group" aria-labelledby="scale-a-label">
+            <button class="seg__btn" data-unit="cm" type="button" aria-pressed="false">cm</button>
+            <button class="seg__btn" data-unit="mm" type="button" aria-pressed="false">mm</button>
+            <button class="seg__btn" data-unit="in" type="button" aria-pressed="false">Zoll</button>
+          </div>
+        </div>
+
+        <div class="unitrow">
+          <span class="unitrow__label" id="scale-b-label">Rechte Kante</span>
+          <div class="seg seg--units" data-edge="b" role="group" aria-labelledby="scale-b-label">
+            <button class="seg__btn" data-unit="cm" type="button" aria-pressed="false">cm</button>
+            <button class="seg__btn" data-unit="mm" type="button" aria-pressed="false">mm</button>
+            <button class="seg__btn" data-unit="in" type="button" aria-pressed="false">Zoll</button>
+          </div>
+        </div>
+
+        <button class="btn btn--ghost" id="scale-swap" type="button">Skalen tauschen</button>
+      </section>
+
+      <section class="group">
+        <h2 class="group__title">Kalibrierung</h2>
+
       <dl class="facts" id="facts"></dl>
 
-      <div class="seg" role="tablist" aria-label="Kalibriermethode">
+      <div class="seg" id="cal-methods" role="tablist" aria-label="Kalibriermethode">
         <button class="seg__btn is-active" data-method="card" role="tab" type="button">EC-/Kreditkarte</button>
         <button class="seg__btn" data-method="line" role="tab" type="button">Linie messen</button>
         <button class="seg__btn" data-method="ppi" role="tab" type="button">PPI eingeben</button>
@@ -127,12 +152,17 @@
         <button class="btn btn--nudge" data-nudge="0.05" type="button">+0,05</button>
       </div>
 
+      <div class="calactions">
+        <button class="btn btn--ghost" id="cal-reset" type="button">Automatik</button>
+        <button class="btn btn--primary" id="cal-save" type="button">Maßstab übernehmen</button>
+      </div>
+
       <p class="note">Tipp: Die Nulllinie liegt am Rand des sichtbaren Bereichs. Für randgenaues Messen die App zum Startbildschirm hinzufügen – dann läuft sie im Vollbild ohne Adressleiste.</p>
+      </section>
     </div>
 
     <div class="sheet__foot">
-      <button class="btn btn--ghost" id="cal-reset" type="button">Automatik</button>
-      <button class="btn btn--primary" id="cal-save" type="button">Speichern</button>
+      <button class="btn btn--primary" data-close type="button">Fertig</button>
     </div>
   </div>
 </div>
@@ -163,6 +193,7 @@
 
 <script src="js/devices.js"></script>
 <script src="js/calibration.js"></script>
+<script src="js/scales.js"></script>
 <script src="js/ruler.js"></script>
 <script src="js/protractor.js"></script>
 <script src="js/app.js"></script>

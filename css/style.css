@@ -261,6 +261,24 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 .facts dt { color: var(--text-dim); }
 .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
 
+/* ---------- Abschnitte ---------- */
+.group { display: flex; flex-direction: column; gap: 14px; }
+.group + .group { padding-top: 16px; border-top: 1px solid var(--line); }
+
+.group__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.group__text { margin: -8px 0 0; font-size: 13px; color: var(--text-dim); }
+
+.unitrow { display: flex; flex-direction: column; gap: 7px; }
+.unitrow__label { font-size: 13px; color: var(--text); font-weight: 600; }
+
 /* ---------- Segmente / Methoden ---------- */
 .seg { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); }
 
@@ -352,6 +370,7 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--accent); }
 
 .nudge { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.calactions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
 
 .btn {
   padding: 11px 14px;

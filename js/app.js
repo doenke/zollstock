@@ -28,20 +28,9 @@
   }
 
   function setupToolbar() {
-    var unitsBtn = document.getElementById('btn-units');
-    var unitsText = document.getElementById('btn-units-text');
-
-    document.getElementById('btn-flip').addEventListener('click', function () {
-      window.Ruler.toggleFlip();
+    document.getElementById('btn-swap').addEventListener('click', function () {
+      window.Scales.swap();
     });
-
-    unitsBtn.addEventListener('click', function () {
-      var on = window.Ruler.toggleImperial();
-      unitsText.textContent = on ? 'cm+in' : 'cm';
-      unitsBtn.classList.toggle('is-on', on);
-    });
-
-    unitsBtn.classList.toggle('is-on', window.Ruler.isImperial());
 
     document.getElementById('btn-calibrate').addEventListener('click', function () {
       window.Calibration.open();
@@ -101,6 +90,7 @@
 
   function start() {
     window.Calibration.init();
+    window.Scales.init();
     window.Ruler.init();
     window.Protractor.init();
 
@@ -108,6 +98,8 @@
       document.getElementById('btn-calibrate').classList.remove('is-on');
       redraw();
     });
+
+    window.Scales.onChange(function () { window.Ruler.refresh(); });
 
     setupTabs();
     setupToolbar();

@@ -148,7 +148,8 @@ window.Calibration = (function () {
     };
     persist();
     emit();
-    close();
+    /* Das Sheet bleibt offen: die Zeile "Aktiv" zeigt sofort das Ergebnis. */
+    renderFacts();
   }
 
   function reset() {
@@ -166,7 +167,7 @@ window.Calibration = (function () {
       cardShape: document.getElementById('calview-card'),
       cardRange: document.getElementById('calview-range'),
       cardOut: document.getElementById('calview-out'),
-      segButtons: document.querySelectorAll('.seg__btn')
+      segButtons: document.querySelectorAll('#cal-methods .seg__btn')
     };
 
     [els.range, els.cardRange].forEach(function (range) {
