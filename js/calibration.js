@@ -169,6 +169,7 @@ window.Calibration = (function () {
   function close() {
     els.sheet.hidden = true;
     els.cardView.hidden = true;
+    window.Edge.close();
   }
 
   function save() {

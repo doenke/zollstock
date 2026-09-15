@@ -57,6 +57,35 @@ Drei Wege, alle unter dem Zahnrad oben rechts:
 Das Ergebnis liegt in `localStorage` (`zollstock.calibration.v1`) und gilt für
 dieses Gerät, bis es über „Automatik“ zurückgesetzt wird.
 
+### Rand und Schutzhülle
+
+Zwischen der Kante des Geräts und dem ersten Bildpunkt liegen einige
+Millimeter Rahmen – mit Hülle deutlich mehr. Wer ein Werkstück an die
+Gehäusekante anlegt, misst diesen Rand sonst mit.
+
+Gemessen wird er wieder mit der Karte, diesmal als Lückenfüller: Die Karte
+liegt flach auf dem Bildschirm, bündig an der Kante des Geräts (oder der
+Hülle) am Nullpunkt des Lineals, und ragt mit bekannter Länge auf das
+Display. Sichtbar ist davon nur der Teil hinter dem Rand – der Rest steckt
+darunter:
+
+```
+Rand = Kartenlänge − sichtbarer Anteil
+```
+
+In der Vollbildmessung wird eine Linie auf das Ende der Karte geschoben, den
+Rest rechnet die App aus. Passt die lange Seite nicht neben die Bedienleiste,
+wird automatisch auf die kurze Seite (54,0 mm) umgestellt; *Drehen* schaltet
+von Hand um.
+
+Ist der Rand bekannt, beginnt die Skala an der Gerätekante statt am
+Bildschirmrand – die erste Zahl oben ist dann nicht mehr die Null.
+
+Dafür gibt es zwei Profile, **Ohne Hülle** und **Mit Hülle**, jedes mit
+eigenem Wert. Das aktive Profil steht als Schild in der Kopfzeile; ein Tipp
+darauf wechselt, sobald die Hülle ab- oder drankommt. Gespeichert wird in
+`localStorage` (`zollstock.edge.v1`).
+
 ### Genauigkeit
 
 Die Nulllinie liegt am Rand des **sichtbaren Bereichs**, nicht am Gehäuserand.
@@ -69,6 +98,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | --- | --- |
 | Tippen / Ziehen auf der Skala | Messmarke setzen; angezeigt werden beide eingestellten Einheiten |
 | ⟨\|⟩ | Skalen tauschen |
+| Schild in der Kopfzeile | zwischen „Ohne Hülle" und „Mit Hülle" wechseln |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
 
@@ -90,6 +120,7 @@ css/style.css           Darstellung
 js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
 js/scales.js            Einheiten der beiden Skalen
+js/edge.js              Randversatz, Profile für Gerät und Hülle
 js/ruler.js             Lineal (Canvas)
 js/protractor.js        Winkelmesser (Vorschau)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
@@ -121,5 +152,6 @@ auch in einem Unterverzeichnis.
 
 - [x] Lineal in Originalgröße, zwei frei wählbare Skalen (cm, mm, Zoll)
 - [x] Bildschirmerkennung und Kalibrierung
+- [x] Randversatz für Gerätekante und Schutzhülle
 - [x] Offline-Betrieb, installierbar
 - [ ] Winkelmesser: interaktive Messung mit beweglichen Schenkeln

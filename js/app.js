@@ -94,6 +94,7 @@
   function start() {
     window.Calibration.init();
     window.Scales.init();
+    window.Edge.init();
     window.Ruler.init();
     window.Protractor.init();
 
@@ -103,6 +104,7 @@
     });
 
     window.Scales.onChange(function () { window.Ruler.refresh(); });
+    window.Edge.onChange(function () { window.Ruler.refresh(); });
 
     setupTabs();
     setupToolbar();

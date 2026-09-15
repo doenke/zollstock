@@ -55,6 +55,34 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block
   pointer-events: none;
 }
 
+.topbar__left { display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  backdrop-filter: blur(10px);
+  color: var(--accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chip { white-space: nowrap; }
+.chip[hidden] { display: none; }
+
+/* Auf schmalen Geräten weicht der Schriftzug dem Profilschild. */
+@media (max-width: 430px) {
+  .topbar__brand { padding: 6px 8px; }
+  .topbar__brand span { display: none; }
+}
+.chip svg { width: 15px; height: 15px; }
+
 .topbar__brand {
   display: flex;
   align-items: center;
@@ -443,3 +471,64 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
 
 .calview__text { margin: 0; font-size: 13px; color: var(--text-dim); }
 .calview__actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
+/* ---------- Rand messen (Vollbild) ---------- */
+.edgeview {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.edgeview[hidden] { display: none; }
+
+.edgeview__stage { position: relative; flex: 1; overflow: hidden; touch-action: none; }
+
+/* Fläche, die unter der Karte liegt */
+.edgeview__hatch {
+  position: absolute;
+  background: repeating-linear-gradient(135deg, transparent 0 9px, color-mix(in srgb, var(--accent) 13%, transparent) 9px 18px);
+}
+
+.edgeview__line { position: absolute; }
+
+.edgeview__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: 80%;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.edgeview__bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px calc(var(--safe-r) + 16px) calc(var(--safe-b) + 16px) calc(var(--safe-l) + 16px);
+  border-top: 1px solid var(--line);
+  border-radius: 18px 18px 0 0;
+  background: var(--surface);
+}
+
+.edgeview__text { margin: 0; font-size: 13px; color: var(--text-dim); }
+
+.edgeview__value {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.edgeview__value output {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+}
+
+.edgeview__actions { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 10px; }

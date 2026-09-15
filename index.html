@@ -40,9 +40,15 @@
 
 <!-- ---------- Kopfzeile ---------- -->
 <header class="topbar">
-  <div class="topbar__brand">
-    <svg class="topbar__logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
-    <span>Zollstock</span>
+  <div class="topbar__left">
+    <div class="topbar__brand">
+      <svg class="topbar__logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
+      <span>Zollstock</span>
+    </div>
+    <button class="chip" id="btn-profile" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z"/><path d="M6 7h12"/></svg>
+      <span id="btn-profile-name">Ohne Hülle</span>
+    </button>
   </div>
   <div class="topbar__actions">
     <button class="iconbtn" id="btn-swap" type="button" title="Skalen tauschen" aria-label="Skalen tauschen">
@@ -159,6 +165,28 @@
 
       <p class="note">Tipp: Die Nulllinie liegt am Rand des sichtbaren Bereichs. Für randgenaues Messen die App zum Startbildschirm hinzufügen – dann läuft sie im Vollbild ohne Adressleiste.</p>
       </section>
+
+      <section class="group">
+        <h2 class="group__title">Rand &amp; Hülle</h2>
+        <p class="group__text">Zwischen der Kante des Geräts und dem ersten Bildpunkt liegt ein Rand – mit Hülle mehr. Ist er bekannt, beginnt die Skala an der Gerätekante statt am Bildschirmrand.</p>
+
+        <div class="seg seg--profiles" id="edge-profiles" role="group" aria-label="Profil">
+          <button class="seg__btn" data-profile="bare" type="button" aria-pressed="false">Ohne Hülle</button>
+          <button class="seg__btn" data-profile="case" type="button" aria-pressed="false">Mit Hülle</button>
+        </div>
+
+        <label class="field">
+          <span>Rand dieses Profils</span>
+          <span class="field__input"><input type="number" id="edge-mm" inputmode="decimal" step="0.1" min="0" max="30"><em>mm</em></span>
+        </label>
+
+        <div class="calactions">
+          <button class="btn btn--ghost" id="edge-clear" type="button">Zurücksetzen</button>
+          <button class="btn btn--primary" id="edge-measure" type="button">Mit Karte messen</button>
+        </div>
+
+        <p class="note">Erst den Maßstab kalibrieren, dann den Rand messen – die Randmessung rechnet mit dem eingestellten Maßstab.</p>
+      </section>
     </div>
 
     <div class="sheet__foot">
@@ -191,9 +219,34 @@
   </div>
 </div>
 
+<!-- ---------- Rand messen (Vollbild) ---------- -->
+<div class="edgeview" id="edgeview" hidden>
+  <div class="edgeview__stage" id="edgeview-stage">
+    <div class="edgeview__hatch" id="edgeview-hatch"></div>
+    <div class="edgeview__line" id="edgeview-line"></div>
+    <p class="edgeview__hint">Linie auf das Kartenende ziehen</p>
+  </div>
+  <div class="edgeview__bar">
+    <p class="edgeview__text">Karte flach auf den Bildschirm legen, bündig an die Kante des Geräts (bzw. der Hülle) am Nullpunkt des Lineals. Die Linie auf das Ende der Karte schieben – <span id="edgeview-span">lange Seite (85,6 mm)</span>.</p>
+    <p class="edgeview__value">Rand: <output id="edgeview-value">0,0 mm</output></p>
+    <div class="nudge">
+      <button class="btn btn--nudge" data-nudge-edge="-1" type="button">−1</button>
+      <button class="btn btn--nudge" data-nudge-edge="-0.1" type="button">−0,1</button>
+      <button class="btn btn--nudge" data-nudge-edge="0.1" type="button">+0,1</button>
+      <button class="btn btn--nudge" data-nudge-edge="1" type="button">+1</button>
+    </div>
+    <div class="edgeview__actions">
+      <button class="btn btn--ghost" id="edgeview-cancel" type="button">Abbrechen</button>
+      <button class="btn btn--ghost" id="edgeview-rotate" type="button">Drehen</button>
+      <button class="btn btn--primary" id="edgeview-done" type="button">Passt</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/devices.js"></script>
 <script src="js/calibration.js"></script>
 <script src="js/scales.js"></script>
+<script src="js/edge.js"></script>
 <script src="js/ruler.js"></script>
 <script src="js/protractor.js"></script>
 <script src="js/app.js"></script>

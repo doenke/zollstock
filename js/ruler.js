@@ -41,19 +41,27 @@ window.Ruler = (function () {
   /* base  Querkoordinate der Nulllinie
    * dir   Richtung, in die die Striche zeigen (+1 oder -1)
    * major Länge des Hauptstrichs */
+  /* Ein Teilstrich mit dem Wert v liegt bei (v − Randversatz) × Pixel je mm:
+   * die Null der Skala sitzt an der Gerätekante, nicht am Bildschirmrand. */
+  function alongOf(mm) {
+    return (mm - window.Edge.offset()) * window.Calibration.pxPerMm();
+  }
+
   function drawScale(unit, base, dir, major, color) {
-    var pxPerDiv = window.Calibration.pxPerMm() * unit.step;
-    var count = Math.floor(geometry.length / pxPerDiv);
+    var pxPerMm = window.Calibration.pxPerMm();
+    var offsetMm = window.Edge.offset();
+    var first = Math.ceil(offsetMm / unit.step - 1e-6);
+    var count = Math.floor((geometry.length / pxPerMm + offsetMm) / unit.step);
     var i, along, tier;
 
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
     ctx.beginPath();
 
-    for (i = 0; i <= count; i++) {
+    for (i = first; i <= count; i++) {
       tier = unit.tiers.find(function (t) { return i % t.every === 0; });
       if (!tier) continue;
-      along = i * pxPerDiv;
+      along = alongOf(i * unit.step);
       line(along, base, along, base + dir * major * tier.scale);
     }
 
@@ -62,26 +70,29 @@ window.Ruler = (function () {
     /* Hauptstriche und Nulllinie kräftiger */
     ctx.lineWidth = 2;
     ctx.beginPath();
-    for (i = 0; i <= count; i += unit.labelEvery) {
-      along = i * pxPerDiv;
+    for (i = Math.ceil(first / unit.labelEvery) * unit.labelEvery; i <= count; i += unit.labelEvery) {
+      along = alongOf(i * unit.step);
       line(along, base, along, base + dir * major);
     }
     line(0, base, geometry.length, base);
     ctx.stroke();
 
-    /* Beschriftung */
+    /* Beschriftung – die Einheit steht am ersten sichtbaren Wert */
     var fontSize = Math.max(11, Math.min(17, geometry.cross * 0.045));
     var textCross = base + dir * (major + fontSize * 0.55);
+    var labelled = false;
 
     ctx.fillStyle = color;
     ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, sans-serif';
 
-    for (i = unit.labelEvery; i <= count; i += unit.labelEvery) {
-      along = i * pxPerDiv;
+    for (i = Math.max(unit.labelEvery, Math.ceil(first / unit.labelEvery) * unit.labelEvery);
+         i <= count; i += unit.labelEvery) {
+      along = alongOf(i * unit.step);
       if (along > geometry.length - fontSize * 0.7) break;
+      if (along < fontSize * 0.6) continue;
 
       var value = Math.round(i * unit.valuePerDivision * 1000) / 1000;
-      var text = String(value) + (i === unit.labelEvery ? unit.suffix : '');
+      var text = String(value) + (labelled ? '' : unit.suffix);
       var p = pt(along, textCross);
 
       if (geometry.vertical) {
@@ -92,14 +103,15 @@ window.Ruler = (function () {
         ctx.textBaseline = dir > 0 ? 'top' : 'bottom';
       }
       ctx.fillText(text, p.x, p.y);
+      labelled = true;
     }
   }
 
   function drawMarker() {
     if (markerMm === null) return;
 
-    var along = markerMm * window.Calibration.pxPerMm();
-    if (along > geometry.length) return;
+    var along = alongOf(markerMm);
+    if (along < 0 || along > geometry.length) return;
 
     var accent = css('--accent');
 
@@ -166,7 +178,7 @@ window.Ruler = (function () {
     var raw = geometry.vertical ? event.clientY - rect.top : event.clientX - rect.left;
     var along = Math.max(0, Math.min(geometry.length, raw));
 
-    markerMm = along / window.Calibration.pxPerMm();
+    markerMm = window.Edge.offset() + along / window.Calibration.pxPerMm();
     hint.classList.add('is-hidden');
     updateReadout();
     draw();
