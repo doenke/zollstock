@@ -26,6 +26,7 @@ window.Protractor = (function () {
   var smooth = null;
   var mode = 'edge';
   var zeroRef = 0;
+  var hold = null;           /* eingefrorene Lage, solange gehalten wird */
   var active = false;
   var listening = false;
   var haveData = false;
@@ -129,14 +130,21 @@ window.Protractor = (function () {
     return typeof window.orientation === 'number' ? window.orientation : 0;
   }
 
+  /* Gehalten wird die Lage selbst – damit stehen Ring, Libelle, Bandskala und
+   * Anzeige gemeinsam still, egal wie das Gerät danach bewegt wird. */
+  function source() {
+    return hold || { up: up, angle: screenAngle() };
+  }
+
   function screenUp() {
-    var a = screenAngle() / DEG;
+    var src = source();
+    var a = src.angle / DEG;
     var cos = Math.cos(a);
     var sin = Math.sin(a);
     return {
-      x: up.x * cos + up.y * sin,
-      y: -up.x * sin + up.y * cos,
-      z: up.z
+      x: src.up.x * cos + src.up.y * sin,
+      y: -src.up.x * sin + src.up.y * cos,
+      z: src.up.z
     };
   }
 
@@ -145,8 +153,8 @@ window.Protractor = (function () {
     return Math.atan2(-s.x, s.y) * DEG;
   }
   function edgeAngle() { return wrap180(rawEdge() - zeroRef); }
-  function screenTilt() { return Math.asin(clamp1(up.z)) * DEG; }   /* 0 = senkrecht */
-  function slope() { return Math.acos(Math.min(1, Math.abs(up.z))) * DEG; }
+  function screenTilt() { return Math.asin(clamp1(source().up.z)) * DEG; }  /* 0 = senkrecht */
+  function slope() { return Math.acos(Math.min(1, Math.abs(source().up.z))) * DEG; }
   function axisLong() { return Math.asin(clamp1(screenUp().y)) * DEG; }
   function axisCross() { return Math.asin(clamp1(screenUp().x)) * DEG; }
 
@@ -352,6 +360,7 @@ window.Protractor = (function () {
       second = 'Längs ' + fmt(axisLong()) + '  ·  Quer ' + fmt(axisCross());
       hint = 'Gerät flach auflegen';
     }
+    if (hold) hint = 'gehalten – zum Lösen erneut tippen';
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -381,7 +390,9 @@ window.Protractor = (function () {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    var bottom = h - 150;          /* Platz für Werkzeugleiste und Tableiste */
+    /* Wie viel Platz Werkzeug- und Tableiste brauchen, hängt davon ab, ob die
+     * Schaltflächen umbrechen – deshalb wird die Leiste ausgemessen. */
+    var bottom = els.tools.getBoundingClientRect().top - 14;
     var tapeHeight = 58;
 
     if (w > h) {
@@ -418,7 +429,8 @@ window.Protractor = (function () {
 
   function loop() {
     draw();
-    frame = requestAnimationFrame(loop);
+    /* Im Haltezustand ändert sich nichts mehr – dann ruht die Schleife. */
+    frame = hold ? null : requestAnimationFrame(loop);
   }
 
   /* ---------- Bedienung ---------- */
@@ -431,6 +443,24 @@ window.Protractor = (function () {
     els.gateText.textContent = message;
     els.gateButton.hidden = withButton === false;
     els.gate.hidden = false;
+  }
+
+  function toggleHold() {
+    if (!haveData && !hold) return;
+
+    hold = hold ? null : {
+      up: { x: up.x, y: up.y, z: up.z },
+      angle: screenAngle()
+    };
+
+    els.hold.classList.toggle('is-on', !!hold);
+    els.hold.setAttribute('aria-pressed', hold ? 'true' : 'false');
+    els.hold.textContent = hold ? 'Weiter' : 'Halten';
+
+    cancelAnimationFrame(frame);
+    frame = null;
+    if (hold || !active) draw();
+    else loop();
   }
 
   function setMode(next) {
@@ -468,14 +498,19 @@ window.Protractor = (function () {
     ctx = canvas.getContext('2d');
 
     els = {
+      tools: document.querySelector('.tools'),
       gate: document.getElementById('sensor-gate'),
       gateText: document.getElementById('sensor-gate-text'),
       gateButton: document.getElementById('btn-sensor'),
       zero: document.getElementById('btn-zero'),
+      hold: document.getElementById('btn-hold'),
       modeButtons: Array.prototype.slice.call(document.querySelectorAll('[data-mode]'))
     };
 
     els.zero.addEventListener('click', zero);
+    els.hold.addEventListener('click', toggleHold);
+    /* Die Skala selbst ist die größte Fläche – auch sie hält an. */
+    canvas.addEventListener('pointerdown', toggleHold);
     els.gateButton.addEventListener('click', requestSensor);
     els.modeButtons.forEach(function (btn) {
       btn.addEventListener('click', function () { setMode(btn.dataset.mode); });
@@ -495,6 +530,7 @@ window.Protractor = (function () {
       long: axisLong(),
       cross: axisCross(),
       zeroRef: zeroRef,
+      held: !!hold,
       haveData: haveData
     };
   }

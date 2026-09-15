@@ -207,19 +207,28 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 .hint.is-hidden { opacity: 0; }
 
 /* ---------- Werkzeuge des Winkelmessers ---------- */
+/* Über die volle Breite, damit die Schaltflächen erst umbrechen, wenn sie
+ * wirklich nicht mehr nebeneinander passen. Ein Kasten mit left: 50% hätte
+ * nur die halbe Breite zur Verfügung und bräche zu früh um. */
 .tools {
   position: fixed;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: calc(var(--safe-b) + 74px);
-  transform: translateX(-50%);
   z-index: 15;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
+  padding: 0 calc(var(--safe-l) + 12px) 0 calc(var(--safe-r) + 12px);
+  pointer-events: none;
 }
 
+.tools > * { pointer-events: auto; }
+
 .btn--tool {
-  padding: 9px 16px;
+  padding: 9px 13px;
   border-radius: 12px;
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   backdrop-filter: blur(10px);
@@ -227,6 +236,8 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 }
 
 .btn:disabled { opacity: .4; cursor: default; }
+.btn--tool.is-on { border-color: var(--accent); color: var(--accent); }
+
 
 .seg--mode {
   padding: 3px;
@@ -235,7 +246,7 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
   border: 1px solid var(--line);
 }
 
-.seg--mode .seg__btn { padding: 7px 14px; }
+.seg--mode .seg__btn { padding: 7px 12px; }
 
 .gate {
   position: fixed;

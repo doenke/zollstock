@@ -103,6 +103,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
 | Nullen (Winkelmesser) | 0° nach oben legen, auf 90° gerundet |
+| Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
 | Kante / Fläche | Messart des Winkelmessers |
 
 Es werden immer **zwei Skalen** gezeichnet – eine an jeder Kante. Welche
@@ -143,6 +144,12 @@ ein Lot im Raum stehen bleibt, während der feste Zeiger oben den Wert
 abgreift – im Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5°
 und 10°. Fein als Bandskala darunter, ± 5° um den aktuellen Wert mit
 0,1°-Teilung.
+
+**Halten** friert die Lage ein: Ring, Libelle, Bandskala und Anzeige stehen
+still, bis erneut gedrückt wird – gedacht für Stellen, an denen das Gerät
+angelegt werden muss, ohne dass man den Bildschirm dabei sieht. Ein Tipp auf
+die Skala selbst tut dasselbe, sie ist die größere Fläche. Während des Haltens
+ruht auch die Zeichenschleife.
 
 **Nullen** legt die 0 der Ringskala nach oben und rundet dabei auf die nächste
 Vierteldrehung: `Math.round(Winkel / 90) * 90`. Damit gibt es vier
@@ -196,7 +203,7 @@ auch in einem Unterverzeichnis.
 - [x] Lineal in Originalgröße, zwei frei wählbare Skalen (cm, mm, Zoll)
 - [x] Bildschirmerkennung und Kalibrierung
 - [x] Randversatz für Gerätekante und Schutzhülle
-- [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten
+- [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste
 - [x] Offline-Betrieb, installierbar
 
 ## Lizenz
