@@ -40,7 +40,9 @@ body {
 .view { position: absolute; inset: 0; display: none; }
 .view.is-active { display: block; }
 
-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* touch-action: none – sonst kann der Browser eine Wischgeste an sich ziehen
+   und der Zeigerstrom beim Ziehen bricht ab. */
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 
 /* ---------- Topbar ---------- */
 .topbar {

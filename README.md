@@ -97,8 +97,9 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 
 | Element | Funktion |
 | --- | --- |
-| Tippen / Ziehen auf der Skala | Messmarke setzen; angezeigt werden beide eingestellten Einheiten |
-| ⟨\|⟩ | Skalen tauschen |
+| Tippen auf die Skala | Messmarke dorthin setzen |
+| Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
+| längs / quer | Lineal an der langen oder an der kurzen Bildschirmkante |
 | Schild in der Kopfzeile | zwischen „Ohne Hülle" und „Mit Hülle" wechseln |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
@@ -113,8 +114,11 @@ zur Wahl stehen Zentimeter, Millimeter und Zoll (Sechzehntel-Teilung).
 Voreingestellt ist cm links bzw. oben und Zoll rechts bzw. unten. Die Auswahl
 liegt in `localStorage` (`zollstock.scales.v1`).
 
-Das Lineal läuft immer entlang der längeren Bildschirmkante und folgt der
-Geräteausrichtung. Während des Messens hält die App den Bildschirm wach
+Das Lineal läuft normalerweise entlang der längeren Bildschirmkante und folgt
+der Geräteausrichtung. Der Knopf **längs/quer** legt es auf die kurze Kante –
+dann liegt die Null links statt oben und die beiden Skalen oben und unten.
+Die Randmessung und die Bezeichnung der Kanten in den Einstellungen richten
+sich mit. Während des Messens hält die App den Bildschirm wach
 (Wake-Lock, sofern vom Browser unterstützt).
 
 ## Winkelmesser

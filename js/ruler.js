@@ -6,6 +6,8 @@ window.Ruler = (function () {
   var canvas, ctx, readout, readoutMain, readoutSub, hint;
   var markerMm = null;
   var dragging = false;
+  var frame = null;
+  var GRAB_PX = 28;         /* Fassbereich um die Marke */
   var geometry = { vertical: true, length: 0, cross: 0 };
 
   function css(name) {
@@ -30,10 +32,18 @@ window.Ruler = (function () {
     var dpr = window.devicePixelRatio || 1;
     var w = canvas.clientWidth;
     var h = canvas.clientHeight;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
+    var pxW = Math.round(w * dpr);
+    var pxH = Math.round(h * dpr);
+
+    /* Die Zeichenfläche neu aufzusetzen kostet Zeit und leert sie. Beim
+     * Ziehen ändert sich die Größe nicht – dann bleibt sie, wie sie ist. */
+    if (canvas.width !== pxW || canvas.height !== pxH) {
+      canvas.width = pxW;
+      canvas.height = pxH;
+    }
+
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    geometry.vertical = h >= w;
+    geometry.vertical = window.Scales.vertical();
     geometry.length = geometry.vertical ? h : w;
     geometry.cross = geometry.vertical ? w : h;
   }
@@ -126,12 +136,17 @@ window.Ruler = (function () {
     var p = pt(along, geometry.cross * 0.5);
     ctx.fillStyle = accent;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, dragging ? 14 : 12, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = css('--accent-ink');
+
+    /* Zwei Rillen quer zur Skala: der Griff sieht nach Anfassen aus. */
+    ctx.strokeStyle = css('--accent-ink');
+    ctx.lineWidth = 1.6;
+    var mid = geometry.cross * 0.5;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-    ctx.fill();
+    line(along - 3, mid - 5, along - 3, mid + 5);
+    line(along + 3, mid - 5, along + 3, mid + 5);
+    ctx.stroke();
   }
 
   function draw() {
@@ -173,28 +188,44 @@ window.Ruler = (function () {
 
   /* ---------- Interaktion ---------- */
 
-  function setMarkerFromEvent(event) {
+  function alongFromEvent(event) {
     var rect = canvas.getBoundingClientRect();
-    var raw = geometry.vertical ? event.clientY - rect.top : event.clientX - rect.left;
-    var along = Math.max(0, Math.min(geometry.length, raw));
+    return geometry.vertical ? event.clientY - rect.top : event.clientX - rect.left;
+  }
 
-    markerMm = window.Edge.offset() + along / window.Calibration.pxPerMm();
+  function setMarker(along) {
+    markerMm = window.Edge.offset() +
+      Math.max(0, Math.min(geometry.length, along)) / window.Calibration.pxPerMm();
     hint.classList.add('is-hidden');
     updateReadout();
-    draw();
+    schedule();
+  }
+
+  /* Beim Ziehen höchstens einmal je Bild zeichnen. */
+  function schedule() {
+    if (frame) return;
+    frame = requestAnimationFrame(function () {
+      frame = null;
+      draw();
+    });
   }
 
   function bindPointer() {
     canvas.addEventListener('pointerdown', function (event) {
+      var along = alongFromEvent(event);
+      var handle = markerMm === null ? null : alongOf(markerMm);
+
       dragging = true;
       canvas.setPointerCapture(event.pointerId);
       /* Bedienelemente zurücknehmen, damit sie die Skala nicht verdecken. */
       document.body.classList.add('is-measuring');
-      setMarkerFromEvent(event);
+
+      /* Dicht an der Marke wird sie angefasst, sonst springt sie hierher. */
+      if (handle === null || Math.abs(along - handle) > GRAB_PX) setMarker(along);
     });
 
     canvas.addEventListener('pointermove', function (event) {
-      if (dragging) setMarkerFromEvent(event);
+      if (dragging) setMarker(alongFromEvent(event));
     });
 
     ['pointerup', 'pointercancel'].forEach(function (type) {

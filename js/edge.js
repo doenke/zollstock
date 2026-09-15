@@ -138,7 +138,8 @@ window.Edge = (function () {
    * die Leiste ausfällt, hängt vom Umbruch ihrer Texte ab – deshalb wird die
    * Messfläche ausgemessen, statt mit einem festen Wert zu rechnen. */
   function chooseSpan() {
-    vertical = window.innerHeight >= window.innerWidth;
+    /* Gemessen wird immer an der Kante, an der das Lineal seine Null hat. */
+    vertical = window.Scales.vertical();
     var available = (vertical ? els.stage.clientHeight : els.stage.clientWidth) - HINT_PX;
     cardSpan = CARD_LONG * window.Calibration.pxPerMm() <= available ? CARD_LONG : CARD_SHORT;
   }

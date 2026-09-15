@@ -31,9 +31,22 @@
   }
 
   function setupToolbar() {
-    document.getElementById('btn-swap').addEventListener('click', function () {
-      window.Scales.swap();
+    var axisBtn = document.getElementById('btn-axis');
+    var axisText = document.getElementById('btn-axis-text');
+
+    function showAxis() {
+      var crossways = window.Scales.crossways();
+      axisText.textContent = crossways ? 'quer' : 'längs';
+      axisBtn.classList.toggle('is-on', crossways);
+      axisBtn.setAttribute('aria-pressed', crossways ? 'true' : 'false');
+    }
+
+    axisBtn.addEventListener('click', function () {
+      window.Scales.toggleAxis();
+      showAxis();
     });
+
+    showAxis();
 
     document.getElementById('btn-calibrate').addEventListener('click', function () {
       window.Calibration.open();

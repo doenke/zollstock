@@ -31,7 +31,7 @@ window.Scales = (function () {
     }
   };
 
-  var state = load() || { a: 'cm', b: 'in' };
+  var state = load() || { a: 'cm', b: 'in', crossways: false };
   var listeners = [];
   var els = {};
 
@@ -39,7 +39,7 @@ window.Scales = (function () {
     try {
       var parsed = JSON.parse(localStorage.getItem(STORE_KEY));
       if (!parsed || !UNITS[parsed.a] || !UNITS[parsed.b]) return null;
-      return { a: parsed.a, b: parsed.b };
+      return { a: parsed.a, b: parsed.b, crossways: !!parsed.crossways };
     } catch (err) {
       return null;
     }
@@ -100,11 +100,24 @@ window.Scales = (function () {
     emit();
   }
 
-  /* Die Kanten heißen je nach Ausrichtung anders. */
+  /* Längs oder quer zur längeren Bildschirmkante. Läuft das Lineal senkrecht,
+   * liegen seine beiden Skalen an der linken und rechten Kante, sonst oben
+   * und unten. */
+  function vertical() {
+    return (window.innerHeight >= window.innerWidth) !== state.crossways;
+  }
+
+  function toggleAxis() {
+    state.crossways = !state.crossways;
+    persist();
+    render();
+    emit();
+    return state.crossways;
+  }
+
   function refreshLabels() {
-    var vertical = window.innerHeight >= window.innerWidth;
-    els.labelA.textContent = vertical ? 'Linke Kante' : 'Obere Kante';
-    els.labelB.textContent = vertical ? 'Rechte Kante' : 'Untere Kante';
+    els.labelA.textContent = vertical() ? 'Linke Kante' : 'Obere Kante';
+    els.labelB.textContent = vertical() ? 'Rechte Kante' : 'Untere Kante';
   }
 
   function render() {
@@ -145,6 +158,9 @@ window.Scales = (function () {
     unit: function (edge) { return UNITS[state[edge]]; },
     set: set,
     swap: swap,
+    vertical: vertical,
+    crossways: function () { return state.crossways; },
+    toggleAxis: toggleAxis,
     format: format,
     fractionInch: fractionInch,
     hasInch: function () { return state.a === 'in' || state.b === 'in'; },
