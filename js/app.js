@@ -30,23 +30,34 @@
     });
   }
 
-  /* Der Pfeil zeigt, wohin die Skala zählt – je nach Lage des Lineals. */
-  function showDirection() {
-    var arrow = document.getElementById('btn-direction-arrow');
-    var vertical = window.Scales.vertical();
-    var reversed = window.Scales.reversed();
-    arrow.textContent = vertical ? (reversed ? '↑' : '↓') : (reversed ? '←' : '→');
-    document.getElementById('btn-direction')
-      .setAttribute('aria-pressed', reversed ? 'true' : 'false');
+  /* Der Knopf zeigt als Pfeil, wo die Null liegt und wohin gezählt wird. */
+  function showZeroPoint() {
+    var entry = window.Scales.zero();
+    var glyph = window.Scales.zeroGlyph(entry);
+
+    document.getElementById('btn-zeropoint-arrow').textContent = glyph.arrow;
+    document.getElementById('btn-zeropoint-tag').textContent = glyph.tag;
+    document.getElementById('btn-zeropoint').title = window.Scales.zeroName(entry);
+  }
+
+  /* Beim Wechseln kurz ausschreiben, welche Lage jetzt gilt. */
+  var hintTimer = null;
+  function flashHint(text) {
+    var hint = document.getElementById('ruler-hint');
+    hint.textContent = text;
+    hint.classList.remove('is-hidden');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.classList.add('is-hidden'); }, 1800);
   }
 
   function setupToolbar() {
-    document.getElementById('btn-direction').addEventListener('click', function () {
-      window.Scales.toggleDirection();
-      showDirection();
+    document.getElementById('btn-zeropoint').addEventListener('click', function () {
+      var entry = window.Scales.cycleZero();
+      showZeroPoint();
+      flashHint(window.Scales.zeroName(entry));
     });
 
-    showDirection();
+    showZeroPoint();
 
     document.getElementById('btn-calibrate').addEventListener('click', function () {
       window.Calibration.open();
@@ -83,7 +94,7 @@
       clearTimeout(pending);
       pending = setTimeout(function () {
         /* Beim Drehen des Geräts wechselt auch die Richtung des Pfeils. */
-        showDirection();
+        showZeroPoint();
         redraw();
       }, 60);
     }
@@ -143,10 +154,14 @@
     });
 
     window.Scales.onChange(function () {
-      showDirection();
+      showZeroPoint();
       window.Ruler.refresh();
     });
-    window.Edge.onChange(function () { window.Ruler.refresh(); });
+    window.Edge.onChange(function () {
+      /* Ist die Hülle vermessen, kommen ihre Nullpunkte dazu. */
+      showZeroPoint();
+      window.Ruler.refresh();
+    });
 
     setupTabs();
     setupToolbar();

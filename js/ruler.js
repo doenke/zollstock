@@ -8,7 +8,7 @@ window.Ruler = (function () {
   var dragging = false;
   var frame = null;
   var GRAB_PX = 28;         /* Fassbereich um die Marke */
-  var geometry = { vertical: true, length: 0, cross: 0 };
+  var geometry = { vertical: true, length: 0, cross: 0, zero: { px: 0, sign: 1, mirrored: false } };
 
   function css(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -46,82 +46,128 @@ window.Ruler = (function () {
     geometry.vertical = window.Scales.vertical();
     geometry.length = geometry.vertical ? h : w;
     geometry.cross = geometry.vertical ? w : h;
+    geometry.zero = zeroPoint();
   }
 
   /* base  Querkoordinate der Nulllinie
    * dir   Richtung, in die die Striche zeigen (+1 oder -1)
    * major Länge des Hauptstrichs */
-  /* Ein Teilstrich mit dem Wert v liegt bei (v − Randversatz) × Pixel je mm:
-   * die Null der Skala sitzt an der Gerätekante, nicht am Bildschirmrand.
-   * Bei umgekehrter Zählrichtung wird vom anderen Ende her gemessen. */
+  /* Wo die Null liegt und in welche Richtung gezählt wird.
+   *   px       Ort der Null auf der Messachse (darf außerhalb liegen)
+   *   sign     Zählrichtung
+   *   mirrored bei mittiger Null: zählt nach beiden Seiten */
+  function zeroPoint() {
+    var pxPerMm = window.Calibration.pxPerMm();
+    var entry = window.Scales.zero();
+
+    if (entry.side === 'center') {
+      return { px: geometry.length / 2, sign: 1, mirrored: true };
+    }
+
+    /* Die Gerätekante liegt außerhalb des Bildschirms, der Zentimeter
+     * innerhalb. */
+    var inset = entry.inset === 'cm'
+      ? 10
+      : -window.Edge.offsetOf(entry.inset);
+
+    return entry.side === 'top'
+      ? { px: inset * pxPerMm, sign: 1, mirrored: false }
+      : { px: geometry.length - inset * pxPerMm, sign: -1, mirrored: false };
+  }
+
   function alongOf(mm) {
-    var px = (mm - window.Edge.offset()) * window.Calibration.pxPerMm();
-    return window.Scales.reversed() ? geometry.length - px : px;
+    return geometry.zero.px + geometry.zero.sign * mm * window.Calibration.pxPerMm();
   }
 
   function mmOf(along) {
-    var px = window.Scales.reversed() ? geometry.length - along : along;
-    return window.Edge.offset() + px / window.Calibration.pxPerMm();
+    var mm = (along - geometry.zero.px) / window.Calibration.pxPerMm() * geometry.zero.sign;
+    return geometry.zero.mirrored ? mm : Math.max(0, mm);
   }
 
   function drawScale(unit, base, dir, major, color) {
-    var pxPerMm = window.Calibration.pxPerMm();
-    var offsetMm = window.Edge.offset();
-    var first = Math.ceil(offsetMm / unit.step - 1e-6);
-    var count = Math.floor((geometry.length / pxPerMm + offsetMm) / unit.step);
-    var i, along, tier;
+    var zero = geometry.zero;
+    var pxPerDiv = window.Calibration.pxPerMm() * unit.step;
+    var branches = zero.mirrored ? [1, -1] : [zero.sign];
+    var reach = geometry.length + Math.abs(zero.px);
+    var count = Math.ceil(reach / pxPerDiv) + 1;
+    var fontSize = Math.max(11, Math.min(17, geometry.cross * 0.045));
+    var textCross = base + dir * (major + fontSize * 0.55);
 
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-
-    for (i = first; i <= count; i++) {
-      tier = unit.tiers.find(function (t) { return i % t.every === 0; });
-      if (!tier) continue;
-      along = alongOf(i * unit.step);
-      if (along < 0 || along > geometry.length) continue;
-      line(along, base, along, base + dir * major * tier.scale);
+    function alongAt(branch, i) {
+      return zero.px + branch * i * pxPerDiv;
     }
 
-    ctx.stroke();
+    function onScreen(along) {
+      return along >= 0 && along <= geometry.length;
+    }
 
-    /* Hauptstriche und Nulllinie kräftiger */
+    branches.forEach(function (branch) {
+      var i, along, tier;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+
+      for (i = 0; i <= count; i++) {
+        tier = unit.tiers.find(function (t) { return i % t.every === 0; });
+        if (!tier) continue;
+        along = alongAt(branch, i);
+        if (!onScreen(along)) continue;
+        line(along, base, along, base + dir * major * tier.scale);
+      }
+
+      ctx.stroke();
+
+      /* Hauptstriche kräftiger */
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (i = 0; i <= count; i += unit.labelEvery) {
+        along = alongAt(branch, i);
+        if (!onScreen(along)) continue;
+        line(along, base, along, base + dir * major);
+      }
+      ctx.stroke();
+
+      /* Beschriftung – die Einheit steht am ersten sichtbaren Wert */
+      var labelled = false;
+
+      ctx.fillStyle = color;
+      ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, sans-serif';
+
+      for (i = unit.labelEvery; i <= count; i += unit.labelEvery) {
+        along = alongAt(branch, i);
+        if (along > geometry.length - fontSize * 0.7 || along < fontSize * 0.6) continue;
+
+        var value = Math.round(i * unit.valuePerDivision * 1000) / 1000;
+        var text = String(value) + (labelled ? '' : unit.suffix);
+        var p = pt(along, textCross);
+
+        if (geometry.vertical) {
+          ctx.textAlign = dir > 0 ? 'left' : 'right';
+          ctx.textBaseline = 'middle';
+        } else {
+          ctx.textAlign = 'center';
+          ctx.textBaseline = dir > 0 ? 'top' : 'bottom';
+        }
+        ctx.fillText(text, p.x, p.y);
+        labelled = true;
+      }
+    });
+
+    /* Nulllinie entlang der Kante */
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    for (i = Math.ceil(first / unit.labelEvery) * unit.labelEvery; i <= count; i += unit.labelEvery) {
-      along = alongOf(i * unit.step);
-      if (along < 0 || along > geometry.length) continue;
-      line(along, base, along, base + dir * major);
-    }
     line(0, base, geometry.length, base);
     ctx.stroke();
 
-    /* Beschriftung – die Einheit steht am ersten sichtbaren Wert */
-    var fontSize = Math.max(11, Math.min(17, geometry.cross * 0.045));
-    var textCross = base + dir * (major + fontSize * 0.55);
-    var labelled = false;
-
-    ctx.fillStyle = color;
-    ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, sans-serif';
-
-    for (i = Math.max(unit.labelEvery, Math.ceil(first / unit.labelEvery) * unit.labelEvery);
-         i <= count; i += unit.labelEvery) {
-      along = alongOf(i * unit.step);
-      if (along > geometry.length - fontSize * 0.7 || along < fontSize * 0.6) continue;
-
-      var value = Math.round(i * unit.valuePerDivision * 1000) / 1000;
-      var text = String(value) + (labelled ? '' : unit.suffix);
-      var p = pt(along, textCross);
-
-      if (geometry.vertical) {
-        ctx.textAlign = dir > 0 ? 'left' : 'right';
-        ctx.textBaseline = 'middle';
-      } else {
-        ctx.textAlign = 'center';
-        ctx.textBaseline = dir > 0 ? 'top' : 'bottom';
-      }
-      ctx.fillText(text, p.x, p.y);
-      labelled = true;
+    /* Die Null selbst markieren, wenn sie auf dem Bildschirm liegt */
+    if (onScreen(zero.px)) {
+      ctx.strokeStyle = css('--accent');
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      line(zero.px, base, zero.px, base + dir * major);
+      ctx.stroke();
     }
   }
 
@@ -181,15 +227,16 @@ window.Ruler = (function () {
     }
 
     var scales = window.Scales.get();
+    var shown = Math.abs(markerMm);
     /* Zweite Zeile nur, wenn sie etwas hinzufügt. */
-    var sub = scales.b === scales.a ? '' : window.Scales.format(scales.b, markerMm);
+    var sub = scales.b === scales.a ? '' : window.Scales.format(scales.b, shown);
     if (window.Scales.hasInch()) {
-      var fraction = window.Scales.fractionInch(markerMm);
+      var fraction = window.Scales.fractionInch(shown);
       sub = sub ? sub + ' · ' + fraction : fraction;
     }
 
     readout.hidden = false;
-    readoutMain.textContent = window.Scales.format(scales.a, markerMm);
+    readoutMain.textContent = window.Scales.format(scales.a, shown);
     readoutSub.textContent = sub;
     readoutSub.hidden = !sub;
   }

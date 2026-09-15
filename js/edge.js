@@ -67,10 +67,11 @@ window.Edge = (function () {
   /* ---------- Werte ---------- */
 
   function offset() { return state.profiles[state.active].offsetMm; }
-  function activeName() { return state.profiles[state.active].name; }
-  function anySet() {
-    return ORDER.some(function (key) { return state.profiles[key].offsetMm > 0; });
+  function offsetOf(profile) {
+    var found = state.profiles[profile];
+    return found ? found.offsetMm : 0;
   }
+  function hasCase() { return state.profiles.case.offsetMm > 0; }
 
   function clamp(mm) { return Math.min(MAX_MM, Math.max(0, mm)); }
   function fmt(mm) { return mm.toFixed(1).replace('.', ',') + ' mm'; }
@@ -91,10 +92,6 @@ window.Edge = (function () {
     emit();
   }
 
-  function cycle() {
-    setActive(ORDER[(ORDER.indexOf(state.active) + 1) % ORDER.length]);
-  }
-
   /* ---------- Oberfläche im Sheet ---------- */
 
   function render() {
@@ -107,10 +104,6 @@ window.Edge = (function () {
     });
 
     if (document.activeElement !== els.input) els.input.value = offset().toFixed(1);
-
-    els.chipName.textContent = activeName();
-    els.chip.hidden = !anySet();
-    els.chip.title = 'Rand ' + fmt(offset()) + ' – tippen zum Wechseln';
   }
 
   /* ---------- Vollbild-Messung ---------- */
@@ -121,17 +114,14 @@ window.Edge = (function () {
 
   function applyDraft() {
     var px = linePx();
-    /* Die Karte liegt an der Kante, an der das Lineal seine Null hat. */
-    var from = window.Scales.reversed() ? (vertical ? 'bottom' : 'right')
-      : (vertical ? 'top' : 'left');
 
     els.line.style.cssText = vertical
-      ? from + ':' + px + 'px;left:0;right:0;height:0;border-top:2px solid var(--accent)'
-      : from + ':' + px + 'px;top:0;bottom:0;width:0;border-left:2px solid var(--accent)';
+      ? 'top:' + px + 'px;left:0;right:0;height:0;border-top:2px solid var(--accent)'
+      : 'left:' + px + 'px;top:0;bottom:0;width:0;border-left:2px solid var(--accent)';
 
     els.hatch.style.cssText = vertical
-      ? from + ':0;left:0;right:0;height:' + px + 'px'
-      : from + ':0;top:0;bottom:0;width:' + px + 'px';
+      ? 'top:0;left:0;right:0;height:' + px + 'px'
+      : 'top:0;bottom:0;left:0;width:' + px + 'px';
 
     els.value.textContent = fmt(draft);
     els.span.textContent = cardSpan === CARD_LONG ? 'lange Seite (85,6 mm)' : 'kurze Seite (54,0 mm)';
@@ -163,9 +153,6 @@ window.Edge = (function () {
   function dragTo(event) {
     var rect = els.stage.getBoundingClientRect();
     var along = vertical ? event.clientY - rect.top : event.clientX - rect.left;
-    if (window.Scales.reversed()) {
-      along = (vertical ? rect.height : rect.width) - along;
-    }
     draft = clamp(cardSpan - along / window.Calibration.pxPerMm());
     applyDraft();
   }
@@ -194,8 +181,6 @@ window.Edge = (function () {
     els = {
       profiles: document.getElementById('edge-profiles'),
       input: document.getElementById('edge-mm'),
-      chip: document.getElementById('btn-profile'),
-      chipName: document.getElementById('btn-profile-name'),
       view: document.getElementById('edgeview'),
       stage: document.getElementById('edgeview-stage'),
       line: document.getElementById('edgeview-line'),
@@ -214,7 +199,6 @@ window.Edge = (function () {
       if (isFinite(mm)) setOffset(mm);
     });
 
-    els.chip.addEventListener('click', cycle);
     document.getElementById('edge-measure').addEventListener('click', openMeasure);
     document.getElementById('edge-clear').addEventListener('click', function () { setOffset(0); });
     document.getElementById('edgeview-done').addEventListener('click', function () { closeMeasure(true); });
@@ -250,8 +234,8 @@ window.Edge = (function () {
   return {
     init: init,
     offset: offset,
-    activeName: activeName,
-    anySet: anySet,
+    offsetOf: offsetOf,
+    hasCase: hasCase,
     close: function () { els.view.hidden = true; },
     onChange: function (fn) { listeners.push(fn); }
   };

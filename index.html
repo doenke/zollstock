@@ -53,19 +53,13 @@
 
 <!-- ---------- Kopfzeile ---------- -->
 <header class="topbar">
-  <div class="topbar__left">
-    <div class="topbar__brand">
-      <svg class="topbar__logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
-      <span>Zollstock</span>
-    </div>
-    <button class="chip" id="btn-profile" type="button" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6z"/><path d="M6 7h12"/></svg>
-      <span id="btn-profile-name">Ohne Hülle</span>
-    </button>
+  <div class="topbar__brand">
+    <svg class="topbar__logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
+    <span>Zollstock</span>
   </div>
   <div class="topbar__actions">
-    <button class="iconbtn" id="btn-direction" type="button" title="Zählrichtung umdrehen" aria-label="Zählrichtung umdrehen">
-      <span class="iconbtn__arrow" id="btn-direction-arrow">↓</span>
+    <button class="iconbtn" id="btn-zeropoint" type="button" title="Nullpunkt wechseln" aria-label="Nullpunkt wechseln">
+      <span class="iconbtn__arrow" id="btn-zeropoint-arrow">↓</span><span class="iconbtn__tag" id="btn-zeropoint-tag"></span>
     </button>
     <button class="iconbtn" id="btn-calibrate" type="button" title="Einstellungen" aria-label="Einstellungen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>

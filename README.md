@@ -83,9 +83,10 @@ Ist der Rand bekannt, beginnt die Skala an der Gerätekante statt am
 Bildschirmrand – die erste Zahl oben ist dann nicht mehr die Null.
 
 Dafür gibt es zwei Profile, **Ohne Hülle** und **Mit Hülle**, jedes mit
-eigenem Wert. Das aktive Profil steht als Schild in der Kopfzeile; ein Tipp
-darauf wechselt, sobald die Hülle ab- oder drankommt. Gespeichert wird in
-`localStorage` (`zollstock.edge.v1`).
+eigenem Wert; beide werden in den Einstellungen vermessen. Welcher Wert gilt,
+entscheidet der Nullpunkt: „Null oben" rechnet mit dem Gerät, „Null oben, mit
+Hülle" mit der Hülle. Gespeichert wird in `localStorage`
+(`zollstock.edge.v1`).
 
 ### Genauigkeit
 
@@ -99,8 +100,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | --- | --- |
 | Tippen auf die Skala | Messmarke dorthin setzen |
 | Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
-| ↓ ↑ → ← | Zählrichtung umdrehen: Null an der oberen oder der unteren Kante |
-| Schild in der Kopfzeile | zwischen „Ohne Hülle" und „Mit Hülle" wechseln |
+| ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
 | Ausrichten | 0° nach oben legen, auf die nächste Vierteldrehung gerundet |
@@ -117,10 +117,28 @@ liegt in `localStorage` (`zollstock.scales.v1`).
 Das Lineal läuft entlang der längeren Bildschirmkante und folgt der
 Geräteausrichtung.
 
-Der Pfeil in der Kopfzeile dreht die **Zählrichtung** um: Die Null sitzt
-wahlweise an der oberen oder an der unteren Kante (im Querformat links oder
-rechts). Er zeigt, wohin gezählt wird. Die Randmessung folgt mit – die Karte
-wird an der Kante angelegt, an der die Null liegt. Während des Messens hält die App den Bildschirm wach
+Der Knopf in der Kopfzeile schaltet den **Nullpunkt** weiter, von einer Kante
+zur anderen:
+
+| Lage | Null liegt |
+| --- | --- |
+| oben, mit Hülle | an der Außenkante der Hülle |
+| oben | an der Gerätekante |
+| oben, 1 cm vom Rand | einen Zentimeter innerhalb des Bildschirmrands |
+| mittig | in der Bildschirmmitte, zählt nach beiden Seiten |
+| unten, 1 cm vom Rand | einen Zentimeter innerhalb der Unterkante |
+| unten | an der unteren Gerätekante |
+| unten, mit Hülle | an der Außenkante der Hülle |
+
+Die beiden Hüllen-Lagen erscheinen nur, wenn die Hülle vermessen ist. Der
+Knopf zeigt als Pfeil, wo die Null sitzt und wohin gezählt wird (↓ ↑ ↕, im
+Querformat → ← ↔), dazu `H` für Hülle und `1` für den Zentimeter Abstand. Beim
+Wechseln wird die Lage kurz ausgeschrieben.
+
+Die Lagen *1 cm vom Rand* sind für Werkstücke gedacht, die sich nicht am
+Gehäuse anlegen lassen: Der Nullstrich liegt sichtbar auf dem Bildschirm, das
+Werkstück wird daran ausgerichtet. *Mittig* zählt nach beiden Seiten und hilft
+beim Mittigfinden. Während des Messens hält die App den Bildschirm wach
 (Wake-Lock, sofern vom Browser unterstützt).
 
 ## Winkelmesser
