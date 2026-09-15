@@ -155,3 +155,10 @@ auch in einem Unterverzeichnis.
 - [x] Randversatz für Gerätekante und Schutzhülle
 - [x] Offline-Betrieb, installierbar
 - [ ] Winkelmesser: interaktive Messung mit beweglichen Schenkeln
+
+## Lizenz
+
+Zollstock steht unter der [MIT-Lizenz](LICENSE).
+
+Fremder Code ist nicht enthalten: keine Bibliotheken, kein Build-Schritt, die
+Icons erzeugt `scripts/make-icons.js` selbst.
