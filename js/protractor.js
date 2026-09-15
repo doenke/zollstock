@@ -1,17 +1,370 @@
-/* Winkelmesser (Vorschau): Halbkreisskala in Originalgröße.
- * Die interaktive Winkelmessung folgt in einem späteren Schritt. */
+/* Winkelmesser: liest die Lage des Geräts und zeigt sie auf einer groben
+ * Ringskala und einer feinen Bandskala.
+ *
+ * Aus beta und gamma des Lagesensors wird die Richtung "oben" im
+ * Gerätesystem berechnet (dritte Zeile der Drehmatrix Z-X'-Y''):
+ *
+ *   ux = −cos(beta) · sin(gamma)
+ *   uy =  sin(beta)
+ *   uz =  cos(beta) · cos(gamma)
+ *
+ * Senkrecht im Hochformat ergibt (0, 1, 0), flach auf dem Tisch (0, 0, 1).
+ * Daraus folgen beide Neigungen:
+ *
+ *   Kante  – Drehung in der Bildschirmebene: atan2(−ux, uy)
+ *   Fläche – Neigung der Auflagefläche:      acos(|uz|)
+ */
 window.Protractor = (function () {
   'use strict';
 
-  var canvas, ctx;
+  var DEG = 180 / Math.PI;
+  var SMOOTHING = 0.25;      /* Tiefpass gegen das Zittern des Sensors */
+  var FINE_RANGE = 5;        /* Feinskala zeigt ± 5 Grad */
+
+  var canvas, ctx, els = {};
+  var up = { x: 0, y: 0, z: 1 };
+  var smooth = null;
+  var mode = 'edge';
+  var zeroRef = 0;
+  var active = false;
+  var listening = false;
+  var haveData = false;
+  var frame = null;
+  var gateTimer = null;
 
   function css(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
 
-  function polar(cx, cy, radius, deg) {
-    var rad = (180 - deg) * Math.PI / 180;
-    return { x: cx + Math.cos(rad) * radius, y: cy - Math.sin(rad) * radius };
+  function clamp1(v) { return Math.max(-1, Math.min(1, v)); }
+
+  function wrap180(deg) {
+    var v = (deg + 180) % 360;
+    return (v < 0 ? v + 360 : v) - 180;
+  }
+
+  function fmt(deg, digits) {
+    return deg.toFixed(digits === undefined ? 1 : digits).replace('.', ',') + '°';
+  }
+
+  /* ---------- Sensor ---------- */
+
+  function onOrientation(event) {
+    if (event.beta === null || event.gamma === null) return;
+
+    var b = event.beta / DEG;
+    var g = event.gamma / DEG;
+    var next = {
+      x: -Math.cos(b) * Math.sin(g),
+      y: Math.sin(b),
+      z: Math.cos(b) * Math.cos(g)
+    };
+
+    if (!smooth) {
+      smooth = next;
+    } else {
+      smooth.x += (next.x - smooth.x) * SMOOTHING;
+      smooth.y += (next.y - smooth.y) * SMOOTHING;
+      smooth.z += (next.z - smooth.z) * SMOOTHING;
+    }
+
+    var len = Math.sqrt(smooth.x * smooth.x + smooth.y * smooth.y + smooth.z * smooth.z) || 1;
+    up.x = smooth.x / len;
+    up.y = smooth.y / len;
+    up.z = smooth.z / len;
+
+    if (!haveData) {
+      haveData = true;
+      showGate(null);
+    }
+  }
+
+  function needsPermission() {
+    return typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function';
+  }
+
+  function listen() {
+    if (listening) return;
+    window.addEventListener('deviceorientation', onOrientation);
+    listening = true;
+
+    clearTimeout(gateTimer);
+    gateTimer = setTimeout(function () {
+      if (!haveData) {
+        showGate('Kein Lagesensor gefunden – die Anzeige bleibt bei 0°.', false);
+      }
+    }, 1500);
+  }
+
+  function unlisten() {
+    if (!listening) return;
+    window.removeEventListener('deviceorientation', onOrientation);
+    listening = false;
+    clearTimeout(gateTimer);
+  }
+
+  function requestSensor() {
+    DeviceOrientationEvent.requestPermission().then(function (answer) {
+      if (answer === 'granted') {
+        showGate(null);
+        listen();
+      } else {
+        showGate('Zugriff auf den Lagesensor abgelehnt. In den Einstellungen des Browsers lässt er sich wieder erlauben.', false);
+      }
+    }).catch(function () {
+      showGate('Der Lagesensor ließ sich nicht aktivieren.', false);
+    });
+  }
+
+  /* ---------- Winkel ---------- */
+
+  /* beta und gamma beziehen sich auf das Gerät in seiner natürlichen Lage.
+   * Dreht das Betriebssystem die Ansicht ins Querformat, ist das gezeichnete
+   * Bild mitgedreht – die Lage muss in dasselbe System gebracht werden. */
+  function screenAngle() {
+    if (screen.orientation && typeof screen.orientation.angle === 'number') {
+      return screen.orientation.angle;
+    }
+    return typeof window.orientation === 'number' ? window.orientation : 0;
+  }
+
+  function screenUp() {
+    var a = screenAngle() / DEG;
+    var cos = Math.cos(a);
+    var sin = Math.sin(a);
+    return {
+      x: up.x * cos + up.y * sin,
+      y: -up.x * sin + up.y * cos,
+      z: up.z
+    };
+  }
+
+  function rawEdge() {
+    var s = screenUp();
+    return Math.atan2(-s.x, s.y) * DEG;
+  }
+  function edgeAngle() { return wrap180(rawEdge() - zeroRef); }
+  function screenTilt() { return Math.asin(clamp1(up.z)) * DEG; }   /* 0 = senkrecht */
+  function slope() { return Math.acos(Math.min(1, Math.abs(up.z))) * DEG; }
+  function axisLong() { return Math.asin(clamp1(screenUp().y)) * DEG; }
+  function axisCross() { return Math.asin(clamp1(screenUp().x)) * DEG; }
+
+  function reading() { return mode === 'edge' ? edgeAngle() : slope(); }
+
+  function zero() {
+    if (mode !== 'edge') return;
+    /* Auf die nächste Vierteldrehung runden: vier mögliche Nullstellungen. */
+    zeroRef = Math.round(rawEdge() / 90) * 90;
+  }
+
+  /* ---------- Grobe Skala: Ringteilung ---------- */
+
+  function drawRing(cx, cy, radius) {
+    var value = reading();
+    var labelStep = radius * 15 / DEG >= 34 ? 15 : 30;
+    var text = css('--text');
+    var dim = css('--text-dim');
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    /* Der Ring steht lotrecht im Raum: er dreht der Bildschirmdrehung entgegen. */
+    ctx.rotate(-value / DEG);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.035)';
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = text;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    for (var deg = 0; deg < 360; deg++) {
+      var major = deg % labelStep === 0;
+      var mid = deg % 5 === 0;
+      var len = major ? radius * 0.14 : mid ? radius * 0.09 : radius * 0.05;
+      var rad = deg / DEG;
+      var sin = Math.sin(rad);
+      var cos = Math.cos(rad);
+
+      ctx.strokeStyle = major ? text : dim;
+      ctx.lineWidth = major ? 1.8 : 1;
+      ctx.beginPath();
+      ctx.moveTo(sin * radius, -cos * radius);
+      ctx.lineTo(sin * (radius - len), -cos * (radius - len));
+      ctx.stroke();
+    }
+
+    var fontSize = Math.max(10, Math.min(15, radius * 0.11));
+    ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = text;
+
+    for (var v = 0; v < 360; v += labelStep) {
+      var shown = Math.abs(wrap180(v));
+      /* Dreistellige Zahlen stehen sich unten sonst gegenseitig im Weg. */
+      if (shown > 90 && v % (labelStep * 2) !== 0) continue;
+      var r2 = (v / DEG);
+      var rr = radius - radius * 0.24;
+      ctx.fillText(String(shown), Math.sin(r2) * rr, -Math.cos(r2) * rr);
+    }
+
+    ctx.restore();
+
+    /* Fester Zeiger am oberen Rand – er gehört zum Gerät, nicht zum Ring. */
+    var accent = css('--accent');
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - radius + 15);
+    ctx.lineTo(cx - 9, cy - radius - 7);
+    ctx.lineTo(cx + 9, cy - radius - 7);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* ---------- Grobe Skala: Dosenlibelle ---------- */
+
+  function drawBubble(cx, cy, radius) {
+    var text = css('--text');
+    var dim = css('--text-dim');
+    var accent = css('--accent');
+    var perDeg = radius / 10;   /* Rand des Kreises entspricht 10° */
+
+    ctx.strokeStyle = dim;
+    ctx.lineWidth = 1;
+    [2, 5, 10].forEach(function (ring) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, ring * perDeg, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    ctx.strokeStyle = text;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.moveTo(cx - radius, cy);
+    ctx.lineTo(cx + radius, cy);
+    ctx.moveTo(cx, cy - radius);
+    ctx.lineTo(cx, cy + radius);
+    ctx.stroke();
+
+    ctx.fillStyle = dim;
+    ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    [2, 5, 10].forEach(function (ring) {
+      ctx.fillText(ring + '°', cx + ring * perDeg - 20, cy - 5);
+    });
+
+    /* Die Blase wandert zur angehobenen Seite, wie in einer echten Libelle. */
+    var dx = Math.max(-10, Math.min(10, axisCross())) * perDeg;
+    var dy = Math.max(-10, Math.min(10, axisLong())) * perDeg;
+
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.arc(cx + dx, cy - dy, Math.max(9, radius * 0.09), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /* ---------- Feine Skala: Bandteilung ---------- */
+
+  function drawTape(x, y, width, height) {
+    var value = reading();
+    var perDeg = width / (FINE_RANGE * 2);
+    var cx = x + width / 2;
+    var text = css('--text');
+    var dim = css('--text-dim');
+    var accent = css('--accent');
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, width, height);
+    ctx.clip();
+
+    var first = Math.ceil((value - FINE_RANGE) * 10) / 10;
+    var last = value + FINE_RANGE;
+
+    for (var v = first; v <= last; v = Math.round((v + 0.1) * 10) / 10) {
+      var px = cx + (v - value) * perDeg;
+      var whole = Math.abs(v - Math.round(v)) < 0.001;
+      var half = Math.abs(v * 2 - Math.round(v * 2)) < 0.001;
+      var len = whole ? height * 0.42 : half ? height * 0.28 : height * 0.16;
+
+      ctx.strokeStyle = whole ? text : dim;
+      ctx.lineWidth = whole ? 1.6 : 1;
+      ctx.beginPath();
+      ctx.moveTo(px, y);
+      ctx.lineTo(px, y + len);
+      ctx.stroke();
+
+      if (whole && px > x + 14 && px < x + width - 14) {
+        ctx.fillStyle = dim;
+        ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(String(Math.round(v)), px, y + len + 3);
+      }
+    }
+
+    ctx.restore();
+
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, y - 4);
+    ctx.lineTo(cx, y + height * 0.55);
+    ctx.stroke();
+
+    ctx.fillStyle = dim;
+    ctx.font = '11px system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Feinskala 0,1°', x + width - 4, y + height);
+  }
+
+  /* ---------- Anzeige ---------- */
+
+  function drawReadout(cx, cy, size) {
+    var accent = css('--accent');
+    var dim = css('--text-dim');
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = haveData ? accent : dim;
+    ctx.font = '700 ' + size + 'px system-ui, -apple-system, sans-serif';
+    ctx.fillText(fmt(reading()), cx, cy);
+
+  }
+
+  /* Die jeweils andere Neigung, darunter der Hinweis zur Handhabung. */
+  function drawSecondary(cx, y) {
+    var second, hint;
+
+    if (mode === 'edge') {
+      second = 'Kippung ' + fmt(screenTilt(), 0);
+      hint = Math.abs(screenTilt()) > 45 ? 'Bildschirm senkrecht halten' : 'Gerätekante anlegen';
+    } else {
+      second = 'Längs ' + fmt(axisLong()) + '  ·  Quer ' + fmt(axisCross());
+      hint = 'Gerät flach auflegen';
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = css('--text-dim');
+    ctx.font = '600 13px system-ui, -apple-system, sans-serif';
+    ctx.fillText(second, cx, y);
+    ctx.font = '12px system-ui, -apple-system, sans-serif';
+    ctx.fillText(hint, cx, y + 20);
+  }
+
+  function drawDial(cx, cy, radius) {
+    if (mode === 'edge') drawRing(cx, cy, radius);
+    else drawBubble(cx, cy, radius);
   }
 
   function draw() {
@@ -20,98 +373,131 @@ window.Protractor = (function () {
     var dpr = window.devicePixelRatio || 1;
     var w = canvas.clientWidth;
     var h = canvas.clientHeight;
+
+    /* Solange die Ansicht verborgen ist, hat die Fläche keine Größe. */
+    if (w < 2 || h < 2) return;
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
-    var pxPerMm = window.Calibration.pxPerMm();
-    var cx = w / 2;
-    var cy = h - 130;
-    /* Radius auf halbe Zentimeter abgerundet, damit die Skala auf einem
-     * runden Maß endet. */
-    var maxRadius = Math.min(w / 2 - 14, cy - 80);
-    var radiusMm = Math.max(15, Math.floor(maxRadius / pxPerMm / 5) * 5);
-    var radius = radiusMm * pxPerMm;
-    /* Beschriftung nur so dicht, wie es der Bogenabstand auf dem
-     * Beschriftungsradius zulässt. */
-    var labelStep = radius * 0.84 * 10 * Math.PI / 180 >= 26 ? 10 : 30;
-    var showInner = radius >= 180;
+    var bottom = h - 150;          /* Platz für Werkzeugleiste und Tableiste */
+    var tapeHeight = 58;
 
-    var text = css('--text');
-    var dim = css('--text-dim');
-    var accent = css('--accent');
+    if (w > h) {
+      /* Querformat: Skala links, Anzeige und Feinskala rechts daneben. */
+      var top = 16;
+      var radius = Math.max(40, Math.min((bottom - top) / 2 - 6, w * 0.2));
+      var cy = (top + bottom) / 2;
+      var textX = w * 0.66;
 
-    /* Körper */
-    ctx.fillStyle = 'rgba(255,255,255,0.035)';
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = text;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI);
-    ctx.moveTo(cx - radius, cy);
-    ctx.lineTo(cx + radius, cy);
-    ctx.stroke();
-
-    /* Gradteilung */
-    for (var deg = 0; deg <= 180; deg++) {
-      var isMajor = deg % 10 === 0;
-      var isMid = deg % 5 === 0;
-      var len = isMajor ? radius * 0.12 : isMid ? radius * 0.08 : radius * 0.045;
-      var outer = polar(cx, cy, radius, deg);
-      var inner = polar(cx, cy, radius - len, deg);
-
-      ctx.strokeStyle = isMajor ? text : dim;
-      ctx.lineWidth = isMajor ? 1.6 : 1;
-      ctx.beginPath();
-      ctx.moveTo(outer.x, outer.y);
-      ctx.lineTo(inner.x, inner.y);
-      ctx.stroke();
+      drawDial(w * 0.25, cy, radius);
+      drawReadout(textX, cy - 46, 40);
+      drawSecondary(textX, cy + 4);
+      drawTape(w * 0.42, cy + 34, w * 0.56 - 16, tapeHeight);
+      return;
     }
 
-    /* Beschriftung, außen 0–180°, innen gegenläufig */
-    var fontSize = Math.max(10, Math.min(14, radius * 0.055));
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    var topP = 74;
+    var dialBottom = bottom - tapeHeight - 14;
+    var share = mode === 'edge' ? 0.42 : 0.33;
+    var radiusP = Math.max(40, Math.min(w * share, (dialBottom - topP) / 2));
+    var size = Math.max(26, Math.min(46, radiusP * 0.4));
+    var cyP = mode === 'edge'
+      ? (topP + dialBottom) / 2
+      : topP + (dialBottom - topP) * 0.36;
 
-    for (var d = 0; d <= 180; d += labelStep) {
-      var outerLabel = polar(cx, cy, radius * 0.84, d);
-      ctx.fillStyle = text;
-      ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, sans-serif';
-      ctx.fillText(String(d), outerLabel.x, outerLabel.y);
+    drawDial(w / 2, cyP, radiusP);
 
-      if (!showInner) continue;
-      var innerLabel = polar(cx, cy, radius * 0.6, d);
-      ctx.fillStyle = dim;
-      ctx.font = (fontSize - 1) + 'px system-ui, -apple-system, sans-serif';
-      ctx.fillText(String(180 - d), innerLabel.x, innerLabel.y);
+    /* Im Ring ist die Mitte frei, bei der Libelle steht die Anzeige darunter. */
+    var textY = mode === 'edge' ? cyP - size * 0.1 : cyP + radiusP + size * 0.6;
+    drawReadout(w / 2, textY, size);
+    drawSecondary(w / 2, textY + size * 0.75);
+    drawTape(16, dialBottom + 14, w - 32, tapeHeight);
+  }
+
+  function loop() {
+    draw();
+    frame = requestAnimationFrame(loop);
+  }
+
+  /* ---------- Bedienung ---------- */
+
+  function showGate(message, withButton) {
+    if (!message) {
+      els.gate.hidden = true;
+      return;
+    }
+    els.gateText.textContent = message;
+    els.gateButton.hidden = withButton === false;
+    els.gate.hidden = false;
+  }
+
+  function setMode(next) {
+    mode = next;
+    els.modeButtons.forEach(function (btn) {
+      var on = btn.dataset.mode === mode;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    els.zero.disabled = mode !== 'edge';
+    draw();
+  }
+
+  function setActive(on) {
+    active = on;
+    cancelAnimationFrame(frame);
+    frame = null;
+
+    if (!on) {
+      unlisten();
+      return;
     }
 
-    /* Mittelpunkt */
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-    ctx.moveTo(cx - 12, cy);
-    ctx.lineTo(cx + 12, cy);
-    ctx.moveTo(cx, cy - 12);
-    ctx.lineTo(cx, cy + 12);
-    ctx.stroke();
+    if (needsPermission() && !listening) {
+      showGate('Für den Winkelmesser wird der Lagesensor gebraucht.', true);
+    } else {
+      listen();
+    }
 
-    ctx.fillStyle = dim;
-    ctx.font = '600 12px system-ui, -apple-system, sans-serif';
-    ctx.fillText('Radius ' + (radiusMm / 10).toFixed(1).replace('.', ',') + ' cm',
-      cx, cy - Math.max(26, radius * 0.16));
+    loop();
   }
 
   function init() {
     canvas = document.getElementById('protractor-canvas');
     ctx = canvas.getContext('2d');
+
+    els = {
+      gate: document.getElementById('sensor-gate'),
+      gateText: document.getElementById('sensor-gate-text'),
+      gateButton: document.getElementById('btn-sensor'),
+      zero: document.getElementById('btn-zero'),
+      modeButtons: Array.prototype.slice.call(document.querySelectorAll('[data-mode]'))
+    };
+
+    els.zero.addEventListener('click', zero);
+    els.gateButton.addEventListener('click', requestSensor);
+    els.modeButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () { setMode(btn.dataset.mode); });
+    });
+
+    setMode(mode);
   }
 
-  return { init: init, draw: draw };
+  /* Die aktuellen Messwerte – für die Anzeige selbst nicht nötig, aber
+   * nützlich, um die Umrechnung nachzuvollziehen. */
+  function values() {
+    return {
+      mode: mode,
+      main: reading(),
+      tilt: screenTilt(),
+      slope: slope(),
+      long: axisLong(),
+      cross: axisCross(),
+      zeroRef: zeroRef,
+      haveData: haveData
+    };
+  }
+
+  return { init: init, draw: draw, setActive: setActive, values: values };
 })();

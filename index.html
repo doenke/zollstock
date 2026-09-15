@@ -33,8 +33,19 @@
   <!-- ---------- Winkelmesser ---------- -->
   <section class="view" id="view-protractor">
     <canvas id="protractor-canvas"></canvas>
-    <div class="badge badge--wip">Vorschau – Winkelmesser folgt</div>
-    <p class="hint">Halbkreis in Originalgröße, Gradskala 0–180°</p>
+
+    <div class="tools">
+      <button class="btn btn--tool" id="btn-zero" type="button">Nullen</button>
+      <div class="seg seg--mode" role="group" aria-label="Messart">
+        <button class="seg__btn" data-mode="edge" type="button" aria-pressed="true">Kante</button>
+        <button class="seg__btn" data-mode="surface" type="button" aria-pressed="false">Fläche</button>
+      </div>
+    </div>
+
+    <div class="gate" id="sensor-gate" hidden>
+      <p id="sensor-gate-text">Für den Winkelmesser wird der Lagesensor gebraucht.</p>
+      <button class="btn btn--primary" id="btn-sensor" type="button">Lagesensor aktivieren</button>
+    </div>
   </section>
 </main>
 

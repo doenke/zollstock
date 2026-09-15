@@ -206,20 +206,57 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 
 .hint.is-hidden { opacity: 0; }
 
-.badge {
+/* ---------- Werkzeuge des Winkelmessers ---------- */
+.tools {
   position: fixed;
   left: 50%;
-  top: calc(var(--safe-t) + 60px);
+  bottom: calc(var(--safe-b) + 74px);
   transform: translateX(-50%);
   z-index: 15;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px dashed var(--line);
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
-  color: var(--text-dim);
-  font-size: 12px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+
+.btn--tool {
+  padding: 9px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+}
+
+.btn:disabled { opacity: .4; cursor: default; }
+
+.seg--mode {
+  padding: 3px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+}
+
+.seg--mode .seg__btn { padding: 7px 14px; }
+
+.gate {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 18;
+  width: min(320px, 82vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  text-align: center;
+}
+
+.gate[hidden] { display: none; }
+.gate p { margin: 0; font-size: 13.5px; color: var(--text-dim); }
+.gate button[hidden] { display: none; }
 
 /* ---------- Sheet ---------- */
 .sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; }

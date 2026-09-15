@@ -18,7 +18,10 @@
     document.querySelectorAll('.tab').forEach(function (tab) {
       tab.classList.toggle('is-active', tab.dataset.view === name);
     });
-    redraw();
+    /* Der Winkelmesser lauscht am Sensor und zeichnet laufend – das läuft nur,
+     * solange seine Ansicht offen ist. */
+    window.Protractor.setActive(name === 'protractor');
+    if (name === 'ruler') window.Ruler.draw();
   }
 
   function setupTabs() {

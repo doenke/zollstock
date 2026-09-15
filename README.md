@@ -1,7 +1,8 @@
 # Zollstock
 
 Statische PWA zum Messen: zeigt ein **Lineal in Originalgröße** auf dem Display –
-Zentimeter- und Zollskala – und enthält einen **Winkelmesser** (derzeit Vorschau).
+zwei frei wählbare Skalen – und einen **Winkelmesser**, der die Lage des Geräts
+ausliest.
 
 Kein Build, keine Abhängigkeiten, offline nutzbar.
 
@@ -101,6 +102,8 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | Schild in der Kopfzeile | zwischen „Ohne Hülle" und „Mit Hülle" wechseln |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
+| Nullen (Winkelmesser) | 0° nach oben legen, auf 90° gerundet |
+| Kante / Fläche | Messart des Winkelmessers |
 
 Es werden immer **zwei Skalen** gezeichnet – eine an jeder Kante. Welche
 Einheit auf welcher Kante liegt, steht in den Einstellungen unter *Skalen*;
@@ -112,6 +115,46 @@ Das Lineal läuft immer entlang der längeren Bildschirmkante und folgt der
 Geräteausrichtung. Während des Messens hält die App den Bildschirm wach
 (Wake-Lock, sofern vom Browser unterstützt).
 
+## Winkelmesser
+
+Aus `beta` und `gamma` des Lagesensors wird die Richtung „oben" im
+Gerätesystem berechnet – die dritte Zeile der Drehmatrix Z-X'-Y'':
+
+```
+ux = −cos(beta) · sin(gamma)
+uy =  sin(beta)
+uz =  cos(beta) · cos(gamma)
+```
+
+Senkrecht im Hochformat ergibt das (0, 1, 0), flach auf dem Tisch (0, 0, 1).
+Dreht das Betriebssystem die Ansicht ins Querformat, wird der Vektor um
+`screen.orientation.angle` mitgedreht – sonst zeigte die Skala im Querformat
+90° daneben. Ein Tiefpass glättet das Zittern des Sensors.
+
+Zwei Messarten, umschaltbar unter der Anzeige:
+
+| Messart | Hauptwert | zweiter Wert |
+| --- | --- | --- |
+| **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | **Kippung**: wie weit der Bildschirm aus der Senkrechten kippt. Über 45° wird zum Aufrichten geraten, weil der Hauptwert dann ungenau wird. |
+| **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen | **Längs** und **Quer**: die beiden Achsen einzeln |
+
+Angezeigt wird auf zwei Skalen: grob als Ringteilung mit 1°-Strichen, die wie
+ein Lot im Raum stehen bleibt, während der feste Zeiger oben den Wert
+abgreift – im Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5°
+und 10°. Fein als Bandskala darunter, ± 5° um den aktuellen Wert mit
+0,1°-Teilung.
+
+**Nullen** legt die 0 der Ringskala nach oben und rundet dabei auf die nächste
+Vierteldrehung: `Math.round(Winkel / 90) * 90`. Damit gibt es vier
+Nullstellungen – das Gerät kann hochkant, quer oder auf dem Kopf angelegt
+werden und zeigt trotzdem die Abweichung von der Waagerechten bzw.
+Senkrechten. Im Flächenmodus gibt es nichts zu nullen, dort ist die Taste
+gesperrt.
+
+Auf iOS muss der Zugriff auf den Lagesensor einmal bestätigt werden
+(`DeviceOrientationEvent.requestPermission`); dafür erscheint eine
+Schaltfläche. Fehlt der Sensor ganz, sagt die App das und bleibt bei 0°.
+
 ## Aufbau
 
 ```
@@ -122,7 +165,7 @@ js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
 js/scales.js            Einheiten der beiden Skalen
 js/edge.js              Randversatz, Profile für Gerät und Hülle
 js/ruler.js             Lineal (Canvas)
-js/protractor.js        Winkelmesser (Vorschau)
+js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
 sw.js                   Offline-Cache
 manifest.webmanifest    PWA-Manifest
@@ -153,8 +196,8 @@ auch in einem Unterverzeichnis.
 - [x] Lineal in Originalgröße, zwei frei wählbare Skalen (cm, mm, Zoll)
 - [x] Bildschirmerkennung und Kalibrierung
 - [x] Randversatz für Gerätekante und Schutzhülle
+- [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten
 - [x] Offline-Betrieb, installierbar
-- [ ] Winkelmesser: interaktive Messung mit beweglichen Schenkeln
 
 ## Lizenz
 
