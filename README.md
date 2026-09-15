@@ -87,9 +87,13 @@ Ein Service Worker wird nur über HTTPS oder auf `localhost` registriert.
 
 ## Veröffentlichen
 
-Als GitHub Pages: *Settings → Pages → Source: Deploy from a branch*, Branch
-wählen, Ordner `/ (root)`. Alle Pfade sind relativ, die App läuft daher auch in
-einem Unterverzeichnis.
+Die App wird per SFTP aus GitHub auf den Webspace gespiegelt – der Workflow
+liegt unter `.github/workflows/deploy.yml`. Einrichtung, Secrets und der
+Umgang mit Hostschlüsseln stehen in **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+
+Alternativ als GitHub Pages: *Settings → Pages → Source: Deploy from a branch*,
+Branch wählen, Ordner `/ (root)`. Alle Pfade sind relativ, die App läuft daher
+auch in einem Unterverzeichnis.
 
 ## Stand
 

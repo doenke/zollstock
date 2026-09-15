@@ -1,5 +1,7 @@
 /* Service Worker: hält die App offline verfügbar. */
-const VERSION = 'zollstock-v1';
+// __BUILD__ wird beim Deploy durch den Commit-SHA ersetzt (.github/workflows/deploy.yml).
+const VERSION = '__BUILD__';
+const CACHE = `zollstock-${VERSION}`;
 const ASSETS = [
   './',
   './index.html',
@@ -19,7 +21,7 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(VERSION)
+    caches.open(CACHE)
       .then((cache) => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
@@ -29,7 +31,8 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
-        keys.filter((key) => key !== VERSION).map((key) => caches.delete(key))
+        keys.filter((key) => key.startsWith('zollstock-') && key !== CACHE)
+          .map((key) => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );
@@ -47,7 +50,7 @@ self.addEventListener('fetch', (event) => {
           // Erfolgreiche Antworten für den Offline-Betrieb nachtragen.
           if (response.ok && new URL(event.request.url).origin === self.location.origin) {
             const copy = response.clone();
-            caches.open(VERSION).then((cache) => cache.put(event.request, copy));
+            caches.open(CACHE).then((cache) => cache.put(event.request, copy));
           }
           return response;
         })
