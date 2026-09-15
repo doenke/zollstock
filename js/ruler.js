@@ -52,9 +52,16 @@ window.Ruler = (function () {
    * dir   Richtung, in die die Striche zeigen (+1 oder -1)
    * major Länge des Hauptstrichs */
   /* Ein Teilstrich mit dem Wert v liegt bei (v − Randversatz) × Pixel je mm:
-   * die Null der Skala sitzt an der Gerätekante, nicht am Bildschirmrand. */
+   * die Null der Skala sitzt an der Gerätekante, nicht am Bildschirmrand.
+   * Bei umgekehrter Zählrichtung wird vom anderen Ende her gemessen. */
   function alongOf(mm) {
-    return (mm - window.Edge.offset()) * window.Calibration.pxPerMm();
+    var px = (mm - window.Edge.offset()) * window.Calibration.pxPerMm();
+    return window.Scales.reversed() ? geometry.length - px : px;
+  }
+
+  function mmOf(along) {
+    var px = window.Scales.reversed() ? geometry.length - along : along;
+    return window.Edge.offset() + px / window.Calibration.pxPerMm();
   }
 
   function drawScale(unit, base, dir, major, color) {
@@ -72,6 +79,7 @@ window.Ruler = (function () {
       tier = unit.tiers.find(function (t) { return i % t.every === 0; });
       if (!tier) continue;
       along = alongOf(i * unit.step);
+      if (along < 0 || along > geometry.length) continue;
       line(along, base, along, base + dir * major * tier.scale);
     }
 
@@ -82,6 +90,7 @@ window.Ruler = (function () {
     ctx.beginPath();
     for (i = Math.ceil(first / unit.labelEvery) * unit.labelEvery; i <= count; i += unit.labelEvery) {
       along = alongOf(i * unit.step);
+      if (along < 0 || along > geometry.length) continue;
       line(along, base, along, base + dir * major);
     }
     line(0, base, geometry.length, base);
@@ -98,8 +107,7 @@ window.Ruler = (function () {
     for (i = Math.max(unit.labelEvery, Math.ceil(first / unit.labelEvery) * unit.labelEvery);
          i <= count; i += unit.labelEvery) {
       along = alongOf(i * unit.step);
-      if (along > geometry.length - fontSize * 0.7) break;
-      if (along < fontSize * 0.6) continue;
+      if (along > geometry.length - fontSize * 0.7 || along < fontSize * 0.6) continue;
 
       var value = Math.round(i * unit.valuePerDivision * 1000) / 1000;
       var text = String(value) + (labelled ? '' : unit.suffix);
@@ -194,8 +202,7 @@ window.Ruler = (function () {
   }
 
   function setMarker(along) {
-    markerMm = window.Edge.offset() +
-      Math.max(0, Math.min(geometry.length, along)) / window.Calibration.pxPerMm();
+    markerMm = mmOf(Math.max(0, Math.min(geometry.length, along)));
     hint.classList.add('is-hidden');
     updateReadout();
     schedule();

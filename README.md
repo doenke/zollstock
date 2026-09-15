@@ -99,7 +99,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | --- | --- |
 | Tippen auf die Skala | Messmarke dorthin setzen |
 | Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
-| längs / quer | Lineal an der langen oder an der kurzen Bildschirmkante |
+| ↓ ↑ → ← | Zählrichtung umdrehen: Null an der oberen oder der unteren Kante |
 | Schild in der Kopfzeile | zwischen „Ohne Hülle" und „Mit Hülle" wechseln |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
@@ -115,10 +115,14 @@ Voreingestellt ist cm links bzw. oben und Zoll rechts bzw. unten. Die Auswahl
 liegt in `localStorage` (`zollstock.scales.v1`).
 
 Das Lineal läuft normalerweise entlang der längeren Bildschirmkante und folgt
-der Geräteausrichtung. Der Knopf **längs/quer** legt es auf die kurze Kante –
-dann liegt die Null links statt oben und die beiden Skalen oben und unten.
-Die Randmessung und die Bezeichnung der Kanten in den Einstellungen richten
-sich mit. Während des Messens hält die App den Bildschirm wach
+der Geräteausrichtung; unter *Einstellungen → Skalen → Lage* lässt es sich auf
+die kurze Kante legen.
+
+Der Pfeil in der Kopfzeile dreht die **Zählrichtung** um: Die Null sitzt
+wahlweise an der oberen oder an der unteren Kante (quer: links oder rechts).
+Er zeigt, wohin gezählt wird. Die Randmessung folgt mit – die Karte wird dann
+an der Kante angelegt, an der die Null liegt – und die Kantenbezeichnungen in
+den Einstellungen richten sich nach der Lage. Während des Messens hält die App den Bildschirm wach
 (Wake-Lock, sofern vom Browser unterstützt).
 
 ## Winkelmesser

@@ -31,7 +31,7 @@ window.Scales = (function () {
     }
   };
 
-  var state = load() || { a: 'cm', b: 'in', crossways: false };
+  var state = load() || { a: 'cm', b: 'in', crossways: false, reversed: false };
   var listeners = [];
   var els = {};
 
@@ -39,7 +39,12 @@ window.Scales = (function () {
     try {
       var parsed = JSON.parse(localStorage.getItem(STORE_KEY));
       if (!parsed || !UNITS[parsed.a] || !UNITS[parsed.b]) return null;
-      return { a: parsed.a, b: parsed.b, crossways: !!parsed.crossways };
+      return {
+        a: parsed.a,
+        b: parsed.b,
+        crossways: !!parsed.crossways,
+        reversed: !!parsed.reversed
+      };
     } catch (err) {
       return null;
     }
@@ -107,12 +112,22 @@ window.Scales = (function () {
     return (window.innerHeight >= window.innerWidth) !== state.crossways;
   }
 
-  function toggleAxis() {
-    state.crossways = !state.crossways;
+  function setAxis(crossways) {
+    if (state.crossways === crossways) return;
+    state.crossways = crossways;
     persist();
     render();
     emit();
-    return state.crossways;
+  }
+
+  /* Zählrichtung: Null an der oberen bzw. linken Kante – oder an der
+   * gegenüberliegenden. */
+  function toggleDirection() {
+    state.reversed = !state.reversed;
+    persist();
+    render();
+    emit();
+    return state.reversed;
   }
 
   function refreshLabels() {
@@ -121,6 +136,14 @@ window.Scales = (function () {
   }
 
   function render() {
+    if (els.axis) {
+      els.axis.querySelectorAll('[data-axis]').forEach(function (btn) {
+        var on = (btn.dataset.axis === 'cross') === state.crossways;
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+
     els.groups.forEach(function (group) {
       var edge = group.dataset.edge;
       group.querySelectorAll('[data-unit]').forEach(function (btn) {
@@ -136,8 +159,14 @@ window.Scales = (function () {
     els = {
       labelA: document.getElementById('scale-a-label'),
       labelB: document.getElementById('scale-b-label'),
+      axis: document.getElementById('scale-axis'),
       groups: Array.prototype.slice.call(document.querySelectorAll('.seg--units'))
     };
+
+    els.axis.addEventListener('click', function (event) {
+      var btn = event.target.closest('[data-axis]');
+      if (btn) setAxis(btn.dataset.axis === 'cross');
+    });
 
     els.groups.forEach(function (group) {
       group.addEventListener('click', function (event) {
@@ -160,7 +189,8 @@ window.Scales = (function () {
     swap: swap,
     vertical: vertical,
     crossways: function () { return state.crossways; },
-    toggleAxis: toggleAxis,
+    reversed: function () { return state.reversed; },
+    toggleDirection: toggleDirection,
     format: format,
     fractionInch: fractionInch,
     hasInch: function () { return state.a === 'in' || state.b === 'in'; },

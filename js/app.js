@@ -30,23 +30,23 @@
     });
   }
 
+  /* Der Pfeil zeigt, wohin die Skala zählt – je nach Lage des Lineals. */
+  function showDirection() {
+    var arrow = document.getElementById('btn-direction-arrow');
+    var vertical = window.Scales.vertical();
+    var reversed = window.Scales.reversed();
+    arrow.textContent = vertical ? (reversed ? '↑' : '↓') : (reversed ? '←' : '→');
+    document.getElementById('btn-direction')
+      .setAttribute('aria-pressed', reversed ? 'true' : 'false');
+  }
+
   function setupToolbar() {
-    var axisBtn = document.getElementById('btn-axis');
-    var axisText = document.getElementById('btn-axis-text');
-
-    function showAxis() {
-      var crossways = window.Scales.crossways();
-      axisText.textContent = crossways ? 'quer' : 'längs';
-      axisBtn.classList.toggle('is-on', crossways);
-      axisBtn.setAttribute('aria-pressed', crossways ? 'true' : 'false');
-    }
-
-    axisBtn.addEventListener('click', function () {
-      window.Scales.toggleAxis();
-      showAxis();
+    document.getElementById('btn-direction').addEventListener('click', function () {
+      window.Scales.toggleDirection();
+      showDirection();
     });
 
-    showAxis();
+    showDirection();
 
     document.getElementById('btn-calibrate').addEventListener('click', function () {
       window.Calibration.open();
@@ -81,7 +81,11 @@
 
     function schedule() {
       clearTimeout(pending);
-      pending = setTimeout(redraw, 60);
+      pending = setTimeout(function () {
+        /* Beim Drehen des Geräts wechselt auch die Richtung des Pfeils. */
+        showDirection();
+        redraw();
+      }, 60);
     }
 
     window.addEventListener('resize', schedule);
@@ -138,7 +142,10 @@
       redraw();
     });
 
-    window.Scales.onChange(function () { window.Ruler.refresh(); });
+    window.Scales.onChange(function () {
+      showDirection();
+      window.Ruler.refresh();
+    });
     window.Edge.onChange(function () { window.Ruler.refresh(); });
 
     setupTabs();

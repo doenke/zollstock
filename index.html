@@ -64,8 +64,8 @@
     </button>
   </div>
   <div class="topbar__actions">
-    <button class="iconbtn" id="btn-axis" type="button" title="Lineal längs oder quer legen" aria-label="Lineal längs oder quer legen">
-      <span class="iconbtn__text" id="btn-axis-text">längs</span>
+    <button class="iconbtn" id="btn-direction" type="button" title="Zählrichtung umdrehen" aria-label="Zählrichtung umdrehen">
+      <span class="iconbtn__arrow" id="btn-direction-arrow">↓</span>
     </button>
     <button class="iconbtn" id="btn-calibrate" type="button" title="Einstellungen" aria-label="Einstellungen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
@@ -126,6 +126,14 @@
         </div>
 
         <button class="btn btn--ghost" id="scale-swap" type="button">Skalen tauschen</button>
+
+        <div class="unitrow">
+          <span class="unitrow__label" id="scale-axis-label">Lage des Lineals</span>
+          <div class="seg" id="scale-axis" role="group" aria-labelledby="scale-axis-label">
+            <button class="seg__btn" data-axis="long" type="button" aria-pressed="true">Längs</button>
+            <button class="seg__btn" data-axis="cross" type="button" aria-pressed="false">Quer</button>
+          </div>
+        </div>
       </section>
 
       <section class="group">
