@@ -13,6 +13,10 @@
  *
  *   Kante  – Drehung in der Bildschirmebene: atan2(−ux, uy)
  *   Fläche – Neigung der Auflagefläche:      acos(|uz|)
+ *
+ * Beide Messarten lassen sich nullen. Bei "Kante" wird ein Winkel im
+ * Gerätesystem gemerkt, bei "Fläche" die Richtung "oben" der Bezugsfläche –
+ * danach wird der Winkel zwischen Bezugsfläche und aktueller Lage gemessen.
  */
 window.Protractor = (function () {
   'use strict';
@@ -26,6 +30,7 @@ window.Protractor = (function () {
   var smooth = null;
   var mode = 'edge';
   var zeroRef = null;      /* null = gegen Waagerechte und Senkrechte */
+  var planeRef = null;     /* gemerkte Bezugsfläche, null = Waagerechte */
   var hold = null;           /* eingefrorene Lage, solange gehalten wird */
   var active = false;
   var listening = false;
@@ -45,7 +50,9 @@ window.Protractor = (function () {
   }
 
   function fmt(deg, digits) {
-    return deg.toFixed(digits === undefined ? 1 : digits).replace('.', ',') + '°';
+    var text = deg.toFixed(digits === undefined ? 1 : digits);
+    if (/^-0(\.0*)?$/.test(text)) text = text.slice(1);   /* kein "-0,0°" */
+    return text.replace('.', ',') + '°';
   }
 
   /* ---------- Sensor ---------- */
@@ -142,19 +149,16 @@ window.Protractor = (function () {
     return hold || { up: up, angle: screenAngle() };
   }
 
-  function screenUp() {
-    var src = source();
-    var a = src.angle / DEG;
+  /* Das Bild ist um a im Uhrzeigersinn gedreht, die Koordinaten eines
+   * festen Vektors also um a gegen den Uhrzeigersinn. */
+  function screenOf(v) {
+    var a = source().angle / DEG;
     var cos = Math.cos(a);
     var sin = Math.sin(a);
-    /* Das Bild ist um a im Uhrzeigersinn gedreht, die Koordinaten eines
-     * festen Vektors also um a gegen den Uhrzeigersinn. */
-    return {
-      x: src.up.x * cos - src.up.y * sin,
-      y: src.up.x * sin + src.up.y * cos,
-      z: src.up.z
-    };
+    return { x: v.x * cos - v.y * sin, y: v.x * sin + v.y * cos, z: v.z };
   }
+
+  function screenUp() { return screenOf(source().up); }
 
   /* Winkel im Bildschirmsystem: Dreht das Betriebssystem die Ansicht mit,
    * bleibt er gleich – gemessen wird gegen Waagerechte und Senkrechte. */
@@ -175,24 +179,70 @@ window.Protractor = (function () {
     return zeroRef === null ? wrap180(rawScreen()) : wrap180(rawDevice() - zeroRef);
   }
   function screenTilt() { return Math.asin(clamp1(source().up.z)) * DEG; }  /* 0 = senkrecht */
-  function slope() { return Math.acos(Math.min(1, Math.abs(source().up.z))) * DEG; }
-  function axisLong() { return Math.asin(clamp1(screenUp().y)) * DEG; }
-  function axisCross() { return Math.asin(clamp1(screenUp().x)) * DEG; }
+
+  /* Kippt die Welt so, dass die gemerkte Fläche waagerecht liegt: die
+   * kürzeste Drehung, die "oben" der Bezugsfläche auf (0, 0, 1) bringt,
+   * angewandt auf v (Formel von Rodrigues).
+   *
+   * Vom Lagesensor kommt nur die Richtung der Schwerkraft – die Himmels-
+   * richtung bleibt unbekannt. Gemessen wird deshalb der Winkel, um den das
+   * Gerät zwischen beiden Auflagen gekippt wurde. Solange es dabei nicht um
+   * die Senkrechte gedreht wird, ist das genau der Winkel zwischen den
+   * beiden Flächen. */
+  function levelWith(v, ref) {
+    var kx = ref.y, ky = -ref.x;        /* ref × (0, 0, 1) */
+    var sin = Math.sqrt(kx * kx + ky * ky);
+    var cos = clamp1(ref.z);
+
+    /* Bezugsfläche liegt schon waagerecht – oder genau andersherum. */
+    if (sin < 1e-6) {
+      return cos >= 0 ? { x: v.x, y: v.y, z: v.z } : { x: v.x, y: -v.y, z: -v.z };
+    }
+
+    kx /= sin;
+    ky /= sin;
+    var dot = kx * v.x + ky * v.y;      /* die z-Achse der Drehachse ist 0 */
+    return {
+      x: v.x * cos + ky * v.z * sin + kx * dot * (1 - cos),
+      y: v.y * cos - kx * v.z * sin + ky * dot * (1 - cos),
+      z: v.z * cos + (kx * v.y - ky * v.x) * sin
+    };
+  }
+
+  /* "Oben" bezogen auf die Bezugsfläche; ohne Bezug ist das die Waagerechte. */
+  function planeUp() {
+    var u = source().up;
+    return planeRef ? levelWith(u, planeRef) : u;
+  }
+
+  function slope() { return Math.acos(Math.min(1, Math.abs(planeUp().z))) * DEG; }
+  function axisLong() { return Math.asin(clamp1(screenOf(planeUp()).y)) * DEG; }
+  function axisCross() { return Math.asin(clamp1(screenOf(planeUp()).x)) * DEG; }
 
   function reading() { return mode === 'edge' ? edgeAngle() : slope(); }
 
+  function zeroed() { return mode === 'edge' ? zeroRef !== null : planeRef !== null; }
+
   /* Nullen setzt die aktuelle Lage als Bezug, nochmal drücken nimmt ihn
-   * zurück – dann wird wieder gegen Waagerechte und Senkrechte gemessen. */
+   * zurück – dann wird wieder gegen Waagerechte und Senkrechte gemessen.
+   * Bei "Fläche" wird das Gerät dazu auf die Bezugsfläche gelegt. */
   function toggleZero() {
-    if (mode !== 'edge') return;
-    zeroRef = zeroRef === null ? rawDevice() : null;
+    if (mode === 'edge') {
+      zeroRef = zeroRef === null ? rawDevice() : null;
+    } else if (planeRef) {
+      planeRef = null;
+    } else {
+      var u = source().up;
+      planeRef = { x: u.x, y: u.y, z: u.z };
+    }
     showZero();
   }
 
   function showZero() {
-    els.zero.textContent = zeroRef === null ? 'Nullen' : 'Zurücksetzen';
-    els.zero.classList.toggle('is-on', zeroRef !== null);
-    els.zero.setAttribute('aria-pressed', zeroRef === null ? 'false' : 'true');
+    var on = zeroed();
+    els.zero.textContent = on ? 'Zurücksetzen' : mode === 'edge' ? 'Nullen' : 'Fläche merken';
+    els.zero.classList.toggle('is-on', on);
+    els.zero.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
 
   /* ---------- Grobe Skala: Bogenteilung ---------- */
@@ -307,15 +357,34 @@ window.Protractor = (function () {
 
   /* ---------- Grobe Skala: Dosenlibelle ---------- */
 
+  /* Ohne Bezugsfläche geht es um die letzten Grad bis zur Waagerechten, mit
+   * Bezugsfläche können es leicht 40 werden. Die Libelle wählt deshalb den
+   * kleinsten Bereich, in den die Abweichung noch passt. */
+  var BUBBLE_RINGS = { 10: [2, 5, 10], 30: [5, 15, 30], 90: [15, 45, 90] };
+  var BUBBLE_STEPS = [10, 30, 90];
+  var bubbleRange = 10;
+
+  function pickRange(value) {
+    var i = 0;
+    while (i < BUBBLE_STEPS.length - 1 && value > BUBBLE_STEPS[i] * 0.98) i++;
+    /* Kleiner wird die Skala erst ein Stück innerhalb des nächsten Bereichs,
+     * sonst springt sie an der Grenze hin und her. */
+    if (BUBBLE_STEPS[i] < bubbleRange && value > BUBBLE_STEPS[i] * 0.85) return bubbleRange;
+    bubbleRange = BUBBLE_STEPS[i];
+    return bubbleRange;
+  }
+
   function drawBubble(cx, cy, radius) {
     var text = css('--text');
     var dim = css('--text-dim');
     var accent = css('--accent');
-    var perDeg = radius / 10;   /* Rand des Kreises entspricht 10° */
+    var range = pickRange(reading());
+    var rings = BUBBLE_RINGS[range];
+    var perDeg = radius / range;
 
     ctx.strokeStyle = dim;
     ctx.lineWidth = 1;
-    [2, 5, 10].forEach(function (ring) {
+    rings.forEach(function (ring) {
       ctx.beginPath();
       ctx.arc(cx, cy, ring * perDeg, 0, Math.PI * 2);
       ctx.stroke();
@@ -325,6 +394,12 @@ window.Protractor = (function () {
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    /* Das Fadenkreuz ist das Ziel: die Waagerechte – oder, wenn eine Fläche
+     * gemerkt ist, diese Fläche. Dann steht es in der Signalfarbe. */
+    ctx.strokeStyle = planeRef ? accent : text;
+    ctx.beginPath();
     ctx.moveTo(cx - radius, cy);
     ctx.lineTo(cx + radius, cy);
     ctx.moveTo(cx, cy - radius);
@@ -335,13 +410,17 @@ window.Protractor = (function () {
     ctx.font = '600 11px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
-    [2, 5, 10].forEach(function (ring) {
+    rings.forEach(function (ring) {
       ctx.fillText(ring + '°', cx + ring * perDeg - 20, cy - 5);
     });
 
-    /* Die Blase wandert zur angehobenen Seite, wie in einer echten Libelle. */
-    var dx = Math.max(-10, Math.min(10, axisCross())) * perDeg;
-    var dy = Math.max(-10, Math.min(10, axisLong())) * perDeg;
+    /* Die Blase wandert zur angehobenen Seite, wie in einer echten Libelle;
+     * am Rand bleibt sie auf dem Kreis stehen, nicht in der Ecke. */
+    var ax = axisCross(), ay = axisLong();
+    var far = Math.sqrt(ax * ax + ay * ay);
+    var scale = far > range ? range / far : 1;
+    var dx = ax * scale * perDeg;
+    var dy = ay * scale * perDeg;
 
     ctx.fillStyle = accent;
     ctx.beginPath();
@@ -673,7 +752,7 @@ window.Protractor = (function () {
       btn.classList.toggle('is-active', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-    els.zero.disabled = mode !== 'edge';
+    showZero();
     draw();
   }
 
@@ -735,6 +814,7 @@ window.Protractor = (function () {
       long: axisLong(),
       cross: axisCross(),
       zeroRef: zeroRef,
+      planeRef: planeRef,
       held: !!hold,
       haveData: haveData
     };
