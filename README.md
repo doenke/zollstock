@@ -169,7 +169,10 @@ Zwei Messarten, umschaltbar unter der Anzeige:
 | **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen | **Längs** und **Quer**: die beiden Achsen einzeln |
 
 Angezeigt wird auf zwei Skalen: grob als Bogen mit 1°-Strichen, der wie ein Lot
-im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift – im
+im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift. Die
+Zahlen darauf stehen immer lotrecht, unabhängig davon, wie weit die Teilung
+gedreht ist – bei gesetztem Nullpunkt dreht sie nach dem Gerätewinkel, die
+Beschriftung wird dann entsprechend zurückgedreht – im
 Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5° und 10°. Die
 Null und jeder Viertelkreis darauf (45°, 90°, 135°, 180°) stehen mit längerem
 Strich und größerer Zahl da und werden immer beschriftet, auch wenn die

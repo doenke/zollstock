@@ -266,6 +266,11 @@ window.Protractor = (function () {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = text;
 
+    /* Die Teilung dreht nach dem Messwert, die Zahlen sollen aber lotrecht
+     * bleiben. Ohne Nullpunkt ist beides dasselbe; ist von Hand genullt oder
+     * die Ansicht gedreht, muss die Beschriftung zurückgedreht werden. */
+    var upright = (value - rawScreen()) / DEG;
+
     for (var v = first; v <= last; v++) {
       var isQuarter = ((v % 45) + 45) % 45 === 0;
       /* Viertelkreise werden immer beschriftet, sonst jede labelStep-te Zahl. */
@@ -277,7 +282,11 @@ window.Protractor = (function () {
       var p = onArc(v, radius - majorLen * (isQuarter ? 1.4 : 1) - size * (isQuarter ? 1.15 : 0.75));
 
       ctx.font = (isQuarter ? '700 ' : '600 ') + size + 'px system-ui, -apple-system, sans-serif';
-      ctx.fillText(String(Math.abs(wrap180(v))), p.x, p.y);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(upright);
+      ctx.fillText(String(Math.abs(wrap180(v))), 0, 0);
+      ctx.restore();
     }
 
     ctx.restore();
