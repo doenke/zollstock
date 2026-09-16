@@ -154,6 +154,25 @@ window.Ruler = (function () {
       }
     });
 
+    /* Die Null groß an die Skala schreiben, wenn sie im Bild liegt. */
+    if (onScreen(zero.px)) {
+      var zeroSize = fontSize * 1.8;
+      var zeroCross = base + dir * (major + zeroSize * 0.5);
+      var zp = pt(zero.px, zeroCross);
+
+      ctx.fillStyle = css('--accent');
+      ctx.font = '700 ' + zeroSize + 'px system-ui, -apple-system, sans-serif';
+
+      if (geometry.vertical) {
+        ctx.textAlign = dir > 0 ? 'left' : 'right';
+        ctx.textBaseline = 'middle';
+      } else {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = dir > 0 ? 'top' : 'bottom';
+      }
+      ctx.fillText('0', zp.x, zp.y);
+    }
+
     /* Nulllinie entlang der Kante */
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;

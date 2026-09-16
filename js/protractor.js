@@ -234,27 +234,37 @@ window.Protractor = (function () {
     var last = Math.floor(value + ARC_HALF);
 
     for (var deg = first; deg <= last; deg++) {
+      /* Die Null und jeder Viertelkreis darauf stehen kräftiger da. */
+      var quarter = ((deg % 45) + 45) % 45 === 0;
       var major = deg % labelStep === 0;
       var mid = deg % 5 === 0;
-      var len = major ? majorLen : mid ? midLen : smallLen;
+      var len = quarter ? majorLen * 1.4 : major ? majorLen : mid ? midLen : smallLen;
       var outer = onArc(deg, radius);
       var inner = onArc(deg, radius - len);
 
       ctx.strokeStyle = major ? text : dim;
-      ctx.lineWidth = major ? 1.8 : 1;
+      ctx.lineWidth = quarter ? 3 : major ? 1.8 : 1;
       ctx.beginPath();
       ctx.moveTo(outer.x, outer.y);
       ctx.lineTo(inner.x, inner.y);
       ctx.stroke();
     }
 
-    ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = text;
 
-    for (var v = Math.ceil(first / labelStep) * labelStep; v <= last; v += labelStep) {
-      var p = onArc(v, radius - majorLen - fontSize * 0.9);
+    for (var v = first; v <= last; v++) {
+      var isQuarter = ((v % 45) + 45) % 45 === 0;
+      /* Viertelkreise werden immer beschriftet, sonst jede labelStep-te Zahl. */
+      if (!isQuarter && v % labelStep !== 0) continue;
+
+      var size = isQuarter ? fontSize * 1.45 : fontSize;
+      /* Die großen Zahlen stehen eine Reihe tiefer, sonst stoßen sie an die
+       * Nachbarn – bei 45 stünde die 50 nur fünf Grad daneben. */
+      var p = onArc(v, radius - majorLen * (isQuarter ? 1.4 : 1) - size * (isQuarter ? 1.15 : 0.75));
+
+      ctx.font = (isQuarter ? '700 ' : '600 ') + size + 'px system-ui, -apple-system, sans-serif';
       ctx.fillText(String(Math.abs(wrap180(v))), p.x, p.y);
     }
 

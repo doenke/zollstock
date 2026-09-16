@@ -17,6 +17,10 @@
 
 * { box-sizing: border-box; }
 
+/* Ohne !important schlägt jede Regel mit display die Voreinstellung des
+ * Browsers für [hidden] – die Anzeige blieb so trotz hidden sichtbar. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   height: 100%;
@@ -227,9 +231,7 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
   text-align: center;
 }
 
-.gate[hidden] { display: none; }
 .gate p { margin: 0; font-size: 13.5px; color: var(--text-dim); }
-.gate button[hidden] { display: none; }
 
 /* ---------- Hinweis auf eine neue Fassung ---------- */
 .update {
@@ -254,12 +256,10 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
   box-shadow: 0 6px 20px rgba(0, 0, 0, .45);
 }
 
-.update[hidden] { display: none; }
 .update svg { width: 16px; height: 16px; stroke-width: 2.2; }
 
 /* ---------- Sheet ---------- */
 .sheet { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
-.sheet[hidden] { display: none; }
 .sheet__backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); }
 
 .sheet__panel {
@@ -468,7 +468,6 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
   background: var(--bg);
 }
 
-.calview[hidden] { display: none; }
 
 .calview__card {
   position: absolute;
@@ -516,7 +515,6 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
   background: var(--bg);
 }
 
-.edgeview[hidden] { display: none; }
 
 .edgeview__stage { position: relative; flex: 1; overflow: hidden; touch-action: none; }
 

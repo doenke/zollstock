@@ -134,8 +134,9 @@ Querformat → ← ↔), dazu `H` für Hülle und `1` für den Zentimeter Abstan
 Wechseln wird die Lage kurz ausgeschrieben.
 
 Liegt die Null im sichtbaren Bereich, wird sie als durchgezogene Linie quer
-über den Bildschirm gezeichnet – daran wird angelegt. Die Messmarke ist
-gestrichelt, so sind beide auseinanderzuhalten.
+über den Bildschirm gezeichnet und an beiden Skalen groß beschriftet – daran
+wird angelegt. Die Messmarke ist gestrichelt, so sind beide
+auseinanderzuhalten.
 
 Die Lagen *1 cm vom Rand* sind für Werkstücke gedacht, die sich nicht am
 Gehäuse anlegen lassen: Der Nullstrich liegt sichtbar auf dem Bildschirm, das
@@ -170,7 +171,10 @@ Zwei Messarten, umschaltbar unter der Anzeige:
 
 Angezeigt wird auf zwei Skalen: grob als Bogen mit 1°-Strichen, der wie ein Lot
 im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift – im
-Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5° und 10°.
+Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5° und 10°. Die
+Null und jeder Viertelkreis darauf (45°, 90°, 135°, 180°) stehen mit längerem
+Strich und größerer Zahl da und werden immer beschriftet, auch wenn die
+übrige Teilung gerade in Zehnerschritten zählt.
 
 Der Bogen zeigt nur einen Ausschnitt von ± 25°. Das ist Absicht: Bei einem
 Vollkreis begrenzt die Bildschirmbreite den Halbmesser, die Gradstriche
