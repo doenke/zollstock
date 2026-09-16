@@ -7,6 +7,7 @@
 
   function redraw() {
     if (currentView === 'ruler') window.Ruler.draw();
+    else if (currentView === 'gauge') window.Gauge.draw();
     else window.Protractor.draw();
   }
 
@@ -18,16 +19,16 @@
     document.querySelectorAll('.tab').forEach(function (tab) {
       tab.classList.toggle('is-active', tab.dataset.view === name);
     });
-    /* Nullpunkt und Einstellungen gehören zum Lineal – beim Winkelmesser
-     * haben sie nichts zu melden. */
-    var ruler = name === 'ruler';
-    document.getElementById('btn-zeropoint').hidden = !ruler;
-    document.getElementById('btn-calibrate').hidden = !ruler;
+    /* Der Nullpunkt gehört zum Lineal. Die Kalibrierung gilt auch für die
+     * Messlehre – nur beim Winkelmesser hat beides nichts zu melden. */
+    document.getElementById('btn-zeropoint').hidden = name !== 'ruler';
+    document.getElementById('btn-calibrate').hidden = name === 'protractor';
 
     /* Der Winkelmesser lauscht am Sensor und zeichnet laufend – das läuft nur,
      * solange seine Ansicht offen ist. */
     window.Protractor.setActive(name === 'protractor');
     if (name === 'ruler') window.Ruler.draw();
+    if (name === 'gauge') window.Gauge.draw();
   }
 
   function setupTabs() {
@@ -151,6 +152,7 @@
     window.Calibration.init();
     window.Edge.init();
     window.Ruler.init();
+    window.Gauge.init();
     window.Protractor.init();
 
     window.Calibration.onChange(function () {

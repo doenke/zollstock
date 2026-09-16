@@ -1,8 +1,8 @@
 # Zollstock
 
-Statische PWA zum Messen: zeigt ein **Lineal in Originalgröße** auf dem Display –
-zwei frei wählbare Skalen – und einen **Winkelmesser**, der die Lage des Geräts
-ausliest.
+Statische PWA zum Messen: zeigt ein **Lineal in Originalgröße** auf dem Display,
+eine **Messlehre** für Bohrer und Rohre und einen **Winkelmesser**, der die Lage
+des Geräts ausliest.
 
 Kein Build, keine Abhängigkeiten, offline nutzbar.
 
@@ -106,7 +106,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
 | ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
-| Lineal / Winkel | Ansicht wechseln |
+| Lineal / Lehre / Winkel | Ansicht wechseln |
 | Nullpunkt und Einstellungen | nur in der Linealansicht, im Winkelmesser ausgeblendet |
 | Nullen / Fläche merken | aktuelle Lage zur Null bzw. zur Bezugsfläche machen; nochmal drücken hebt sie auf |
 | Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
@@ -147,6 +147,42 @@ Gehäuse anlegen lassen: Der Nullstrich liegt sichtbar auf dem Bildschirm, das
 Werkstück wird daran ausgerichtet. *Mittig* zählt nach beiden Seiten und hilft
 beim Mittigfinden. Während des Messens hält die App den Bildschirm wach
 (Wake-Lock, sofern vom Browser unterstützt).
+
+## Messlehre
+
+Die Lehre nutzt dasselbe, was das Lineal nutzt – den kalibrierten Maßstab –,
+nur als Vergleichsform statt als Skala. Drei Sätze, umschaltbar unter der
+Anzeige:
+
+| Satz | Form | Maße |
+| --- | --- | --- |
+| **Bohrer** | Schlitze | 1–10 mm in halben Schritten, dann 11, 12, 13, 14, 16 mm |
+| **Rohr mm** | Kreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
+| **Rohr Zoll** | Kreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
+
+**Bohrer** werden in einen Schlitz gelegt: zwei Striche mit genau dem lichten
+Abstand des Nenndurchmessers. Weil die Striche außerhalb dieses Abstands
+stehen, ist die lichte Weite auf den Zehntelmillimeter genau der Nennwert –
+passt der Bohrer ohne Luft und ohne Überstand hinein, stimmt das Maß. Wie
+viele Schlitze nebeneinander passen, rechnet die App aus dem Maßstab aus und
+bricht entsprechend um; auf einem breiteren Bildschirm werden es mehr.
+
+**Rohre** werden mit dem Ende auf einen Kreis gestellt. Die Kreise liegen
+ineinander – so passen viele Maße auf wenig Fläche, und das Rohr verdeckt
+ohnehin alles, was kleiner ist als es selbst. Gesucht wird der Kreis, der mit
+der Außenkante des Rohrs zusammenfällt. Kreise, die breiter sind als der
+Bildschirm, bleiben oben und unten sichtbar und lassen sich daran anlegen.
+
+Alle Maße sind **Außendurchmesser**. Bei Zollrohren ist die Zollangabe der
+Gewindename, nicht das Maß: ½″ hat 21,3 mm außen, 1″ hat 33,7 mm. Die Anzeige
+oben links nennt deshalb beides.
+
+Ein Tipp auf einen Schlitz oder Kreis hebt ihn hervor und schreibt Maß und
+Werkstoff aus – nochmal tippen nimmt es zurück. Die Zahlen an den Kreisen
+sitzen reihum auf vier Schrägen, damit Nachbarn den vierfachen Abstand haben,
+und bekommen nur einen schmalen Saum in der Hintergrundfarbe: ein
+freigeräumtes Rechteck würde die Nachbarkreise zerschneiden, und genau an
+denen wird angelegt.
 
 ## Winkelmesser
 
@@ -256,13 +292,14 @@ Schaltfläche. Fehlt der Sensor ganz, sagt die App das und bleibt bei 0°.
 ## Aufbau
 
 ```
-index.html              Gerüst beider Ansichten
+index.html              Gerüst aller Ansichten
 css/style.css           Darstellung
 js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
 js/scales.js            Skalenteilung und Lage des Nullpunkts
 js/edge.js              Randversatz, je Wert für Ober- und Unterkante
 js/ruler.js             Lineal (Canvas)
+js/gauge.js             Messlehre für Bohrer und Rohre
 js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
 sw.js                   Offline-Cache
@@ -300,7 +337,8 @@ auch in einem Unterverzeichnis.
 
 - [x] Lineal in Originalgröße, Zentimeterteilung an beiden Kanten
 - [x] Bildschirmerkennung und Kalibrierung
-- [x] Randversatz für Gerätekante und Schutzhülle
+- [x] Randversatz je Wert für Ober- und Unterkante
+- [x] Messlehre für Bohrer und Rohre, metrisch und in Zoll
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste
 - [x] Offline-Betrieb, installierbar
 

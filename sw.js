@@ -11,6 +11,7 @@ const ASSETS = [
   './js/scales.js',
   './js/edge.js',
   './js/ruler.js',
+  './js/gauge.js',
   './js/protractor.js',
   './js/app.js',
   './manifest.webmanifest',

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Zollstock</title>
-<meta name="description" content="Lineal und Winkelmesser in Originalgröße auf dem Bildschirm.">
+<meta name="description" content="Lineal, Messlehre und Winkelmesser in Originalgröße auf dem Bildschirm.">
 <meta name="theme-color" content="#111418">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,6 +28,24 @@
     </div>
 
     <p class="hint" id="ruler-hint">Tippen oder ziehen, um die Messmarke zu setzen</p>
+  </section>
+
+  <!-- ---------- Messlehre ---------- -->
+  <section class="view" id="view-gauge">
+    <canvas id="gauge-canvas"></canvas>
+
+    <div class="gauge__readout" id="gauge-readout">
+      <span class="gauge__main" id="gauge-main">Bohrer</span>
+      <span class="gauge__sub" id="gauge-sub">Bohrer in den passenden Schlitz legen</span>
+    </div>
+
+    <div class="tools">
+      <div class="seg seg--mode seg--gauge" role="group" aria-label="Lehre">
+        <button class="seg__btn" data-gauge="drill" type="button" aria-pressed="true">Bohrer</button>
+        <button class="seg__btn" data-gauge="pipe-mm" type="button" aria-pressed="false">Rohr mm</button>
+        <button class="seg__btn" data-gauge="pipe-in" type="button" aria-pressed="false">Rohr Zoll</button>
+      </div>
+    </div>
   </section>
 
   <!-- ---------- Winkelmesser ---------- -->
@@ -73,6 +91,10 @@
   <button class="tab is-active" data-view="ruler" type="button">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
     <span>Lineal</span>
+  </button>
+  <button class="tab" data-view="gauge" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>
+    <span>Lehre</span>
   </button>
   <button class="tab" data-view="protractor" type="button">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17a9 9 0 0 1 18 0z"/><path d="M12 17V9M7.5 17v-3M16.5 17v-3"/></svg>
@@ -231,6 +253,7 @@
 <script src="js/scales.js"></script>
 <script src="js/edge.js"></script>
 <script src="js/ruler.js"></script>
+<script src="js/gauge.js"></script>
 <script src="js/protractor.js"></script>
 <script src="js/app.js"></script>
 </body>
