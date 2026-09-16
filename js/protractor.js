@@ -123,11 +123,17 @@ window.Protractor = (function () {
   /* beta und gamma beziehen sich auf das Gerät in seiner natürlichen Lage.
    * Dreht das Betriebssystem die Ansicht ins Querformat, ist das gezeichnete
    * Bild mitgedreht – die Lage muss in dasselbe System gebracht werden. */
+  /* screen.orientation.angle zählt, um wie viel das Bild im Uhrzeigersinn
+   * gegenüber der natürlichen Lage gedreht ist. Das alte window.orientation
+   * von iOS zählt andersherum und wird deshalb umgerechnet. */
   function screenAngle() {
     if (screen.orientation && typeof screen.orientation.angle === 'number') {
       return screen.orientation.angle;
     }
-    return typeof window.orientation === 'number' ? window.orientation : 0;
+    if (typeof window.orientation === 'number') {
+      return (360 - window.orientation) % 360;
+    }
+    return 0;
   }
 
   /* Gehalten wird die Lage selbst – damit stehen Ring, Libelle, Bandskala und
@@ -141,9 +147,11 @@ window.Protractor = (function () {
     var a = src.angle / DEG;
     var cos = Math.cos(a);
     var sin = Math.sin(a);
+    /* Das Bild ist um a im Uhrzeigersinn gedreht, die Koordinaten eines
+     * festen Vektors also um a gegen den Uhrzeigersinn. */
     return {
-      x: src.up.x * cos + src.up.y * sin,
-      y: -src.up.x * sin + src.up.y * cos,
+      x: src.up.x * cos - src.up.y * sin,
+      y: src.up.x * sin + src.up.y * cos,
       z: src.up.z
     };
   }
@@ -177,7 +185,7 @@ window.Protractor = (function () {
 
   /* ---------- Grobe Skala: Bogenteilung ---------- */
 
-  var ARC_HALF = 35;       /* sichtbarer Bereich in Grad, je Seite */
+  var ARC_HALF = 25;       /* sichtbarer Bereich in Grad, je Seite */
 
   /* Der Bogen nutzt die Breite der Fläche aus. Je größer der Halbmesser,
    * desto weiter liegen die Gradstriche auseinander – ein Vollkreis müsste
@@ -203,10 +211,12 @@ window.Protractor = (function () {
     var text = css('--text');
     var dim = css('--text-dim');
     var accent = css('--accent');
-    var fontSize = Math.max(13, Math.min(19, radius * 0.07));
-    var majorLen = Math.max(22, radius * 0.12);
+    var fontSize = Math.max(14, Math.min(20, radius * 0.055));
+    var majorLen = Math.max(24, Math.min(38, radius * 0.09));
     var midLen = majorLen * 0.62;
     var smallLen = majorLen * 0.34;
+    /* Bei großem Halbmesser ist Platz für jede fünfte Zahl. */
+    var labelStep = radius * 5 / DEG >= 44 ? 5 : 10;
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -224,7 +234,7 @@ window.Protractor = (function () {
     var last = Math.floor(value + ARC_HALF);
 
     for (var deg = first; deg <= last; deg++) {
-      var major = deg % 10 === 0;
+      var major = deg % labelStep === 0;
       var mid = deg % 5 === 0;
       var len = major ? majorLen : mid ? midLen : smallLen;
       var outer = onArc(deg, radius);
@@ -243,7 +253,7 @@ window.Protractor = (function () {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = text;
 
-    for (var v = Math.ceil(first / 10) * 10; v <= last; v += 10) {
+    for (var v = Math.ceil(first / labelStep) * labelStep; v <= last; v += labelStep) {
       var p = onArc(v, radius - majorLen - fontSize * 0.9);
       ctx.fillText(String(Math.abs(wrap180(v))), p.x, p.y);
     }

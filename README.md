@@ -157,7 +157,9 @@ uz =  cos(beta) · cos(gamma)
 Senkrecht im Hochformat ergibt das (0, 1, 0), flach auf dem Tisch (0, 0, 1).
 Dreht das Betriebssystem die Ansicht ins Querformat, wird der Vektor um
 `screen.orientation.angle` mitgedreht – sonst zeigte die Skala im Querformat
-90° daneben. Ein Tiefpass glättet das Zittern des Sensors.
+90° daneben. Dabei ist die Zählrichtung entscheidend: `screen.orientation.angle`
+zählt, um wie viel das **Bild** im Uhrzeigersinn gedreht ist, das alte
+`window.orientation` von iOS zählt andersherum und wird umgerechnet. Ein Tiefpass glättet das Zittern des Sensors.
 
 Zwei Messarten, umschaltbar unter der Anzeige:
 
@@ -170,9 +172,9 @@ Angezeigt wird auf zwei Skalen: grob als Bogen mit 1°-Strichen, der wie ein Lot
 im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift – im
 Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5° und 10°.
 
-Der Bogen zeigt nur einen Ausschnitt von ± 35°. Das ist Absicht: Bei einem
+Der Bogen zeigt nur einen Ausschnitt von ± 25°. Das ist Absicht: Bei einem
 Vollkreis begrenzt die Bildschirmbreite den Halbmesser, die Gradstriche
-rücken eng zusammen. Ein Ausschnitt darf einen fast doppelt so großen
+rücken eng zusammen. Ein Ausschnitt darf einen mehr als doppelt so großen
 Halbmesser haben – die Teilung wird entsprechend feiner, und was darüber
 hinausgeht, wandert beim Kippen ins Bild.
 
