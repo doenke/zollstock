@@ -351,9 +351,9 @@ window.Protractor = (function () {
 
   /* ---------- Feine Skala: Bandteilung ---------- */
 
-  var FINE_SPAN = 14;      /* sichtbarer Bereich in Grad, je Seite */
-  var FINE_CLEAR = 10;     /* bis hierher voll sichtbar */
-  var FINE_GONE = 14.5;    /* ab hier ausgeblendet */
+  var FINE_SPAN = 12;      /* sichtbarer Bereich in Grad, je Seite */
+  var FINE_CLEAR = 9.5;    /* bis hierher voll sichtbar */
+  var FINE_GONE = 14.5;    /* ab hier bleiben nur die Gradstriche */
 
   /* Abweichung eines Winkels von der nächsten 45-Grad-Marke. */
   function toGrid(deg) {
@@ -375,7 +375,7 @@ window.Protractor = (function () {
     var text = css('--text');
     var dim = css('--text-dim');
     var accent = css('--accent');
-    var labelSize = Math.max(11, Math.min(14, height * 0.17));
+    var labelSize = Math.max(12, Math.min(19, height * 0.17));
 
     ctx.save();
     ctx.beginPath();
@@ -389,11 +389,13 @@ window.Protractor = (function () {
     for (var q = first; q <= last; q++) {
       var deg = q / 4;
       var grid = toGrid(deg);
-      var alpha = fade(Math.abs(grid));
-      if (alpha <= 0.02) continue;
-
       var steps = Math.round(grid * 4);
       var whole = steps % 4 === 0;
+      /* Die Gradstriche bleiben überall sichtbar, damit das Band zwischen
+       * zwei Nullen nicht abreißt; die feine Teilung blendet aus. */
+      var alpha = whole ? Math.max(0.28, fade(Math.abs(grid))) : fade(Math.abs(grid));
+      if (alpha <= 0.02) continue;
+
       var five = steps % 20 === 0;
       /* Viertelgrade nur im wirklich genutzten Bereich – sonst Brei. */
       if (!whole && Math.abs(grid) > FINE_CLEAR) continue;
@@ -409,7 +411,9 @@ window.Protractor = (function () {
       ctx.lineTo(px, y + len);
       ctx.stroke();
 
-      if (five && px > x + 16 && px < x + width - 16) {
+      /* Zahlen nur im genutzten Bereich – weiter außen sagen sie nichts mehr,
+       * was die große Anzeige nicht besser sagt. */
+      if (five && Math.abs(grid) <= FINE_CLEAR && px > x + 16 && px < x + width - 16) {
         var shown = Math.round(grid);
         ctx.fillStyle = shown === 0 ? accent : dim;
         ctx.font = '600 ' + labelSize + 'px system-ui, -apple-system, sans-serif';
@@ -550,14 +554,17 @@ window.Protractor = (function () {
       fitText('Längs ' + fmt(axisLong()) + '  ·  Quer ' + fmt(axisCross()), cx, y + 15, 13, width);
     }
 
-    var hint = mode === 'edge'
-      ? (Math.abs(screenTilt()) > 45 ? 'Bildschirm senkrecht halten' : 'Gerätekante anlegen')
-      : 'Gerät flach auflegen';
+    /* Nur melden, wenn es etwas zu melden gibt – die Handhabung erklärt sich
+     * über das Sinnbild der Kippung. */
+    var hint = '';
     if (hold) hint = 'gehalten – zum Lösen erneut tippen';
+    else if (mode === 'edge' && Math.abs(screenTilt()) > 45) hint = 'Bildschirm senkrecht halten';
 
-    ctx.fillStyle = dim;
-    ctx.textAlign = 'center';
-    fitText(hint, cx, y + 56, 12, width, '');
+    if (hint) {
+      ctx.fillStyle = dim;
+      ctx.textAlign = 'center';
+      fitText(hint, cx, y + 58, 12, width, '');
+    }
   }
 
   function drawDial(x, y, width, height) {
@@ -590,7 +597,7 @@ window.Protractor = (function () {
     /* Wie viel Platz Werkzeug- und Tableiste brauchen, hängt davon ab, ob die
      * Schaltflächen umbrechen – deshalb wird die Leiste ausgemessen. */
     var bottom = els.tools.getBoundingClientRect().top - 14;
-    var tapeHeight = 84;
+    var tapeHeight = 112;
 
     if (w > h) {
       /* Querformat: Skala links, Anzeige und Feinskala rechts daneben. */
@@ -619,7 +626,7 @@ window.Protractor = (function () {
 
     drawReadout(w / 2, textY, size);
     drawSecondary(w / 2, textY + size * 0.72, w - 32);
-    drawTape(16, dialBottom + 14, w - 32, tapeHeight);
+    drawTape(10, dialBottom + 14, w - 20, tapeHeight);
   }
 
   function loop() {

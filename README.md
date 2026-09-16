@@ -193,8 +193,10 @@ hinausgeht, wandert beim Kippen ins Bild.
 
 Fein als Bandskala darunter. Sie hat **alle 45° eine Null** und zählt von dort
 nach beiden Seiten, in Viertelgrad-Schritten. Gebraucht wird ohnehin nur der
-Bereich um die jeweilige Null, deshalb ist die Teilung bis ± 10° voll sichtbar
-und verblasst dahinter – zwischen zwei Nullen bleibt das Band dunkel.
+Bereich um die jeweilige Null: Dort steht die feine Teilung mit Zahlen, weiter
+außen bleiben nur die Gradstriche und werden schwächer. Zwischen zwei Nullen
+sieht man deshalb bloß noch eine gleichmäßige Strichfolge – und weiß sofort,
+dass keine Marke in der Nähe ist.
 
 Steht die Anzeige auf einer **45er-Marke** – also waagerecht, senkrecht oder
 im Winkel dazwischen –, gibt das Gerät einen kurzen Stups; die Null bekommt
