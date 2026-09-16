@@ -143,7 +143,6 @@
 
   function start() {
     window.Calibration.init();
-    window.Scales.init();
     window.Edge.init();
     window.Ruler.init();
     window.Protractor.init();

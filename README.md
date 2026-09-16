@@ -108,11 +108,9 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
 | Kante / Fläche | Messart des Winkelmessers |
 
-Es werden immer **zwei Skalen** gezeichnet – eine an jeder Kante. Welche
-Einheit auf welcher Kante liegt, steht in den Einstellungen unter *Skalen*;
-zur Wahl stehen Zentimeter, Millimeter und Zoll (Sechzehntel-Teilung).
-Voreingestellt ist cm links bzw. oben und Zoll rechts bzw. unten. Die Auswahl
-liegt in `localStorage` (`zollstock.scales.v1`).
+An beiden Kanten steht dieselbe **Zentimeterteilung** mit Millimeterstrichen –
+so lässt sich von jeder Seite anlegen. Die Messmarke nennt den Wert in
+Zentimetern und darunter in Millimetern.
 
 Das Lineal läuft entlang der längeren Bildschirmkante und folgt der
 Geräteausrichtung.
@@ -205,7 +203,7 @@ index.html              Gerüst beider Ansichten
 css/style.css           Darstellung
 js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
-js/scales.js            Einheiten der beiden Skalen
+js/scales.js            Skalenteilung und Lage des Nullpunkts
 js/edge.js              Randversatz, Profile für Gerät und Hülle
 js/ruler.js             Lineal (Canvas)
 js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
@@ -243,7 +241,7 @@ auch in einem Unterverzeichnis.
 
 ## Stand
 
-- [x] Lineal in Originalgröße, zwei frei wählbare Skalen (cm, mm, Zoll)
+- [x] Lineal in Originalgröße, Zentimeterteilung an beiden Kanten
 - [x] Bildschirmerkennung und Kalibrierung
 - [x] Randversatz für Gerätekante und Schutzhülle
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste

@@ -212,8 +212,10 @@ window.Ruler = (function () {
 
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
-    drawScale(window.Scales.unit('a'), 0, 1, major, css('--text'));
-    drawScale(window.Scales.unit('b'), cross, -1, major * 0.8, css('--text-dim'));
+    /* Dieselbe Teilung an beiden Kanten – so lässt sich von jeder Seite
+     * anlegen. */
+    drawScale(window.Scales.unit(), 0, 1, major, css('--text'));
+    drawScale(window.Scales.unit(), cross, -1, major * 0.8, css('--text-dim'));
 
     drawMarker();
   }
@@ -226,19 +228,11 @@ window.Ruler = (function () {
       return;
     }
 
-    var scales = window.Scales.get();
     var shown = Math.abs(markerMm);
-    /* Zweite Zeile nur, wenn sie etwas hinzufügt. */
-    var sub = scales.b === scales.a ? '' : window.Scales.format(scales.b, shown);
-    if (window.Scales.hasInch()) {
-      var fraction = window.Scales.fractionInch(shown);
-      sub = sub ? sub + ' · ' + fraction : fraction;
-    }
-
     readout.hidden = false;
-    readoutMain.textContent = window.Scales.format(scales.a, shown);
-    readoutSub.textContent = sub;
-    readoutSub.hidden = !sub;
+    readoutMain.textContent = window.Scales.format(shown);
+    readoutSub.textContent = window.Scales.formatMm(shown);
+    readoutSub.hidden = false;
   }
 
   /* ---------- Interaktion ---------- */

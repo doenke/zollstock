@@ -53,10 +53,6 @@
 
 <!-- ---------- Kopfzeile ---------- -->
 <header class="topbar">
-  <div class="topbar__brand">
-    <svg class="topbar__logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
-    <span>Zollstock</span>
-  </div>
   <div class="topbar__actions">
     <button class="iconbtn" id="btn-zeropoint" type="button" title="Nullpunkt wechseln" aria-label="Nullpunkt wechseln">
       <span class="iconbtn__arrow" id="btn-zeropoint-arrow">↓</span><span class="iconbtn__tag" id="btn-zeropoint-tag"></span>
@@ -97,31 +93,6 @@
     </div>
 
     <div class="sheet__body">
-      <section class="group">
-        <h2 class="group__title">Skalen</h2>
-        <p class="group__text">Das Lineal zeigt immer zwei Skalen – eine an jeder Kante.</p>
-
-        <div class="unitrow">
-          <span class="unitrow__label" id="scale-a-label">Linke Kante</span>
-          <div class="seg seg--units" data-edge="a" role="group" aria-labelledby="scale-a-label">
-            <button class="seg__btn" data-unit="cm" type="button" aria-pressed="false">cm</button>
-            <button class="seg__btn" data-unit="mm" type="button" aria-pressed="false">mm</button>
-            <button class="seg__btn" data-unit="in" type="button" aria-pressed="false">Zoll</button>
-          </div>
-        </div>
-
-        <div class="unitrow">
-          <span class="unitrow__label" id="scale-b-label">Rechte Kante</span>
-          <div class="seg seg--units" data-edge="b" role="group" aria-labelledby="scale-b-label">
-            <button class="seg__btn" data-unit="cm" type="button" aria-pressed="false">cm</button>
-            <button class="seg__btn" data-unit="mm" type="button" aria-pressed="false">mm</button>
-            <button class="seg__btn" data-unit="in" type="button" aria-pressed="false">Zoll</button>
-          </div>
-        </div>
-
-        <button class="btn btn--ghost" id="scale-swap" type="button">Skalen tauschen</button>
-      </section>
-
       <section class="group">
         <h2 class="group__title">Kalibrierung</h2>
 
