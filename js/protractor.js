@@ -531,9 +531,9 @@ window.Protractor = (function () {
     ctx.fillStyle = dim;
 
     if (mode === 'edge') {
+      /* Was noch bis zum rechten und bis zum gestreckten Winkel fehlt. */
       var away = Math.abs(reading());
-      fitText('bis 90°  ' + fmt(Math.abs(90 - away)) + '   ·   bis 180°  ' + fmt(180 - away),
-        cx, y, 13, width);
+      fitText(fmt(Math.abs(90 - away)) + '   ·   ' + fmt(180 - away), cx, y, 14, width);
 
       /* Sinnbild und Zahl nebeneinander, zusammen mittig. */
       var tilt = screenTilt();
