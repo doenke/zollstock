@@ -133,6 +133,10 @@ Knopf zeigt als Pfeil, wo die Null sitzt und wohin gezählt wird (↓ ↑ ↕, i
 Querformat → ← ↔), dazu `H` für Hülle und `1` für den Zentimeter Abstand. Beim
 Wechseln wird die Lage kurz ausgeschrieben.
 
+Liegt die Null im sichtbaren Bereich, wird sie als durchgezogene Linie quer
+über den Bildschirm gezeichnet – daran wird angelegt. Die Messmarke ist
+gestrichelt, so sind beide auseinanderzuhalten.
+
 Die Lagen *1 cm vom Rand* sind für Werkstücke gedacht, die sich nicht am
 Gehäuse anlegen lassen: Der Nullstrich liegt sichtbar auf dem Bildschirm, das
 Werkstück wird daran ausgerichtet. *Mittig* zählt nach beiden Seiten und hilft

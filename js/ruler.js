@@ -161,14 +161,19 @@ window.Ruler = (function () {
     line(0, base, geometry.length, base);
     ctx.stroke();
 
-    /* Die Null selbst markieren, wenn sie auf dem Bildschirm liegt */
-    if (onScreen(zero.px)) {
-      ctx.strokeStyle = css('--accent');
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      line(zero.px, base, zero.px, base + dir * major);
-      ctx.stroke();
-    }
+  }
+
+  /* Die Null durchgezogen über die ganze Breite – daran wird angelegt.
+   * Die Messmarke ist gestrichelt, so sind beide auseinanderzuhalten. */
+  function drawZeroLine() {
+    var along = geometry.zero.px;
+    if (along < 0 || along > geometry.length) return;
+
+    ctx.strokeStyle = css('--accent');
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    line(along, 0, along, geometry.cross);
+    ctx.stroke();
   }
 
   function drawMarker() {
@@ -217,6 +222,7 @@ window.Ruler = (function () {
     drawScale(window.Scales.unit(), 0, 1, major, css('--text'));
     drawScale(window.Scales.unit(), cross, -1, major * 0.8, css('--text-dim'));
 
+    drawZeroLine();
     drawMarker();
   }
 
