@@ -428,6 +428,36 @@ window.Protractor = (function () {
 
   }
 
+  /* ---------- Rückmeldung an den Rastermarken ---------- */
+
+  var SNAP_IN = 0.3;       /* so nah an der Marke wird gemeldet */
+  var SNAP_OUT = 1.2;      /* so weit weg zählt es wieder als gelöst */
+  var snappedMark = null;
+
+  /* Ein kurzer Stups, sobald die Anzeige auf einer 45er-Marke steht – die
+   * Null bekommt zwei, damit sie sich unterscheidet. Ohne Hinsehen zu
+   * merken, wann es waagerecht oder senkrecht steht, ist der halbe Zweck.
+   *
+   * Gemerkt wird die Marke selbst, nicht bloß "drin oder draußen": Wandert
+   * die Anzeige zwischen zwei Bildern von einer Marke zur nächsten, ist das
+   * eine neue Meldung wert. */
+  function checkSnap() {
+    if (!haveData || hold) return;
+
+    var value = reading();
+    var mark = Math.round(value / 45) * 45;
+    if (mark === -180) mark = 180;
+    var distance = Math.abs(value - mark);
+
+    if (distance <= SNAP_IN) {
+      if (snappedMark === mark) return;
+      snappedMark = mark;
+      if (navigator.vibrate) navigator.vibrate(mark === 0 ? [30, 45, 30] : 30);
+    } else if (snappedMark !== null && distance > SNAP_OUT) {
+      snappedMark = null;
+    }
+  }
+
   /* ---------- Anzeige ---------- */
 
   function drawReadout(cx, cy, size) {
@@ -529,6 +559,7 @@ window.Protractor = (function () {
   }
 
   function loop() {
+    checkSnap();
     draw();
     /* Im Haltezustand ändert sich nichts mehr – dann ruht die Schleife. */
     frame = hold ? null : requestAnimationFrame(loop);
@@ -582,6 +613,7 @@ window.Protractor = (function () {
 
     if (!on) {
       unlisten();
+      snappedMark = null;
       return;
     }
 

@@ -103,6 +103,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
+| Nullpunkt und Einstellungen | nur in der Linealansicht, im Winkelmesser ausgeblendet |
 | Nullen | aktuelle Lage zur Null machen; nochmal drücken hebt sie auf |
 | Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
 | Kante / Fläche | Messart des Winkelmessers |
@@ -188,6 +189,13 @@ Fein als Bandskala darunter. Sie hat **alle 45° eine Null** und zählt von dort
 nach beiden Seiten, in Viertelgrad-Schritten. Gebraucht wird ohnehin nur der
 Bereich um die jeweilige Null, deshalb ist die Teilung bis ± 10° voll sichtbar
 und verblasst dahinter – zwischen zwei Nullen bleibt das Band dunkel.
+
+Steht die Anzeige auf einer **45er-Marke** – also waagerecht, senkrecht oder
+im Winkel dazwischen –, gibt das Gerät einen kurzen Stups; die Null bekommt
+zwei, damit sie sich unterscheidet. Gemeldet wird beim Eintreten in ein
+Fenster von 0,3°, gelöst wird bei 1,2°. Wer das Gerät anlegt und den
+Bildschirm dabei nicht sieht, merkt so, wann es sitzt. Geräte ohne
+`navigator.vibrate` (iOS) lassen es still.
 
 **Halten** friert die Lage ein: Ring, Libelle, Bandskala und Anzeige stehen
 still, bis erneut gedrückt wird – gedacht für Stellen, an denen das Gerät

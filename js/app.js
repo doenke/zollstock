@@ -18,6 +18,12 @@
     document.querySelectorAll('.tab').forEach(function (tab) {
       tab.classList.toggle('is-active', tab.dataset.view === name);
     });
+    /* Nullpunkt und Einstellungen gehören zum Lineal – beim Winkelmesser
+     * haben sie nichts zu melden. */
+    var ruler = name === 'ruler';
+    document.getElementById('btn-zeropoint').hidden = !ruler;
+    document.getElementById('btn-calibrate').hidden = !ruler;
+
     /* Der Winkelmesser lauscht am Sensor und zeichnet laufend – das läuft nur,
      * solange seine Ansicht offen ist. */
     window.Protractor.setActive(name === 'protractor');
