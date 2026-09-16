@@ -164,10 +164,16 @@ zählt, um wie viel das **Bild** im Uhrzeigersinn gedreht ist, das alte
 
 Zwei Messarten, umschaltbar unter der Anzeige:
 
-| Messart | Hauptwert | zweiter Wert |
+| Messart | Hauptwert | darunter |
 | --- | --- | --- |
-| **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | **Kippung**: wie weit der Bildschirm aus der Senkrechten kippt. Über 45° wird zum Aufrichten geraten, weil der Hauptwert dann ungenau wird. |
+| **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | wie weit es noch **bis 90°** und **bis 180°** ist, dazu die **Kippung** |
 | **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen | **Längs** und **Quer**: die beiden Achsen einzeln |
+
+Die **Kippung** – wie weit der Bildschirm aus der Senkrechten kippt – steht als
+Zahl und als Bild da: das Gerät von der Seite gesehen, um seine Kippung
+geneigt, daneben ein gestricheltes Lot. Steht es senkrecht, decken sich beide.
+Über 45° wechselt die Farbe und es wird zum Aufrichten geraten, weil der
+Hauptwert dann ungenau wird.
 
 Angezeigt wird auf zwei Skalen: grob als Bogen mit 1°-Strichen, der wie ein Lot
 im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift. Die

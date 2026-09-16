@@ -271,10 +271,14 @@ window.Protractor = (function () {
      * die Ansicht gedreht, muss die Beschriftung zurückgedreht werden. */
     var upright = (value - rawScreen()) / DEG;
 
+    /* So dicht neben einer großen Zahl ist kein Platz mehr für eine kleine. */
+    var crowded = fontSize * 2.2 / (radius / DEG);
+
     for (var v = first; v <= last; v++) {
       var isQuarter = ((v % 45) + 45) % 45 === 0;
       /* Viertelkreise werden immer beschriftet, sonst jede labelStep-te Zahl. */
       if (!isQuarter && v % labelStep !== 0) continue;
+      if (!isQuarter && Math.abs(toGrid(v)) < crowded) continue;
 
       var size = isQuarter ? fontSize * 1.45 : fontSize;
       /* Die großen Zahlen stehen eine Reihe tiefer, sonst stoßen sie an die
@@ -472,30 +476,90 @@ window.Protractor = (function () {
 
   }
 
-  /* Die jeweils andere Neigung, darunter der Hinweis zur Handhabung. */
-  function drawSecondary(cx, y) {
-    var second, hint;
+  /* Das Gerät von der Seite gesehen, um seine Kippung geneigt, neben einem
+   * gestrichelten Lot. Das sagt auf einen Blick, ob es senkrecht steht –
+   * schneller als eine Zahl. */
+  function drawTiltIcon(cx, cy, height, tilt, color) {
+    var width = height * 0.34;
 
-    if (mode === 'edge') {
-      second = 'Kippung ' + fmt(screenTilt(), 0);
-      hint = Math.abs(screenTilt()) > 45 ? 'Bildschirm senkrecht halten' : 'Gerätekante anlegen';
-    } else {
-      second = 'Längs ' + fmt(axisLong()) + '  ·  Quer ' + fmt(axisCross());
-      hint = 'Gerät flach auflegen';
+    ctx.strokeStyle = css('--text-dim');
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - height / 2);
+    ctx.lineTo(cx, cy + height / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.save();
+    ctx.translate(cx, cy + height / 2);
+    ctx.rotate(tilt / DEG);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.rect(-width / 2, -height, width, height);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /* Schreibt eine Zeile, notfalls kleiner, damit sie in die Breite passt. */
+  function fitText(text, cx, y, size, maxWidth, weight) {
+    ctx.font = (weight || '600 ') + size + 'px system-ui, -apple-system, sans-serif';
+    var width = ctx.measureText(text).width;
+
+    if (width > maxWidth) {
+      size = Math.max(10, size * maxWidth / width);
+      ctx.font = (weight || '600 ') + size + 'px system-ui, -apple-system, sans-serif';
     }
-    if (hold) hint = 'gehalten – zum Lösen erneut tippen';
+    ctx.fillText(text, cx, y);
+  }
+
+  /* Was unter dem Messwert steht: wie weit es noch bis zum rechten und zum
+   * gestreckten Winkel ist, dazu die Kippung als Bild und als Zahl. */
+  function drawSecondary(cx, y, maxWidth) {
+    var dim = css('--text-dim');
+    var text = css('--text');
+    var width = maxWidth || 280;
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = css('--text-dim');
-    ctx.font = '600 13px system-ui, -apple-system, sans-serif';
-    ctx.fillText(second, cx, y);
-    ctx.font = '12px system-ui, -apple-system, sans-serif';
-    ctx.fillText(hint, cx, y + 20);
+    ctx.fillStyle = dim;
+
+    if (mode === 'edge') {
+      var away = Math.abs(reading());
+      fitText('bis 90°  ' + fmt(Math.abs(90 - away)) + '   ·   bis 180°  ' + fmt(180 - away),
+        cx, y, 13, width);
+
+      /* Sinnbild und Zahl nebeneinander, zusammen mittig. */
+      var tilt = screenTilt();
+      var steep = Math.abs(tilt) > 45;
+      var label = 'Kippung ' + fmt(tilt, 0);
+
+      ctx.font = '600 13px system-ui, -apple-system, sans-serif';
+      var labelWidth = ctx.measureText(label).width;
+      var iconWidth = 34;
+      var left = cx - (labelWidth + iconWidth) / 2;
+
+      drawTiltIcon(left + 13, y + 30, 30, tilt, steep ? css('--danger') : text);
+      ctx.fillStyle = steep ? css('--danger') : dim;
+      ctx.textAlign = 'left';
+      ctx.fillText(label, left + iconWidth, y + 30);
+      ctx.textAlign = 'center';
+    } else {
+      fitText('Längs ' + fmt(axisLong()) + '  ·  Quer ' + fmt(axisCross()), cx, y + 15, 13, width);
+    }
+
+    var hint = mode === 'edge'
+      ? (Math.abs(screenTilt()) > 45 ? 'Bildschirm senkrecht halten' : 'Gerätekante anlegen')
+      : 'Gerät flach auflegen';
+    if (hold) hint = 'gehalten – zum Lösen erneut tippen';
+
+    ctx.fillStyle = dim;
+    ctx.textAlign = 'center';
+    fitText(hint, cx, y + 56, 12, width, '');
   }
 
-  /* Der Bogen hängt oben in der Fläche, die Libelle sitzt mittig darin.
-   * Beide geben zurück, wo darunter die Anzeige beginnen kann. */
   function drawDial(x, y, width, height) {
     if (mode === 'edge') {
       var radius = arcRadius(width, height);
@@ -539,10 +603,10 @@ window.Protractor = (function () {
       var textX = w * 0.74;
       var colTop = top + 12;
 
-      drawReadout(textX, colTop + 26, 44);
-      drawSecondary(textX, colTop + 70);
-      drawTape(halfW, colTop + 104, w - halfW - 16,
-        Math.min(tapeHeight, bottom - colTop - 104));
+      drawReadout(textX, colTop + 24, 42);
+      drawSecondary(textX, colTop + 58, w - halfW - 24);
+      drawTape(halfW, colTop + 132, w - halfW - 16,
+        Math.min(tapeHeight, bottom - colTop - 132));
       return;
     }
 
@@ -554,7 +618,7 @@ window.Protractor = (function () {
     var textY = (used + dialBottom) / 2 - size * 0.4;
 
     drawReadout(w / 2, textY, size);
-    drawSecondary(w / 2, textY + size * 0.75);
+    drawSecondary(w / 2, textY + size * 0.72, w - 32);
     drawTape(16, dialBottom + 14, w - 32, tapeHeight);
   }
 
