@@ -103,8 +103,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
-| Ausrichten | 0° nach oben legen, auf die nächste Vierteldrehung gerundet |
-| Nullen | aktuelle Lage zur Null machen, ohne Rundung |
+| Nullen | aktuelle Lage zur Null machen; nochmal drücken hebt sie auf |
 | Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
 | Kante / Fläche | Messart des Winkelmessers |
 
@@ -185,8 +184,7 @@ hinausgeht, wandert beim Kippen ins Bild.
 Fein als Bandskala darunter. Sie hat **alle 45° eine Null** und zählt von dort
 nach beiden Seiten, in Viertelgrad-Schritten. Gebraucht wird ohnehin nur der
 Bereich um die jeweilige Null, deshalb ist die Teilung bis ± 10° voll sichtbar
-und verblasst dahinter – zwischen zwei Nullen bleibt das Band dunkel. Rechts
-steht, auf welche Marke sich die Skala gerade bezieht.
+und verblasst dahinter – zwischen zwei Nullen bleibt das Band dunkel.
 
 **Halten** friert die Lage ein: Ring, Libelle, Bandskala und Anzeige stehen
 still, bis erneut gedrückt wird – gedacht für Stellen, an denen das Gerät
@@ -194,18 +192,22 @@ angelegt werden muss, ohne dass man den Bildschirm dabei sieht. Ein Tipp auf
 die Skala selbst tut dasselbe, sie ist die größere Fläche. Während des Haltens
 ruht auch die Zeichenschleife.
 
-Zwei Arten, den Nullpunkt zu setzen:
+**Ohne Nullpunkt** misst der Winkelmesser gegen Waagerechte und Senkrechte.
+Das gilt in jeder Geräteausrichtung: Dreht das Betriebssystem die Ansicht mit,
+wird der Bildschirm zum Bezug, und ein an der Kante angelegtes Gerät zeigt
+hochkant wie quer dieselbe Abweichung.
 
-**Ausrichten** legt die 0 nach oben und rundet auf die nächste Vierteldrehung:
-`Math.round(Winkel / 90) * 90`. Damit gibt es vier Nullstellungen – das Gerät
-kann hochkant, quer oder auf dem Kopf angelegt werden und zeigt trotzdem die
-Abweichung von der Waagerechten bzw. Senkrechten.
+**Nullen** macht die aktuelle Lage zur Null, ohne jede Rundung – für Messungen
+gegen eine beliebige Bezugskante: anlegen, nullen, alles Weitere zählt von
+dort. Nochmal drücken hebt den Nullpunkt wieder auf.
 
-**Nullen** macht die aktuelle Lage zur Null, ohne jede Rundung. Dafür, wenn
-gegen eine beliebige Bezugskante gemessen werden soll: anlegen, nullen, und
-alles Weitere zählt von dort.
+Ein so gesetzter Nullpunkt hängt am **Gerät**, nicht am Bildschirm. Wer gegen
+eine Kante nullt und das Gerät danach dreht, will den tatsächlichen Abstand zu
+dieser Kante sehen – auch dann, wenn das Betriebssystem zwischendurch die
+Ansicht ins Querformat dreht. Gerechnet wird dafür mit dem Winkel im
+Gerätesystem statt im Bildschirmsystem.
 
-Im Flächenmodus gibt es nichts zu nullen, dort sind beide Tasten gesperrt.
+Im Flächenmodus gibt es nichts zu nullen, dort ist die Taste gesperrt.
 
 Auf iOS muss der Zugriff auf den Lagesensor einmal bestätigt werden
 (`DeviceOrientationEvent.requestPermission`); dafür erscheint eine

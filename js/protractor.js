@@ -25,7 +25,7 @@ window.Protractor = (function () {
   var up = { x: 0, y: 0, z: 1 };
   var smooth = null;
   var mode = 'edge';
-  var zeroRef = 0;
+  var zeroRef = null;      /* null = gegen Waagerechte und Senkrechte */
   var hold = null;           /* eingefrorene Lage, solange gehalten wird */
   var active = false;
   var listening = false;
@@ -156,11 +156,24 @@ window.Protractor = (function () {
     };
   }
 
-  function rawEdge() {
+  /* Winkel im Bildschirmsystem: Dreht das Betriebssystem die Ansicht mit,
+   * bleibt er gleich – gemessen wird gegen Waagerechte und Senkrechte. */
+  function rawScreen() {
     var s = screenUp();
     return Math.atan2(-s.x, s.y) * DEG;
   }
-  function edgeAngle() { return wrap180(rawEdge() - zeroRef); }
+
+  /* Winkel im Gerätesystem. Daran hängt ein von Hand gesetzter Nullpunkt:
+   * Wer gegen eine Bezugskante nullt, will beim Drehen des Geräts den
+   * tatsächlichen Abstand zu dieser Kante sehen, nicht den zur Senkrechten. */
+  function rawDevice() {
+    var u = source().up;
+    return Math.atan2(-u.x, u.y) * DEG;
+  }
+
+  function edgeAngle() {
+    return zeroRef === null ? wrap180(rawScreen()) : wrap180(rawDevice() - zeroRef);
+  }
   function screenTilt() { return Math.asin(clamp1(source().up.z)) * DEG; }  /* 0 = senkrecht */
   function slope() { return Math.acos(Math.min(1, Math.abs(source().up.z))) * DEG; }
   function axisLong() { return Math.asin(clamp1(screenUp().y)) * DEG; }
@@ -168,19 +181,18 @@ window.Protractor = (function () {
 
   function reading() { return mode === 'edge' ? edgeAngle() : slope(); }
 
-  /* Ausrichten: Null auf die nächste Vierteldrehung. Das Gerät darf hochkant,
-   * quer oder auf dem Kopf anliegen und zeigt trotzdem die Abweichung von der
-   * Waagerechten bzw. Senkrechten – vier mögliche Nullstellungen. */
-  function align() {
+  /* Nullen setzt die aktuelle Lage als Bezug, nochmal drücken nimmt ihn
+   * zurück – dann wird wieder gegen Waagerechte und Senkrechte gemessen. */
+  function toggleZero() {
     if (mode !== 'edge') return;
-    zeroRef = Math.round(rawEdge() / 90) * 90;
+    zeroRef = zeroRef === null ? rawDevice() : null;
+    showZero();
   }
 
-  /* Nullen: die aktuelle Lage wird zur Null, ohne jede Rundung. Damit lässt
-   * sich gegen eine beliebige Bezugskante messen. */
-  function zero() {
-    if (mode !== 'edge') return;
-    zeroRef = rawEdge();
+  function showZero() {
+    els.zero.textContent = zeroRef === null ? 'Nullen' : 'Zurücksetzen';
+    els.zero.classList.toggle('is-on', zeroRef !== null);
+    els.zero.setAttribute('aria-pressed', zeroRef === null ? 'false' : 'true');
   }
 
   /* ---------- Grobe Skala: Bogenteilung ---------- */
@@ -405,11 +417,6 @@ window.Protractor = (function () {
     ctx.lineTo(cx, y + height * 0.62);
     ctx.stroke();
 
-    ctx.fillStyle = dim;
-    ctx.font = '11px system-ui, -apple-system, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText('Abweichung von ' + fmt(Math.round(value / 45) * 45, 0), x + width - 4, y + height);
   }
 
   /* ---------- Anzeige ---------- */
@@ -555,7 +562,6 @@ window.Protractor = (function () {
       btn.classList.toggle('is-active', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-    els.align.disabled = mode !== 'edge';
     els.zero.disabled = mode !== 'edge';
     draw();
   }
@@ -588,14 +594,12 @@ window.Protractor = (function () {
       gate: document.getElementById('sensor-gate'),
       gateText: document.getElementById('sensor-gate-text'),
       gateButton: document.getElementById('btn-sensor'),
-      align: document.getElementById('btn-align'),
       zero: document.getElementById('btn-zero'),
       hold: document.getElementById('btn-hold'),
       modeButtons: Array.prototype.slice.call(document.querySelectorAll('[data-mode]'))
     };
 
-    els.align.addEventListener('click', align);
-    els.zero.addEventListener('click', zero);
+    els.zero.addEventListener('click', toggleZero);
     els.hold.addEventListener('click', toggleHold);
     /* Die Skala selbst ist die größte Fläche – auch sie hält an. */
     canvas.addEventListener('pointerdown', toggleHold);
@@ -605,6 +609,7 @@ window.Protractor = (function () {
     });
 
     setMode(mode);
+    showZero();
   }
 
   /* Die aktuellen Messwerte – für die Anzeige selbst nicht nötig, aber
