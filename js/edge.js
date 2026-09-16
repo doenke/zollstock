@@ -1,30 +1,30 @@
-/* Randversatz: der Abstand zwischen der Kante des Geräts (oder der Hülle)
- * und dem ersten sichtbaren Bildpunkt.
+/* Randversatz: der Abstand zwischen der Kante des Geräts – mit Hülle, wenn
+ * eine drauf ist – und dem ersten sichtbaren Bildpunkt.
  *
- * Gemessen wird wieder mit einer genormten Karte: sie liegt bündig an der
- * Gerätekante und ragt mit bekannter Länge auf den Bildschirm. Sichtbar ist
- * davon nur der Teil hinter dem Rand – der Rest steckt darunter:
+ * Gemessen wird mit einer genormten Karte: sie liegt bündig an der Kante und
+ * ragt mit bekannter Länge auf den Bildschirm. Sichtbar ist davon nur der
+ * Teil hinter dem Rand – der Rest steckt darunter:
  *
  *   Rand = Kartenlänge − sichtbarer Anteil
  *
- * Für Hülle und blankes Gerät gibt es je ein Profil, umschaltbar mit einem
- * Tipp auf das Schild in der Kopfzeile. */
+ * Ober- und Unterkante werden getrennt gemessen: das Display sitzt selten
+ * mittig im Gehäuse, und Hüllen sind unten oft anders ausgeschnitten als
+ * oben. Welche Kante gerade dran ist, sagt die Umschaltung im Sheet. */
 window.Edge = (function () {
   'use strict';
 
-  var STORE_KEY = 'zollstock.edge.v1';
+  var STORE_KEY = 'zollstock.edge.v2';
+  var OLD_KEY = 'zollstock.edge.v1';
   var CARD_LONG = 85.6;      /* ISO/IEC 7810 ID-1 */
   var CARD_SHORT = 53.98;
   var MAX_MM = 30;           /* mehr als 3 cm Rand hat kein Gerät */
-  var HINT_PX = 40;          /* Platz für den Hinweis unter der Linie */
+  var HINT_PX = 40;          /* Platz für den Hinweis neben der Linie */
 
-  var ORDER = ['bare', 'case'];
-  var state = load() || {
-    active: 'bare',
-    profiles: {
-      bare: { name: 'Ohne Hülle', offsetMm: 0 },
-      case: { name: 'Mit Hülle', offsetMm: 0 }
-    }
+  var SIDES = ['top', 'bottom'];
+  var migrated = false;
+  var state = load() || migrate() || {
+    active: 'top',
+    edges: { top: 0, bottom: 0 }
   };
 
   var listeners = [];
@@ -35,18 +35,29 @@ window.Edge = (function () {
 
   /* ---------- Speicher ---------- */
 
-  function valid(profile) {
-    return profile && typeof profile.name === 'string' &&
-      isFinite(profile.offsetMm) && profile.offsetMm >= 0 && profile.offsetMm <= MAX_MM;
-  }
+  function validMm(mm) { return isFinite(mm) && mm >= 0 && mm <= MAX_MM; }
 
   function load() {
     try {
       var parsed = JSON.parse(localStorage.getItem(STORE_KEY));
-      if (!parsed || !parsed.profiles) return null;
-      if (!valid(parsed.profiles.bare) || !valid(parsed.profiles.case)) return null;
-      if (ORDER.indexOf(parsed.active) < 0) return null;
+      if (!parsed || !parsed.edges) return null;
+      if (!validMm(parsed.edges.top) || !validMm(parsed.edges.bottom)) return null;
+      if (SIDES.indexOf(parsed.active) < 0) return null;
       return parsed;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  /* Früher gab es je ein Profil für blankes Gerät und Hülle, für alle Kanten
+   * denselben Wert. Der Wert der Hülle ist der, auf den es ankommt. */
+  function migrate() {
+    try {
+      var old = JSON.parse(localStorage.getItem(OLD_KEY));
+      var mm = old && old.profiles && old.profiles.case && old.profiles.case.offsetMm;
+      if (!validMm(mm) || mm <= 0) return null;
+      migrated = true;
+      return { active: 'top', edges: { top: mm, bottom: mm } };
     } catch (err) {
       return null;
     }
@@ -66,27 +77,25 @@ window.Edge = (function () {
 
   /* ---------- Werte ---------- */
 
-  function offset() { return state.profiles[state.active].offsetMm; }
-  function offsetOf(profile) {
-    var found = state.profiles[profile];
-    return found ? found.offsetMm : 0;
-  }
-  function hasCase() { return state.profiles.case.offsetMm > 0; }
+  function offset() { return state.edges[state.active]; }
+  function offsetOf(side) { return validMm(state.edges[side]) ? state.edges[side] : 0; }
+  function has(side) { return offsetOf(side) > 0; }
 
   function clamp(mm) { return Math.min(MAX_MM, Math.max(0, mm)); }
   function fmt(mm) { return mm.toFixed(1).replace('.', ',') + ' mm'; }
+  function sideName(side) { return side === 'top' ? 'Oberkante' : 'Unterkante'; }
 
   function setOffset(mm) {
     if (!isFinite(mm)) return;
-    state.profiles[state.active].offsetMm = clamp(mm);
+    state.edges[state.active] = clamp(mm);
     persist();
     render();
     emit();
   }
 
-  function setActive(key) {
-    if (!state.profiles[key] || state.active === key) return;
-    state.active = key;
+  function setActive(side) {
+    if (SIDES.indexOf(side) < 0 || state.active === side) return;
+    state.active = side;
     persist();
     render();
     emit();
@@ -95,14 +104,15 @@ window.Edge = (function () {
   /* ---------- Oberfläche im Sheet ---------- */
 
   function render() {
-    if (!els.profiles) return;
+    if (!els.sides) return;
 
-    els.profiles.querySelectorAll('[data-profile]').forEach(function (btn) {
-      var on = btn.dataset.profile === state.active;
+    els.sides.querySelectorAll('[data-edge-side]').forEach(function (btn) {
+      var on = btn.dataset.edgeSide === state.active;
       btn.classList.toggle('is-active', on);
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
 
+    els.label.textContent = 'Rand an der ' + sideName(state.active);
     if (document.activeElement !== els.input) els.input.value = offset().toFixed(1);
   }
 
@@ -112,18 +122,26 @@ window.Edge = (function () {
     return Math.max(0, (cardSpan - draft) * window.Calibration.pxPerMm());
   }
 
+  /* Gemessen wird an der Kante, um die es geht – die Karte liegt dort, also
+   * wächst die Fläche unter ihr auch von dort. */
   function applyDraft() {
     var px = linePx();
+    var far = state.active === 'bottom';
+    var start = vertical ? (far ? 'bottom' : 'top') : (far ? 'right' : 'left');
 
     els.line.style.cssText = vertical
-      ? 'top:' + px + 'px;left:0;right:0;height:0;border-top:2px solid var(--accent)'
-      : 'left:' + px + 'px;top:0;bottom:0;width:0;border-left:2px solid var(--accent)';
+      ? start + ':' + px + 'px;left:0;right:0;height:0;border-top:2px solid var(--accent)'
+      : start + ':' + px + 'px;top:0;bottom:0;width:0;border-left:2px solid var(--accent)';
 
     els.hatch.style.cssText = vertical
-      ? 'top:0;left:0;right:0;height:' + px + 'px'
-      : 'top:0;bottom:0;left:0;width:' + px + 'px';
+      ? start + ':0;left:0;right:0;height:' + px + 'px'
+      : start + ':0;top:0;bottom:0;width:' + px + 'px';
+
+    /* Der Hinweis weicht auf die andere Seite aus. */
+    els.hint.style.cssText = far ? 'top:16px;bottom:auto' : '';
 
     els.value.textContent = fmt(draft);
+    els.edge.textContent = sideName(state.active);
     els.span.textContent = cardSpan === CARD_LONG ? 'lange Seite (85,6 mm)' : 'kurze Seite (54,0 mm)';
   }
 
@@ -131,7 +149,7 @@ window.Edge = (function () {
    * die Leiste ausfällt, hängt vom Umbruch ihrer Texte ab – deshalb wird die
    * Messfläche ausgemessen, statt mit einem festen Wert zu rechnen. */
   function chooseSpan() {
-    /* Gemessen wird immer an der Kante, an der das Lineal seine Null hat. */
+    /* Gemessen wird immer entlang des Lineals. */
     vertical = window.Scales.vertical();
     var available = (vertical ? els.stage.clientHeight : els.stage.clientWidth) - HINT_PX;
     cardSpan = CARD_LONG * window.Calibration.pxPerMm() <= available ? CARD_LONG : CARD_SHORT;
@@ -153,6 +171,7 @@ window.Edge = (function () {
   function dragTo(event) {
     var rect = els.stage.getBoundingClientRect();
     var along = vertical ? event.clientY - rect.top : event.clientX - rect.left;
+    if (state.active === 'bottom') along = (vertical ? rect.height : rect.width) - along;
     draft = clamp(cardSpan - along / window.Calibration.pxPerMm());
     applyDraft();
   }
@@ -179,19 +198,22 @@ window.Edge = (function () {
 
   function init() {
     els = {
-      profiles: document.getElementById('edge-profiles'),
+      sides: document.getElementById('edge-sides'),
+      label: document.getElementById('edge-label'),
       input: document.getElementById('edge-mm'),
       view: document.getElementById('edgeview'),
       stage: document.getElementById('edgeview-stage'),
+      hint: document.getElementById('edgeview-hint'),
       line: document.getElementById('edgeview-line'),
       hatch: document.getElementById('edgeview-hatch'),
       value: document.getElementById('edgeview-value'),
+      edge: document.getElementById('edgeview-edge'),
       span: document.getElementById('edgeview-span')
     };
 
-    els.profiles.addEventListener('click', function (event) {
-      var btn = event.target.closest('[data-profile]');
-      if (btn) setActive(btn.dataset.profile);
+    els.sides.addEventListener('click', function (event) {
+      var btn = event.target.closest('[data-edge-side]');
+      if (btn) setActive(btn.dataset.edgeSide);
     });
 
     els.input.addEventListener('input', function () {
@@ -229,13 +251,16 @@ window.Edge = (function () {
 
     bindStage();
     render();
+    /* Den übernommenen Wert gleich festschreiben. */
+    if (migrated) { migrated = false; persist(); }
   }
 
   return {
     init: init,
     offset: offset,
     offsetOf: offsetOf,
-    hasCase: hasCase,
+    has: has,
+    sideName: sideName,
     close: function () { els.view.hidden = true; },
     onChange: function (fn) { listeners.push(fn); }
   };

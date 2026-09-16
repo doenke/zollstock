@@ -150,16 +150,16 @@
       </section>
 
       <section class="group">
-        <h2 class="group__title">Rand &amp; Hülle</h2>
-        <p class="group__text">Zwischen der Kante des Geräts und dem ersten Bildpunkt liegt ein Rand – mit Hülle mehr. Ist er bekannt, beginnt die Skala an der Gerätekante statt am Bildschirmrand.</p>
+        <h2 class="group__title">Gerätekante</h2>
+        <p class="group__text">Zwischen der Kante des Geräts – mit Hülle, wenn eine drauf ist – und dem ersten Bildpunkt liegt ein Rand. Ist er bekannt, beginnt die Skala an der Gerätekante. Oben und unten werden getrennt gemessen; im Querformat gilt der obere Wert links, der untere rechts.</p>
 
-        <div class="seg seg--profiles" id="edge-profiles" role="group" aria-label="Profil">
-          <button class="seg__btn" data-profile="bare" type="button" aria-pressed="false">Ohne Hülle</button>
-          <button class="seg__btn" data-profile="case" type="button" aria-pressed="false">Mit Hülle</button>
+        <div class="seg seg--profiles" id="edge-sides" role="group" aria-label="Kante">
+          <button class="seg__btn" data-edge-side="top" type="button" aria-pressed="false">Oben</button>
+          <button class="seg__btn" data-edge-side="bottom" type="button" aria-pressed="false">Unten</button>
         </div>
 
         <label class="field">
-          <span>Rand dieses Profils</span>
+          <span id="edge-label">Rand an der Oberkante</span>
           <span class="field__input"><input type="number" id="edge-mm" inputmode="decimal" step="0.1" min="0" max="30"><em>mm</em></span>
         </label>
 
@@ -207,10 +207,10 @@
   <div class="edgeview__stage" id="edgeview-stage">
     <div class="edgeview__hatch" id="edgeview-hatch"></div>
     <div class="edgeview__line" id="edgeview-line"></div>
-    <p class="edgeview__hint">Linie auf das Kartenende ziehen</p>
+    <p class="edgeview__hint" id="edgeview-hint">Linie auf das Kartenende ziehen</p>
   </div>
   <div class="edgeview__bar">
-    <p class="edgeview__text">Karte flach auf den Bildschirm legen, bündig an die Kante des Geräts (bzw. der Hülle) am Nullpunkt des Lineals. Die Linie auf das Ende der Karte schieben – <span id="edgeview-span">lange Seite (85,6 mm)</span>.</p>
+    <p class="edgeview__text">Karte flach auf den Bildschirm legen, bündig an die <span id="edgeview-edge">Oberkante</span> des Geräts – mit Hülle, wenn eine drauf ist. Die Linie auf das Ende der Karte schieben – <span id="edgeview-span">lange Seite (85,6 mm)</span>.</p>
     <p class="edgeview__value">Rand: <output id="edgeview-value">0,0 mm</output></p>
     <div class="nudge">
       <button class="btn btn--nudge" data-nudge-edge="-1" type="button">−1</button>

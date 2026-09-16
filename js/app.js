@@ -163,7 +163,7 @@
       window.Ruler.refresh();
     });
     window.Edge.onChange(function () {
-      /* Ist die Hülle vermessen, kommen ihre Nullpunkte dazu. */
+      /* Ist eine Kante vermessen, kommt ihr Nullpunkt dazu. */
       showZeroPoint();
       window.Ruler.refresh();
     });

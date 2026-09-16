@@ -58,17 +58,16 @@ Drei Wege, alle unter dem Zahnrad oben rechts:
 Das Ergebnis liegt in `localStorage` (`zollstock.calibration.v1`) und gilt für
 dieses Gerät, bis es über „Automatik“ zurückgesetzt wird.
 
-### Rand und Schutzhülle
+### Gerätekante
 
 Zwischen der Kante des Geräts und dem ersten Bildpunkt liegen einige
 Millimeter Rahmen – mit Hülle deutlich mehr. Wer ein Werkstück an die
 Gehäusekante anlegt, misst diesen Rand sonst mit.
 
 Gemessen wird er wieder mit der Karte, diesmal als Lückenfüller: Die Karte
-liegt flach auf dem Bildschirm, bündig an der Kante des Geräts (oder der
-Hülle) am Nullpunkt des Lineals, und ragt mit bekannter Länge auf das
-Display. Sichtbar ist davon nur der Teil hinter dem Rand – der Rest steckt
-darunter:
+liegt flach auf dem Bildschirm, bündig an der Kante des Geräts – mit Hülle,
+wenn eine drauf ist – und ragt mit bekannter Länge auf das Display. Sichtbar
+ist davon nur der Teil hinter dem Rand – der Rest steckt darunter:
 
 ```
 Rand = Kartenlänge − sichtbarer Anteil
@@ -82,11 +81,16 @@ von Hand um.
 Ist der Rand bekannt, beginnt die Skala an der Gerätekante statt am
 Bildschirmrand – die erste Zahl oben ist dann nicht mehr die Null.
 
-Dafür gibt es zwei Profile, **Ohne Hülle** und **Mit Hülle**, jedes mit
-eigenem Wert; beide werden in den Einstellungen vermessen. Welcher Wert gilt,
-entscheidet der Nullpunkt: „Null oben" rechnet mit dem Gerät, „Null oben, mit
-Hülle" mit der Hülle. Gespeichert wird in `localStorage`
-(`zollstock.edge.v1`).
+**Oben** und **unten** werden getrennt gemessen und getrennt gespeichert: Das
+Display sitzt selten mittig im Gehäuse – die Kinnleiste unten ist meist der
+breitere Rand –, und Hüllen sind unten oft anders ausgeschnitten als oben, wo
+die Kamera sitzt. Ein Unterschied von ein bis zwei Millimetern ist normal.
+
+Die Umschaltung in den Einstellungen wählt, welche Kante gemessen wird; die
+Vollbildmessung legt die Karte dann an diese Kante. Im Querformat gilt der
+obere Wert für die linke, der untere für die rechte Kante. Gespeichert wird in
+`localStorage` (`zollstock.edge.v2`); eine ältere Messung „mit Hülle" wird
+beim ersten Start für beide Kanten übernommen.
 
 ### Genauigkeit
 
@@ -104,7 +108,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | ⚙ | Einstellungen: Einheiten und Kalibrierung |
 | Lineal / Winkel | Ansicht wechseln |
 | Nullpunkt und Einstellungen | nur in der Linealansicht, im Winkelmesser ausgeblendet |
-| Nullen | aktuelle Lage zur Null machen; nochmal drücken hebt sie auf |
+| Nullen / Fläche merken | aktuelle Lage zur Null bzw. zur Bezugsfläche machen; nochmal drücken hebt sie auf |
 | Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
 | Kante / Fläche | Messart des Winkelmessers |
 
@@ -120,18 +124,18 @@ zur anderen:
 
 | Lage | Null liegt |
 | --- | --- |
-| oben, mit Hülle | an der Außenkante der Hülle |
-| oben | an der Gerätekante |
+| oben, an der Gerätekante | an der Oberkante des Geräts, außerhalb des Bildschirms |
+| oben, am Bildschirmrand | am ersten Bildpunkt |
 | oben, 1 cm vom Rand | einen Zentimeter innerhalb des Bildschirmrands |
 | mittig | in der Bildschirmmitte, zählt nach beiden Seiten |
 | unten, 1 cm vom Rand | einen Zentimeter innerhalb der Unterkante |
-| unten | an der unteren Gerätekante |
-| unten, mit Hülle | an der Außenkante der Hülle |
+| unten, am Bildschirmrand | am letzten Bildpunkt |
+| unten, an der Gerätekante | an der Unterkante des Geräts |
 
-Die beiden Hüllen-Lagen erscheinen nur, wenn die Hülle vermessen ist. Der
-Knopf zeigt als Pfeil, wo die Null sitzt und wohin gezählt wird (↓ ↑ ↕, im
-Querformat → ← ↔), dazu `H` für Hülle und `1` für den Zentimeter Abstand. Beim
-Wechseln wird die Lage kurz ausgeschrieben.
+Eine Gerätekante erscheint nur, wenn ihr Rand vermessen ist – oben und unten
+unabhängig voneinander. Der Knopf zeigt als Pfeil, wo die Null sitzt und wohin
+gezählt wird (↓ ↑ ↕, im Querformat → ← ↔), dazu `K` für Gerätekante und `1`
+für den Zentimeter Abstand. Beim Wechseln wird die Lage kurz ausgeschrieben.
 
 Liegt die Null im sichtbaren Bereich, wird sie als durchgezogene Linie quer
 über den Bildschirm gezeichnet und an beiden Skalen groß beschriftet – daran
@@ -167,7 +171,7 @@ Zwei Messarten, umschaltbar unter der Anzeige:
 | Messart | Hauptwert | darunter |
 | --- | --- | --- |
 | **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | wie weit es noch **bis 90°** und **bis 180°** ist, dazu die **Kippung** |
-| **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen | **Längs** und **Quer**: die beiden Achsen einzeln |
+| **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen; mit gemerkter Bezugsfläche der Winkel zu dieser | **Längs** und **Quer**: die beiden Achsen einzeln |
 
 Die **Kippung** – wie weit der Bildschirm aus der Senkrechten kippt – steht als
 Zahl und als Bild da: das Gerät von der Seite gesehen, um seine Kippung
@@ -180,7 +184,11 @@ im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift. Die
 Zahlen darauf stehen immer lotrecht, unabhängig davon, wie weit die Teilung
 gedreht ist – bei gesetztem Nullpunkt dreht sie nach dem Gerätewinkel, die
 Beschriftung wird dann entsprechend zurückgedreht – im
-Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5° und 10°. Die
+Flächenmodus stattdessen als Dosenlibelle. Deren Bereich richtet sich nach der
+Abweichung – 10°, 30° oder 90°, mit Ringen bei einem Fünftel, der Hälfte und
+am Rand –, sonst klebte die Blase beim Messen gegen eine Bezugsfläche dauernd
+außen. Kleiner wird der Bereich erst ein Stück innerhalb der nächsten Stufe,
+damit er nicht an der Grenze hin und her springt. Die
 Null und jeder Viertelkreis darauf (45°, 90°, 135°, 180°) stehen mit längerem
 Strich und größerer Zahl da und werden immer beschriftet, auch wenn die
 übrige Teilung gerade in Zehnerschritten zählt.
@@ -226,7 +234,20 @@ dieser Kante sehen – auch dann, wenn das Betriebssystem zwischendurch die
 Ansicht ins Querformat dreht. Gerechnet wird dafür mit dem Winkel im
 Gerätesystem statt im Bildschirmsystem.
 
-Im Flächenmodus gibt es nichts zu nullen, dort ist die Taste gesperrt.
+Im **Flächenmodus** merkt sich dieselbe Taste – dort **Fläche merken** – die
+Bezugsfläche: Gerät auflegen, drücken, auf die zweite Fläche legen. Angezeigt
+wird dann der Winkel zwischen beiden Flächen, die Libelle und die Werte für
+Längs und Quer beziehen sich ebenfalls darauf, und das Fadenkreuz der Libelle
+steht in der Signalfarbe. Zusammen mit **Halten** lassen sich auch Flächen
+merken, an denen man den Bildschirm nicht sieht: erst halten, dann merken.
+
+Gerechnet wird mit der kürzesten Drehung, die „oben" der Bezugsfläche auf die
+Senkrechte bringt (Formel von Rodrigues); auf den so gekippten Vektor wirken
+Hauptwert und Libelle genauso wie sonst auf den ungedrehten. Der Lagesensor
+kennt nur die Richtung der Schwerkraft, nicht die Himmelsrichtung – gemessen
+wird deshalb der Winkel, um den das Gerät zwischen beiden Auflagen gekippt
+wurde. Solange es dabei nicht um die Senkrechte gedreht wird, ist das genau
+der Winkel zwischen den Flächen.
 
 Auf iOS muss der Zugriff auf den Lagesensor einmal bestätigt werden
 (`DeviceOrientationEvent.requestPermission`); dafür erscheint eine
@@ -240,7 +261,7 @@ css/style.css           Darstellung
 js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
 js/scales.js            Skalenteilung und Lage des Nullpunkts
-js/edge.js              Randversatz, Profile für Gerät und Hülle
+js/edge.js              Randversatz, je Wert für Ober- und Unterkante
 js/ruler.js             Lineal (Canvas)
 js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker

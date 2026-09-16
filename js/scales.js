@@ -20,16 +20,17 @@ window.Scales = (function () {
   };
 
   /* Mögliche Lagen des Nullpunkts, von der einen Kante zur anderen.
-   * inset: 'case'/'bare' = so weit außerhalb des Bildschirms liegt die
-   * Gerätekante, 'cm' = einen Zentimeter innerhalb des Bildschirmrands. */
+   * inset: 'edge' = so weit außerhalb des Bildschirms liegt die Gerätekante,
+   * 'cm' = einen Zentimeter innerhalb des Bildschirmrands, sonst genau am
+   * Bildschirmrand. */
   var ZEROS = [
-    { key: 'top-case', side: 'top', inset: 'case' },
-    { key: 'top', side: 'top', inset: 'bare' },
+    { key: 'top-edge', side: 'top', inset: 'edge' },
+    { key: 'top', side: 'top' },
     { key: 'top-cm', side: 'top', inset: 'cm' },
     { key: 'center', side: 'center' },
     { key: 'bottom-cm', side: 'bottom', inset: 'cm' },
-    { key: 'bottom', side: 'bottom', inset: 'bare' },
-    { key: 'bottom-case', side: 'bottom', inset: 'case' }
+    { key: 'bottom', side: 'bottom' },
+    { key: 'bottom-edge', side: 'bottom', inset: 'edge' }
   ];
 
   var state = load() || { zero: 'top' };
@@ -79,10 +80,12 @@ window.Scales = (function () {
 
   /* ---------- Nullpunkt ---------- */
 
-  /* Die Hülle steht nur zur Wahl, wenn sie vermessen wurde. */
+  /* Die Gerätekante steht nur zur Wahl, wenn ihr Rand vermessen wurde –
+   * je Kante einzeln. */
   function available() {
-    var withCase = window.Edge.hasCase();
-    return ZEROS.filter(function (z) { return z.inset !== 'case' || withCase; });
+    return ZEROS.filter(function (z) {
+      return z.inset !== 'edge' || window.Edge.has(z.side);
+    });
   }
 
   function zero() {
@@ -102,15 +105,15 @@ window.Scales = (function () {
 
   /* Wie die Lage heißt, hängt davon ab, wie das Lineal gerade liegt. */
   function zeroName(entry) {
-    var side = entry.side === 'center'
-      ? 'mittig'
-      : vertical()
-        ? (entry.side === 'top' ? 'oben' : 'unten')
-        : (entry.side === 'top' ? 'links' : 'rechts');
+    if (entry.side === 'center') return 'Null mittig';
 
-    if (entry.inset === 'case') return 'Null ' + side + ', mit Hülle';
+    var side = vertical()
+      ? (entry.side === 'top' ? 'oben' : 'unten')
+      : (entry.side === 'top' ? 'links' : 'rechts');
+
+    if (entry.inset === 'edge') return 'Null ' + side + ', an der Gerätekante';
     if (entry.inset === 'cm') return 'Null ' + side + ', 1 cm vom Rand';
-    return 'Null ' + side;
+    return 'Null ' + side + ', am Bildschirmrand';
   }
 
   /* Pfeil und Kürzel für die Schaltfläche. */
@@ -121,7 +124,7 @@ window.Scales = (function () {
         ? (vertical() ? '↓' : '→')
         : (vertical() ? '↑' : '←');
 
-    return { arrow: arrow, tag: entry.inset === 'case' ? 'H' : entry.inset === 'cm' ? '1' : '' };
+    return { arrow: arrow, tag: entry.inset === 'edge' ? 'K' : entry.inset === 'cm' ? '1' : '' };
   }
 
   return {

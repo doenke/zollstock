@@ -68,7 +68,7 @@ window.Ruler = (function () {
      * innerhalb. */
     var inset = entry.inset === 'cm'
       ? 10
-      : -window.Edge.offsetOf(entry.inset);
+      : entry.inset === 'edge' ? -window.Edge.offsetOf(entry.side) : 0;
 
     return entry.side === 'top'
       ? { px: inset * pxPerMm, sign: 1, mirrored: false }
