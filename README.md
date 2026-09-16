@@ -166,10 +166,15 @@ Zwei Messarten, umschaltbar unter der Anzeige:
 | **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | **Kippung**: wie weit der Bildschirm aus der Senkrechten kippt. Über 45° wird zum Aufrichten geraten, weil der Hauptwert dann ungenau wird. |
 | **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen | **Längs** und **Quer**: die beiden Achsen einzeln |
 
-Angezeigt wird auf zwei Skalen: grob als Ringteilung mit 1°-Strichen, die wie
-ein Lot im Raum stehen bleibt, während der feste Zeiger oben den Wert
-abgreift – im Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5°
-und 10°.
+Angezeigt wird auf zwei Skalen: grob als Bogen mit 1°-Strichen, der wie ein Lot
+im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift – im
+Flächenmodus stattdessen als Dosenlibelle mit Ringen bei 2°, 5° und 10°.
+
+Der Bogen zeigt nur einen Ausschnitt von ± 35°. Das ist Absicht: Bei einem
+Vollkreis begrenzt die Bildschirmbreite den Halbmesser, die Gradstriche
+rücken eng zusammen. Ein Ausschnitt darf einen fast doppelt so großen
+Halbmesser haben – die Teilung wird entsprechend feiner, und was darüber
+hinausgeht, wandert beim Kippen ins Bild.
 
 Fein als Bandskala darunter. Sie hat **alle 45° eine Null** und zählt von dort
 nach beiden Seiten, in Viertelgrad-Schritten. Gebraucht wird ohnehin nur der

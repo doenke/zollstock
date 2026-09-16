@@ -175,71 +175,87 @@ window.Protractor = (function () {
     zeroRef = rawEdge();
   }
 
-  /* ---------- Grobe Skala: Ringteilung ---------- */
+  /* ---------- Grobe Skala: Bogenteilung ---------- */
 
-  function drawRing(cx, cy, radius) {
+  var ARC_HALF = 35;       /* sichtbarer Bereich in Grad, je Seite */
+
+  /* Der Bogen nutzt die Breite der Fläche aus. Je größer der Halbmesser,
+   * desto weiter liegen die Gradstriche auseinander – ein Vollkreis müsste
+   * dafür viel kleiner ausfallen. */
+  function arcRadius(width, height) {
+    var byWidth = (width / 2 - 6) / Math.sin(ARC_HALF / DEG);
+    var byHeight = (height - 34) / (1 - Math.cos(ARC_HALF / DEG));
+    return Math.max(90, Math.min(byWidth, byHeight));
+  }
+
+  function arcDepth(radius) {
+    return radius * (1 - Math.cos(ARC_HALF / DEG));
+  }
+
+  /* Punkt auf dem Bogen: 0° oben, positiv im Uhrzeigersinn. */
+  function onArc(deg, r) {
+    var rad = deg / DEG;
+    return { x: Math.sin(rad) * r, y: -Math.cos(rad) * r };
+  }
+
+  function drawArc(cx, cy, radius) {
     var value = reading();
-    var labelStep = radius * 15 / DEG >= 34 ? 15 : 30;
     var text = css('--text');
     var dim = css('--text-dim');
+    var accent = css('--accent');
+    var fontSize = Math.max(13, Math.min(19, radius * 0.07));
+    var majorLen = Math.max(22, radius * 0.12);
+    var midLen = majorLen * 0.62;
+    var smallLen = majorLen * 0.34;
 
     ctx.save();
     ctx.translate(cx, cy);
-
-    /* Der Ring steht lotrecht im Raum: er dreht der Bildschirmdrehung entgegen. */
+    /* Die Teilung steht lotrecht im Raum: sie dreht der Bildschirmdrehung
+     * entgegen, der feste Zeiger oben greift den Wert ab. */
     ctx.rotate(-value / DEG);
-
-    ctx.fillStyle = 'rgba(255,255,255,0.035)';
-    ctx.beginPath();
-    ctx.arc(0, 0, radius, 0, Math.PI * 2);
-    ctx.fill();
 
     ctx.strokeStyle = text;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.arc(0, 0, radius, (value - ARC_HALF - 90) / DEG, (value + ARC_HALF - 90) / DEG);
     ctx.stroke();
 
-    for (var deg = 0; deg < 360; deg++) {
-      var major = deg % labelStep === 0;
+    var first = Math.ceil(value - ARC_HALF);
+    var last = Math.floor(value + ARC_HALF);
+
+    for (var deg = first; deg <= last; deg++) {
+      var major = deg % 10 === 0;
       var mid = deg % 5 === 0;
-      var len = major ? radius * 0.14 : mid ? radius * 0.09 : radius * 0.05;
-      var rad = deg / DEG;
-      var sin = Math.sin(rad);
-      var cos = Math.cos(rad);
+      var len = major ? majorLen : mid ? midLen : smallLen;
+      var outer = onArc(deg, radius);
+      var inner = onArc(deg, radius - len);
 
       ctx.strokeStyle = major ? text : dim;
       ctx.lineWidth = major ? 1.8 : 1;
       ctx.beginPath();
-      ctx.moveTo(sin * radius, -cos * radius);
-      ctx.lineTo(sin * (radius - len), -cos * (radius - len));
+      ctx.moveTo(outer.x, outer.y);
+      ctx.lineTo(inner.x, inner.y);
       ctx.stroke();
     }
 
-    var fontSize = Math.max(10, Math.min(15, radius * 0.11));
     ctx.font = '600 ' + fontSize + 'px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = text;
 
-    for (var v = 0; v < 360; v += labelStep) {
-      var shown = Math.abs(wrap180(v));
-      /* Dreistellige Zahlen stehen sich unten sonst gegenseitig im Weg. */
-      if (shown > 90 && v % (labelStep * 2) !== 0) continue;
-      var r2 = (v / DEG);
-      var rr = radius - radius * 0.24;
-      ctx.fillText(String(shown), Math.sin(r2) * rr, -Math.cos(r2) * rr);
+    for (var v = Math.ceil(first / 10) * 10; v <= last; v += 10) {
+      var p = onArc(v, radius - majorLen - fontSize * 0.9);
+      ctx.fillText(String(Math.abs(wrap180(v))), p.x, p.y);
     }
 
     ctx.restore();
 
-    /* Fester Zeiger am oberen Rand – er gehört zum Gerät, nicht zum Ring. */
-    var accent = css('--accent');
+    /* Fester Zeiger über dem Bogen – er gehört zum Gerät, nicht zur Teilung. */
     ctx.fillStyle = accent;
     ctx.beginPath();
-    ctx.moveTo(cx, cy - radius + 15);
-    ctx.lineTo(cx - 9, cy - radius - 7);
-    ctx.lineTo(cx + 9, cy - radius - 7);
+    ctx.moveTo(cx, cy - radius + 12);
+    ctx.lineTo(cx - 9, cy - radius - 10);
+    ctx.lineTo(cx + 9, cy - radius - 10);
     ctx.closePath();
     ctx.fill();
   }
@@ -412,9 +428,19 @@ window.Protractor = (function () {
     ctx.fillText(hint, cx, y + 20);
   }
 
-  function drawDial(cx, cy, radius) {
-    if (mode === 'edge') drawRing(cx, cy, radius);
-    else drawBubble(cx, cy, radius);
+  /* Der Bogen hängt oben in der Fläche, die Libelle sitzt mittig darin.
+   * Beide geben zurück, wo darunter die Anzeige beginnen kann. */
+  function drawDial(x, y, width, height) {
+    if (mode === 'edge') {
+      var radius = arcRadius(width, height);
+      var arcTop = y + 14;
+      drawArc(x + width / 2, arcTop + radius, radius);
+      return arcTop + arcDepth(radius);
+    }
+
+    var r = Math.max(56, Math.min(width * 0.34, height / 2 - 20));
+    drawBubble(x + width / 2, y + r + 14, r);
+    return y + 2 * r + 14;
   }
 
   function draw() {
@@ -439,30 +465,28 @@ window.Protractor = (function () {
     if (w > h) {
       /* Querformat: Skala links, Anzeige und Feinskala rechts daneben. */
       var top = 16;
-      var radius = Math.max(40, Math.min((bottom - top) / 2 - 6, w * 0.2));
-      var cy = (top + bottom) / 2;
-      var textX = w * 0.66;
+      var halfW = w * 0.5;
 
-      drawDial(w * 0.25, cy, radius);
-      drawReadout(textX, cy - 46, 40);
-      drawSecondary(textX, cy + 4);
-      drawTape(w * 0.42, cy + 34, w * 0.56 - 16, tapeHeight);
+      drawDial(0, top, halfW, bottom - top);
+
+      /* Rechte Spalte von oben nach unten: Wert, zweite Neigung, Feinskala. */
+      var textX = w * 0.74;
+      var colTop = top + 12;
+
+      drawReadout(textX, colTop + 26, 44);
+      drawSecondary(textX, colTop + 70);
+      drawTape(halfW, colTop + 104, w - halfW - 16,
+        Math.min(tapeHeight, bottom - colTop - 104));
       return;
     }
 
     var topP = 74;
     var dialBottom = bottom - tapeHeight - 14;
-    var share = mode === 'edge' ? 0.42 : 0.33;
-    var radiusP = Math.max(40, Math.min(w * share, (dialBottom - topP) / 2));
-    var size = Math.max(26, Math.min(46, radiusP * 0.4));
-    var cyP = mode === 'edge'
-      ? (topP + dialBottom) / 2
-      : topP + (dialBottom - topP) * 0.36;
+    var used = drawDial(0, topP, w, dialBottom - topP);
+    var size = Math.max(40, Math.min(58, w * 0.16));
+    /* Die Anzeige steht mittig im Platz zwischen Bogen und Feinskala. */
+    var textY = (used + dialBottom) / 2 - size * 0.4;
 
-    drawDial(w / 2, cyP, radiusP);
-
-    /* Im Ring ist die Mitte frei, bei der Libelle steht die Anzeige darunter. */
-    var textY = mode === 'edge' ? cyP - size * 0.1 : cyP + radiusP + size * 0.6;
     drawReadout(w / 2, textY, size);
     drawSecondary(w / 2, textY + size * 0.75);
     drawTape(16, dialBottom + 14, w - 32, tapeHeight);
