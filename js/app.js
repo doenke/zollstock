@@ -127,25 +127,54 @@
      * der erste die Seite, ist das keine neue Fassung, sondern der Anfang. */
     var hadController = !!navigator.serviceWorker.controller;
     var chip = document.getElementById('update-chip');
+    var pending = false;
+    var reloading = false;
 
-    chip.addEventListener('click', function () { location.reload(); });
+    function reloadOnce() {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    }
+
+    chip.addEventListener('click', reloadOnce);
 
     navigator.serviceWorker.addEventListener('controllerchange', function () {
-      if (hadController) chip.hidden = false;
+      if (!hadController) return;
+      pending = true;
+      chip.hidden = false;
+      /* Wer gerade nicht hinsieht, bekommt die neue Fassung sofort. */
+      if (document.visibilityState !== 'visible') reloadOnce();
     });
 
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').then(function (registration) {
-        /* Eine installierte App wird oft nur aus dem Hintergrund geholt und
-         * nie neu geladen – dann muss sie selbst nach einer neuen Fassung
-         * sehen. */
         document.addEventListener('visibilitychange', function () {
-          if (document.visibilityState === 'visible') registration.update();
+          /* Eine installierte App wird oft nur aus dem Hintergrund geholt und
+           * nie neu geladen – dann muss sie selbst nach einer neuen Fassung
+           * sehen. */
+          if (document.visibilityState === 'visible') {
+            registration.update();
+            return;
+          }
+
+          /* Weggelegt, und eine neue Fassung wartet: jetzt nachladen, damit
+           * sie beim nächsten Hinsehen da ist. Niemand muss dafür einen
+           * Hinweis wegtippen, den er vielleicht gar nicht sieht. */
+          if (pending) reloadOnce();
         });
       }).catch(function () {
         /* Ohne Service Worker läuft die App weiterhin, nur nicht offline. */
       });
     });
+  }
+
+  /* Welcher Stand gerade läuft – beim Deploy in die Kopfzeile gestempelt.
+   * Steht der Platzhalter noch drin, läuft die App aus dem Quellverzeichnis. */
+  function showBuild() {
+    var meta = document.querySelector('meta[name="build"]');
+    var value = meta ? meta.content : '';
+    document.getElementById('build-value').textContent =
+      !value || value.indexOf('BUILD') >= 0 ? 'lokal' : value;
   }
 
   function start() {
@@ -172,6 +201,7 @@
 
     setupTabs();
     setupToolbar();
+    showBuild();
     updateHint();
     setupLifecycle();
     registerServiceWorker();

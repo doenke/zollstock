@@ -1,5 +1,5 @@
 /* Service Worker: hält die App offline verfügbar. */
-// __BUILD__ wird beim Deploy durch den Commit-SHA ersetzt (.github/workflows/deploy.yml).
+// Der Deploy ersetzt den Platzhalter durch den Commit-SHA (.github/workflows/deploy.yml).
 const VERSION = '__BUILD__';
 const CACHE = `zollstock-${VERSION}`;
 const ASSETS = [

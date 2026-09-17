@@ -6,6 +6,8 @@
 <title>Zollstock</title>
 <meta name="description" content="Lineal, Messlehre und Winkelmesser in Originalgröße auf dem Bildschirm.">
 <meta name="theme-color" content="#111418">
+<!-- Der Deploy stempelt hier den Commit ein – siehe .github/workflows/deploy.yml -->
+<meta name="build" content="__BUILD__">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -193,6 +195,8 @@
 
         <p class="note">Erst den Maßstab kalibrieren, dann den Rand messen – die Randmessung rechnet mit dem eingestellten Maßstab.</p>
       </section>
+
+      <p class="build">Stand: <span id="build-value">lokal</span></p>
     </div>
 
     <div class="sheet__foot">

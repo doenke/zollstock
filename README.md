@@ -105,7 +105,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | Tippen auf die Skala | Messmarke dorthin setzen |
 | Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
 | ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
-| ⚙ | Einstellungen: Einheiten und Kalibrierung |
+| ⚙ | Einstellungen: Kalibrierung, Gerätekante, laufender Stand |
 | Lineal / Lehre / Winkel | Ansicht wechseln |
 | Nullpunkt und Einstellungen | nur in der Linealansicht, im Winkelmesser ausgeblendet |
 | Nullen / Fläche merken | aktuelle Lage zur Null bzw. zur Bezugsfläche machen; nochmal drücken hebt sie auf |

@@ -71,11 +71,12 @@ jobs:
       - name: Quellstand holen
         uses: actions/checkout@v5
 
-      - name: Cache-Version in den Service Worker stempeln
+      - name: Stand in Service Worker und Seite stempeln
         run: |
           set -eu
-          sed -i "s/__BUILD__/${GITHUB_SHA:0:12}/" sw.js
+          sed -i "s/__BUILD__/${GITHUB_SHA:0:12}/" sw.js index.html
           grep -n "const VERSION" sw.js
+          grep -n 'name="build"' index.html
 
       - name: lftp installieren
         run: |
