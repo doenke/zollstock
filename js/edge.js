@@ -81,6 +81,21 @@ window.Edge = (function () {
   function offsetOf(side) { return validMm(state.edges[side]) ? state.edges[side] : 0; }
   function has(side) { return offsetOf(side) > 0; }
 
+  /* Welche Gerätekante liegt gerade an welchem Ende des Lineals? Das Lineal
+   * zählt in Bildschirmkoordinaten – sein Anfang ist oben bzw. links. Dreht
+   * das Betriebssystem das Bild um 180° oder 270°, liegt dort nicht mehr die
+   * Ober-, sondern die Unterkante des Geräts.
+   *
+   *   0°   Anfang oben   = Oberkante       180°  Anfang oben   = Unterkante
+   *   90°  Anfang links  = Oberkante       270°  Anfang links  = Unterkante
+   *
+   * In beiden Querformaten läuft das Lineal an der langen Achse – seine Enden
+   * sind also weiterhin Ober- und Unterkante, nur seitlich. */
+  function edgeAt(end) {
+    if (window.Scales.angle() < 180) return end;
+    return end === 'top' ? 'bottom' : 'top';
+  }
+
   function clamp(mm) { return Math.min(MAX_MM, Math.max(0, mm)); }
   function fmt(mm) { return mm.toFixed(1).replace('.', ',') + ' mm'; }
   function sideName(side) { return side === 'top' ? 'Oberkante' : 'Unterkante'; }
@@ -267,6 +282,7 @@ window.Edge = (function () {
     offset: offset,
     offsetOf: offsetOf,
     has: has,
+    edgeAt: edgeAt,
     sideName: sideName,
     close: function () { els.view.hidden = true; },
     onChange: function (fn) { listeners.push(fn); }

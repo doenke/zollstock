@@ -65,10 +65,11 @@ window.Ruler = (function () {
     }
 
     /* Die Gerätekante liegt außerhalb des Bildschirms, der Zentimeter
-     * innerhalb. */
+     * innerhalb. Welche der beiden vermessenen Kanten an diesem Ende liegt,
+     * hängt an der Drehung des Bildes – deshalb edgeAt() statt entry.side. */
     var inset = entry.inset === 'cm'
       ? 10
-      : entry.inset === 'edge' ? -window.Edge.offsetOf(entry.side) : 0;
+      : entry.inset === 'edge' ? -window.Edge.offsetOf(window.Edge.edgeAt(entry.side)) : 0;
 
     return entry.side === 'top'
       ? { px: inset * pxPerMm, sign: 1, mirrored: false }

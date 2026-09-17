@@ -63,6 +63,13 @@ async function main() {
       localStorage.setItem('zollstock.calibration.v1', JSON.stringify({ pxPerMm: pxPerMm, source: 'manual' }));
       window.__stups = [];
       navigator.vibrate = function (muster) { window.__stups.push(muster); return true; };
+
+      /* Die Drehung des Bildes lässt sich echt nicht herbeiführen – hier
+       * steht ein Platzhalter, den die Prüfungen setzen können. */
+      Object.defineProperty(screen, 'orientation', {
+        configurable: true,
+        value: { angle: 0, type: 'portrait-primary', addEventListener: function () {}, removeEventListener: function () {} }
+      });
     }, checks.PX_PER_MM);
 
     const page = await ctx.newPage();

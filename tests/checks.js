@@ -99,6 +99,49 @@ async function linealNullpunkte(page, t) {
   }
 }
 
+/* Welche Gerätekante an welchem Ende des Lineals liegt, hängt an der Drehung
+ * des Bildes. Bei 180° und 270° liegt dort die Unterkante – sonst rechnet die
+ * Skala mit dem Rand der falschen Kante. */
+async function linealDrehung(page, t) {
+  await page.evaluate(function () {
+    localStorage.setItem('zollstock.edge.v2', JSON.stringify({ active: 'top', edges: { top: 7.5, bottom: 15 } }));
+    localStorage.setItem('zollstock.scales.v1', JSON.stringify({ zero: 'top-edge' }));
+  });
+
+  /* Die Skala liest ihren Zustand beim Laden – also einmal neu laden. */
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(120);
+
+  const faelle = [
+    [0, BREITE, HOEHE, 7.5, 'Hochformat: Oberkante'],
+    [90, HOEHE, BREITE, 7.5, 'Querformat 90°: Oberkante links'],
+    [270, HOEHE, BREITE, 15, 'Querformat 270°: Unterkante links'],
+    [180, BREITE, HOEHE, 15, 'Hochformat auf dem Kopf: Unterkante oben']
+  ];
+
+  for (const [winkel, breite, hoehe, sollRand, was] of faelle) {
+    await page.setViewportSize({ width: breite, height: hoehe });
+    /* Von 90° auf 270° bleibt die Fläche gleich groß – ohne das Ereignis
+     * merkt die Ansicht nichts davon, so wie auf dem Gerät auch. */
+    await page.evaluate(function (w) {
+      screen.orientation.angle = w;
+      window.dispatchEvent(new Event('orientationchange'));
+    }, winkel);
+    await page.waitForTimeout(220);
+
+    /* 300 Bildpunkte vom Anfang des Lineals entfernt antippen. */
+    const laengs = 300;
+    const quer = (breite < hoehe ? breite : hoehe) / 2;
+    await page.mouse.click(breite < hoehe ? quer : laengs, breite < hoehe ? laengs : quer);
+    await page.waitForTimeout(100);
+
+    const ist = zahl(await page.textContent('#readout-main')) * 10;
+    t.nahe(ist, laengs / PX_PER_MM + sollRand, 0.6, was);
+  }
+
+  await page.setViewportSize({ width: BREITE, height: HOEHE });
+}
+
 /* ---------- Lehre ---------- */
 
 async function schlitze(page, t) {
@@ -455,6 +498,7 @@ module.exports = {
   HOEHE: HOEHE,
   pruefungen: [
     { name: 'Lineal: Nullpunkte', lauf: linealNullpunkte },
+    { name: 'Lineal: Kante beim Drehen', lauf: linealDrehung },
     { name: 'Lehre: Schlitze', lauf: schlitze },
     { name: 'Lehre: Bohrerzeilen', lauf: bohrerZeilen },
     { name: 'Lehre: Sechskante', lauf: sechskante },

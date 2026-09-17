@@ -108,10 +108,30 @@ Die Umschaltung in den Einstellungen wählt, welche Kante gemessen wird; die
 Vollbildmessung legt die Karte dann an diese Kante. Die Messfläche muss dabei
 bis genau an diese Bildschirmkante reichen – bei der Unterkante wandert die
 Bedienleiste deshalb nach oben. Sonst endete die Fläche eine Leistenhöhe zu
-früh, und die Linie käme nie bis ans Kartenende. Im Querformat gilt der
-obere Wert für die linke, der untere für die rechte Kante. Gespeichert wird in
+früh, und die Linie käme nie bis ans Kartenende. Gespeichert wird in
 `localStorage` (`zollstock.edge.v2`); eine ältere Messung „mit Hülle" wird
 beim ersten Start für beide Kanten übernommen.
+
+Welcher der beiden Werte gilt, hängt nicht am gewählten Nullpunkt, sondern an
+der **Drehung des Bildes**. Das Lineal zählt in Bildschirmkoordinaten, sein
+Anfang liegt oben bzw. links – dort liegt aber je nach Drehung eine andere
+Kante des Geräts:
+
+| `screen.orientation.angle` | Anfang des Lineals | dort liegt |
+| --- | --- | --- |
+| 0° | oben | Oberkante |
+| 90° | links | Oberkante |
+| 180° | oben | Unterkante |
+| 270° | links | Unterkante |
+
+In beiden Querformaten läuft das Lineal an der langen Achse, seine Enden sind
+also weiterhin Ober- und Unterkante – nur seitlich, und bei 270° vertauscht.
+`Edge.edgeAt()` löst das auf; ohne diese Zuordnung rechnete die Skala in zwei
+von vier Lagen mit dem Rand der falschen Kante.
+
+Ist die Kante an diesem Ende nicht vermessen, steht ihr Nullpunkt dort nicht
+zur Wahl. Die Skala bleibt dann an derselben Seite und rückt auf den
+Bildschirmrand, statt in die Mitte zu springen.
 
 ### Heller Grund
 
@@ -426,7 +446,7 @@ npm test
 Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
-reicht, ob Gemerktes ein Neuladen übersteht. 43 Behauptungen in zwölf
+reicht, ob Gemerktes ein Neuladen übersteht. 47 Behauptungen in dreizehn
 Prüfungen; ein Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 Gemessen wird in den Bildpunkten der Zeichenfläche – über die Schwerpunkte der

@@ -74,20 +74,45 @@ window.Scales = (function () {
     return window.innerHeight >= window.innerWidth;
   }
 
+  /* Um wie viel das Betriebssystem das Bild gegenüber der natürlichen Lage
+   * des Geräts im Uhrzeigersinn gedreht hat. Das alte window.orientation von
+   * iOS zählt andersherum und wird umgerechnet. */
+  function angle() {
+    if (screen.orientation && typeof screen.orientation.angle === 'number') {
+      return screen.orientation.angle;
+    }
+    if (typeof window.orientation === 'number') {
+      return (360 - window.orientation) % 360;
+    }
+    return 0;
+  }
+
   /* ---------- Nullpunkt ---------- */
 
-  /* Die Gerätekante steht nur zur Wahl, wenn ihr Rand vermessen wurde –
-   * je Kante einzeln. */
+  /* Die Gerätekante steht nur zur Wahl, wenn ihr Rand vermessen wurde – je
+   * Kante einzeln, und gemeint ist die Kante, die gerade an diesem Ende des
+   * Lineals liegt. */
   function available() {
     return ZEROS.filter(function (z) {
-      return z.inset !== 'edge' || window.Edge.has(z.side);
+      return z.inset !== 'edge' || window.Edge.has(window.Edge.edgeAt(z.side));
     });
   }
 
   function zero() {
     var list = available();
     var found = list.filter(function (z) { return z.key === state.zero; })[0];
-    return found || list[Math.floor(list.length / 2)];
+    if (found) return found;
+
+    /* Ist die gewählte Lage gerade nicht zu haben – etwa weil die Kante an
+     * diesem Ende nicht vermessen ist –, bleibt die Skala wenigstens an
+     * derselben Seite, statt in die Mitte zu springen. */
+    var gewollt = ZEROS.filter(function (z) { return z.key === state.zero; })[0];
+    if (gewollt) {
+      var gleiche = list.filter(function (z) { return z.side === gewollt.side && !z.inset; })[0];
+      if (gleiche) return gleiche;
+    }
+
+    return list[Math.floor(list.length / 2)];
   }
 
   function cycleZero() {
@@ -127,6 +152,7 @@ window.Scales = (function () {
     unit: function () { return CM; },
     format: format,
     vertical: vertical,
+    angle: angle,
     zero: zero,
     zeroName: zeroName,
     zeroGlyph: zeroGlyph,

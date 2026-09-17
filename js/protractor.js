@@ -164,18 +164,9 @@ window.Protractor = (function () {
   /* beta und gamma beziehen sich auf das Gerät in seiner natürlichen Lage.
    * Dreht das Betriebssystem die Ansicht ins Querformat, ist das gezeichnete
    * Bild mitgedreht – die Lage muss in dasselbe System gebracht werden. */
-  /* screen.orientation.angle zählt, um wie viel das Bild im Uhrzeigersinn
-   * gegenüber der natürlichen Lage gedreht ist. Das alte window.orientation
-   * von iOS zählt andersherum und wird deshalb umgerechnet. */
-  function screenAngle() {
-    if (screen.orientation && typeof screen.orientation.angle === 'number') {
-      return screen.orientation.angle;
-    }
-    if (typeof window.orientation === 'number') {
-      return (360 - window.orientation) % 360;
-    }
-    return 0;
-  }
+  /* Wie weit das Bild gegenüber der natürlichen Lage gedreht ist, weiß die
+   * Skala – dieselbe Frage stellt sich dort für die Gerätekanten. */
+  function screenAngle() { return window.Scales.angle(); }
 
   /* Gehalten wird die Lage selbst – damit stehen Ring, Libelle, Bandskala und
    * Anzeige gemeinsam still, egal wie das Gerät danach bewegt wird. */
