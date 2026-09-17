@@ -1,0 +1,12 @@
+{
+  "name": "zollstock-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prüfstrecke für Zollstock. Gehört nicht zur App – die bleibt ohne Abhängigkeiten.",
+  "scripts": {
+    "test": "node run.js"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}

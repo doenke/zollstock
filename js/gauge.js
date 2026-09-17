@@ -477,5 +477,13 @@ window.Gauge = (function () {
     showReadout();
   }
 
-  return { init: init, draw: draw, refresh: refresh, sets: ORDER };
+  /* Wo die Maße in der Zeichenfläche liegen. Für die Anzeige nicht nötig,
+   * aber so lässt sich von außen nachmessen, ob die Formen stimmen. */
+  function rows() {
+    return hits.map(function (hit) {
+      return { label: hit.item.label, mm: hit.item.mm, top: hit.top, bottom: hit.bottom };
+    });
+  }
+
+  return { init: init, draw: draw, refresh: refresh, rows: rows, sets: ORDER };
 })();
