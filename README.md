@@ -156,7 +156,7 @@ Anzeige:
 
 | Satz | Form | Maße |
 | --- | --- | --- |
-| **Bohrer** | Schlitze | 1–10 mm in halben Schritten, dann 11, 12, 13, 14, 16 mm |
+| **Bohrer** | Schlitze | 1–16 mm in ganzen Schritten |
 | **Rohr mm** | Halbkreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
 | **Rohr Zoll** | Halbkreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
 
@@ -166,6 +166,10 @@ stehen, ist die lichte Weite auf den Zehntelmillimeter genau der Nennwert –
 passt der Bohrer ohne Luft und ohne Überstand hinein, stimmt das Maß. Wie
 viele Schlitze nebeneinander passen, rechnet die App aus dem Maßstab aus und
 bricht entsprechend um; auf einem breiteren Bildschirm werden es mehr.
+
+Halbe Millimeter gibt es bewusst nicht: Ein halber Millimeter sind auf dem
+Bildschirm nur ein paar Bildpunkte – so genau lässt sich ein Bohrer von Hand
+nicht anlegen, und eine Zahl vorzugaukeln, die nicht trägt, hilft niemandem.
 
 **Rohre** werden an den linken Bildschirmrand gehalten und mit einem
 **Halbkreis** verglichen, dessen Mittelpunkt auf der Kante liegt – die andere

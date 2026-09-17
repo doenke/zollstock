@@ -22,10 +22,10 @@ window.Gauge = (function () {
     return { mm: value, label: String(value).replace('.', ','), note: note || '' };
   }
 
-  /* Gängige Spiralbohrer: bis 10 mm in halben Schritten, darüber in ganzen. */
+  /* Nur ganze Millimeter: Ein halber Millimeter sind auf dem Bildschirm nur
+   * ein paar Bildpunkte – so genau lässt sich ein Bohrer nicht anlegen. */
   var DRILLS = [];
-  for (var d = 1; d <= 10.001; d += 0.5) DRILLS.push(mm(Math.round(d * 10) / 10, 'Bohrer'));
-  [11, 12, 13, 14, 16].forEach(function (v) { DRILLS.push(mm(v, 'Bohrer')); });
+  for (var d = 1; d <= 16; d++) DRILLS.push(mm(d, 'Bohrer'));
 
   /* Kupfer nach EN 1057, Verbund- und PE-Rohre in ihrer eigenen Reihe. */
   var PIPES_MM = [
