@@ -153,8 +153,6 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
   color: var(--accent);
 }
 
-.readout__sub { font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
-
 /* ---------- Messlehre ---------- */
 .gauge__readout {
   position: fixed;

@@ -114,7 +114,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 
 An beiden Kanten steht dieselbe **Zentimeterteilung** mit Millimeterstrichen –
 so lässt sich von jeder Seite anlegen. Die Messmarke nennt den Wert in
-Zentimetern und darunter in Millimetern.
+Zentimetern.
 
 Das Lineal läuft entlang der längeren Bildschirmkante und folgt der
 Geräteausrichtung.

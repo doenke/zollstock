@@ -67,10 +67,6 @@ window.Scales = (function () {
     return (mm / 10).toFixed(1).replace('.', ',') + ' cm';
   }
 
-  function formatMm(mm) {
-    return Math.round(mm) + ' mm';
-  }
-
   /* Das Lineal läuft entlang der längeren Bildschirmkante. Läuft es senkrecht,
    * liegen seine beiden Skalen an der linken und rechten Kante, sonst oben
    * und unten. */
@@ -130,7 +126,6 @@ window.Scales = (function () {
   return {
     unit: function () { return CM; },
     format: format,
-    formatMm: formatMm,
     vertical: vertical,
     zero: zero,
     zeroName: zeroName,

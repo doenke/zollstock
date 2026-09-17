@@ -3,7 +3,7 @@
 window.Ruler = (function () {
   'use strict';
 
-  var canvas, ctx, readout, readoutMain, readoutSub, hint;
+  var canvas, ctx, readout, readoutMain, hint;
   var markerMm = null;
   var dragging = false;
   var frame = null;
@@ -253,11 +253,8 @@ window.Ruler = (function () {
       return;
     }
 
-    var shown = Math.abs(markerMm);
     readout.hidden = false;
-    readoutMain.textContent = window.Scales.format(shown);
-    readoutSub.textContent = window.Scales.formatMm(shown);
-    readoutSub.hidden = false;
+    readoutMain.textContent = window.Scales.format(Math.abs(markerMm));
   }
 
   /* ---------- Interaktion ---------- */
@@ -316,7 +313,6 @@ window.Ruler = (function () {
     ctx = canvas.getContext('2d');
     readout = document.getElementById('readout');
     readoutMain = document.getElementById('readout-main');
-    readoutSub = document.getElementById('readout-sub');
     hint = document.getElementById('ruler-hint');
     bindPointer();
   }
