@@ -117,7 +117,9 @@ weiße Fläche, schwarze Striche. Gedacht ist er zum Anlegen – ein dunkler
 Bohrer vor schwarzem Bildschirm ist kaum zu beurteilen, vor Weiß steht sein
 Umriss. Bei Sonne ist es ohnehin besser lesbar.
 
-Umgesetzt ist er als zweiter Satz derselben Farbwerte unter
+Auch die zuletzt benutzte Ansicht wird gemerkt (`zollstock.view.v1`).
+
+Umgesetzt ist der helle Grund als zweiter Satz derselben Farbwerte unter
 `:root[data-theme="light"]`; die Zeichenflächen holen ihre Farben zur Laufzeit
 von dort, ein Neuzeichnen genügt also. Die Wahl liegt in `localStorage`
 (`zollstock.theme.v1`), voreingestellt bleibt Dunkel. Die Leiste des Browsers
@@ -138,7 +140,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
 | ◐ | heller Grund zum Anlegen |
 | ⚙ | Einstellungen: Kalibrierung, Gerätekante, laufender Stand |
-| Lineal / Lehre / Winkel | Ansicht wechseln |
+| Lineal / Lehre / Winkel | Ansicht wechseln; die zuletzt benutzte kommt beim nächsten Start wieder |
 | Nullpunkt und Einstellungen | nur in der Linealansicht, im Winkelmesser ausgeblendet |
 | Nullen / Fläche merken | aktuelle Lage zur Null bzw. zur Bezugsfläche machen; nochmal drücken hebt sie auf |
 | Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
@@ -329,6 +331,13 @@ hochkant wie quer dieselbe Abweichung.
 **Nullen** macht die aktuelle Lage zur Null, ohne jede Rundung – für Messungen
 gegen eine beliebige Bezugskante: anlegen, nullen, alles Weitere zählt von
 dort. Nochmal drücken hebt den Nullpunkt wieder auf.
+
+Nullpunkt und gemerkte Bezugsfläche überstehen ein Neuladen
+(`zollstock.protractor.v1`) – sie gehören zur laufenden Arbeit, und seit die
+App sich selbst nachlädt, wären sie sonst mitten im Messen weg. Dass sie
+gelten, ist an der Taste zu sehen, die dann „Zurücksetzen“ heißt. Der
+Haltezustand wird nicht gemerkt: einen eingefrorenen Messwert über einen
+Neustart zu retten, ergibt keinen Sinn.
 
 Ein so gesetzter Nullpunkt hängt am **Gerät**, nicht am Bildschirm. Wer gegen
 eine Kante nullt und das Gerät danach dreht, will den tatsächlichen Abstand zu

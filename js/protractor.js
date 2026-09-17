@@ -21,6 +21,7 @@
 window.Protractor = (function () {
   'use strict';
 
+  var STORE_KEY = 'zollstock.protractor.v1';
   var DEG = 180 / Math.PI;
   var SMOOTHING = 0.25;      /* Tiefpass gegen das Zittern des Sensors */
   var FINE_RANGE = 5;        /* Feinskala zeigt ± 5 Grad */
@@ -40,6 +41,39 @@ window.Protractor = (function () {
 
   function css(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  /* ---------- Gemerkte Bezüge ---------- */
+
+  /* Ein gesetzter Nullpunkt und eine gemerkte Fläche gehören zur laufenden
+   * Arbeit – sie sollen ein Neuladen überstehen. Dass sie gelten, ist an der
+   * Taste zu sehen, die dann "Zurücksetzen" heißt. */
+  function loadRefs() {
+    try {
+      var parsed = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (!parsed) return;
+
+      if (isFinite(parsed.zeroRef)) zeroRef = parsed.zeroRef;
+
+      var plane = parsed.planeRef;
+      if (plane && isFinite(plane.x) && isFinite(plane.y) && isFinite(plane.z)) {
+        var len = Math.sqrt(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
+        /* Nur ein Einheitsvektor ist eine Richtung. */
+        if (Math.abs(len - 1) < 0.01) planeRef = { x: plane.x, y: plane.y, z: plane.z };
+      }
+    } catch (err) {
+      /* Unlesbar gespeichert – dann wird eben wieder gegen die Waagerechte
+       * gemessen. */
+    }
+  }
+
+  function persistRefs() {
+    try {
+      if (zeroRef === null && planeRef === null) localStorage.removeItem(STORE_KEY);
+      else localStorage.setItem(STORE_KEY, JSON.stringify({ zeroRef: zeroRef, planeRef: planeRef }));
+    } catch (err) {
+      /* Privater Modus – gilt dann nur für diese Sitzung. */
+    }
   }
 
   function clamp1(v) { return Math.max(-1, Math.min(1, v)); }
@@ -235,6 +269,8 @@ window.Protractor = (function () {
       var u = source().up;
       planeRef = { x: u.x, y: u.y, z: u.z };
     }
+
+    persistRefs();
     showZero();
   }
 
@@ -802,6 +838,7 @@ window.Protractor = (function () {
       btn.addEventListener('click', function () { setMode(btn.dataset.mode); });
     });
 
+    loadRefs();
     setMode(mode);
     showZero();
   }

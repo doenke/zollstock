@@ -3,6 +3,8 @@
   'use strict';
 
   var THEME_KEY = 'zollstock.theme.v1';
+  var VIEW_KEY = 'zollstock.view.v1';
+  var VIEWS = ['ruler', 'gauge', 'protractor'];
   var currentView = 'ruler';
   var wakeLock = null;
 
@@ -14,6 +16,15 @@
 
   function showView(name) {
     currentView = name;
+
+    /* Seit die App sich selbst nachlädt, fiele man sonst jedes Mal ins
+     * Lineal zurück – auch mitten im Messen. */
+    try {
+      localStorage.setItem(VIEW_KEY, name);
+    } catch (err) {
+      /* Privater Modus – dann gilt die Wahl nur für diese Sitzung. */
+    }
+
     document.querySelectorAll('.view').forEach(function (view) {
       view.classList.toggle('is-active', view.id === 'view-' + name);
     });
@@ -36,6 +47,15 @@
     document.querySelectorAll('.tab').forEach(function (tab) {
       tab.addEventListener('click', function () { showView(tab.dataset.view); });
     });
+
+    var stored = null;
+    try {
+      stored = localStorage.getItem(VIEW_KEY);
+    } catch (err) {
+      /* ohne Speicher beginnt es beim Lineal */
+    }
+
+    showView(VIEWS.indexOf(stored) >= 0 ? stored : 'ruler');
   }
 
   /* ---------- Heller Grund ---------- */
@@ -253,9 +273,11 @@
       window.Ruler.refresh();
     });
 
+    /* Erst der Grund, dann die Ansicht: sonst zeichnet die wiederhergestellte
+     * Ansicht kurz in den falschen Farben. */
+    setupTheme();
     setupTabs();
     setupToolbar();
-    setupTheme();
     showBuild();
     updateHint();
     setupLifecycle();
