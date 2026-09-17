@@ -674,8 +674,11 @@ window.Protractor = (function () {
     ctx.clearRect(0, 0, w, h);
 
     /* Wie viel Platz Werkzeug- und Tableiste brauchen, hängt davon ab, ob die
-     * Schaltflächen umbrechen – deshalb wird die Leiste ausgemessen. */
-    var bottom = els.tools.getBoundingClientRect().top - 14;
+     * Schaltflächen umbrechen – deshalb wird die Leiste ausgemessen. Liefert
+     * die Messung nichts Brauchbares, bleibt ein Platzhalter stehen, statt
+     * die Skala in die obere Ecke zu quetschen. */
+    var bar = els.tools.getBoundingClientRect().top - 14;
+    var bottom = bar > 160 ? bar : h - 150;
     var tapeHeight = 112;
 
     if (w > h) {
@@ -781,7 +784,7 @@ window.Protractor = (function () {
     ctx = canvas.getContext('2d');
 
     els = {
-      tools: document.querySelector('.tools'),
+      tools: document.querySelector('#view-protractor .tools'),
       gate: document.getElementById('sensor-gate'),
       gateText: document.getElementById('sensor-gate-text'),
       gateButton: document.getElementById('btn-sensor'),
