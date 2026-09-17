@@ -193,7 +193,7 @@ Anzeige:
 
 | Satz | Form | Maße |
 | --- | --- | --- |
-| **Bohrer** | Schlitze | 1–16 mm in ganzen Schritten |
+| **Bohrer** | Schlitze | 1–16 mm in ganzen Schritten, mit Dübel und Schraube |
 | **Schraube** | Schlitze | metrisches Regelgewinde M3–M16, Schaftdurchmesser |
 | **Schlüssel** | Schlitze | Schlüsselweiten SW 1,5 – SW 24 |
 | **Sechskant** | Sechsecke | dieselben Weiten als Umriss zum Auflegen |
@@ -218,6 +218,12 @@ Zehntelmillimeter genau der Nennwert – passt der Bohrer ohne Luft und ohne
 Halbe Millimeter gibt es bewusst nicht: Ein halber Millimeter sind auf dem
 Bildschirm nur ein paar Bildpunkte – so genau lässt sich ein Bohrer von Hand
 nicht anlegen, und eine Zahl vorzugaukeln, die nicht trägt, hilft niemandem.
+
+Wo ein Universaldübel dazugehört, steht er daneben: `6 mm · Dübel 6 ·
+Schraube 3,5–5` (Maße nach Fischer SX und Baugleichen). Am Bohrer ist die
+Frage selten „wie dick", sondern „was passt da rein" – und die stellt sich
+genau dann, wenn man ihn in der Hand hält. Die übrigen Maße bleiben ohne
+Nebenzeile, statt sie mit Ungefährem zu füllen.
 
 **Schrauben** werden über dem Gewinde am Schaft gemessen; das Gewinde selbst
 misst sich ein bis zwei Zehntel unter seinem Nennmaß. Neben jedem Maß stehen
@@ -420,7 +426,7 @@ npm test
 Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
-reicht, ob Gemerktes ein Neuladen übersteht. 40 Behauptungen in elf
+reicht, ob Gemerktes ein Neuladen übersteht. 43 Behauptungen in zwölf
 Prüfungen; ein Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 Gemessen wird in den Bildpunkten der Zeichenfläche – über die Schwerpunkte der

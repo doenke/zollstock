@@ -130,6 +130,37 @@ async function schlitze(page, t) {
   }
 }
 
+/* Die Nebenzeilen der Bohrer dürfen den Schlitz nicht zu kurz drücken – er
+ * muss lang genug bleiben, um einen Bohrer anzulegen. */
+async function bohrerZeilen(page, t) {
+  await inAnsicht(page, 'gauge');
+  await page.click('[data-gauge="drill"]');
+  await page.waitForTimeout(150);
+
+  const zeilen = await page.evaluate(function () { return window.Gauge.rows(); });
+  const sechs = zeilen.filter(function (z) { return z.mm === 6; })[0];
+  const sechzehn = zeilen.filter(function (z) { return z.mm === 16; })[0];
+
+  await page.mouse.click(BREITE / 2, (sechs.top + sechs.bottom) / 2 - await scrollStand(page));
+  await page.waitForTimeout(100);
+  t.gleich((await page.textContent('#gauge-main')).trim(), '6 mm', 'Bohrer 6 mm getroffen');
+  t.ok((await page.textContent('#gauge-sub')).indexOf('Dübel 6') >= 0, 'Bohrer 6 mm nennt seinen Dübel');
+
+  /* Am oberen Strich des größten Schlitzes liegt nur er selbst – seine
+   * Länge ist der letzte gezeichnete Bildpunkt davor. */
+  const span = sechzehn.mm * PX_PER_MM;
+  const treffer = await messen(page, {
+    canvas: 'gauge-canvas', richtung: 'quer',
+    x0: 0, y0: (sechzehn.top + sechzehn.bottom) / 2 - span / 2 + 1, laenge: BREITE
+  });
+  t.ok(treffer.length >= 1 && treffer[treffer.length - 1] / PX_PER_MM > 25,
+    'Schlitz bleibt lang genug zum Anlegen (' + lib.fmt(treffer[treffer.length - 1] / PX_PER_MM) + ' mm)');
+}
+
+async function scrollStand(page) {
+  return page.evaluate(function () { return document.getElementById('gauge-scroll').scrollTop; });
+}
+
 async function sechskante(page, t) {
   await inAnsicht(page, 'gauge');
   await page.click('[data-gauge="hex"]');
@@ -425,6 +456,7 @@ module.exports = {
   pruefungen: [
     { name: 'Lineal: Nullpunkte', lauf: linealNullpunkte },
     { name: 'Lehre: Schlitze', lauf: schlitze },
+    { name: 'Lehre: Bohrerzeilen', lauf: bohrerZeilen },
     { name: 'Lehre: Sechskante', lauf: sechskante },
     { name: 'Lehre: Halbkreise', lauf: halbkreise },
     { name: 'Winkelmesser: Werte', lauf: winkelWerte },

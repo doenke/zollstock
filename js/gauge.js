@@ -34,10 +34,23 @@ window.Gauge = (function () {
     return { mm: value, label: label, sub: sub };
   }
 
+  /* Universaldübel und was hineingehört (Fischer SX und Baugleiche). Am
+   * Bohrer ist die Frage selten "wie dick", sondern "was passt da rein" –
+   * und das weiß man genau dann, wenn man ihn in der Hand hat. */
+  var DUEBEL = {
+    4: 'Dübel 4 · Schraube 2,5–3',
+    5: 'Dübel 5 · Schraube 3–4',
+    6: 'Dübel 6 · Schraube 3,5–5',
+    8: 'Dübel 8 · Schraube 4,5–6',
+    10: 'Dübel 10 · Schraube 6–8',
+    12: 'Dübel 12 · Schraube 8–10',
+    14: 'Dübel 14 · Schraube 10–12'
+  };
+
   /* Nur ganze Millimeter: Ein halber Millimeter sind auf dem Bildschirm nur
    * ein paar Bildpunkte – so genau lässt sich ein Bohrer nicht anlegen. */
   var DRILLS = [];
-  for (var d = 1; d <= 16; d++) DRILLS.push(mm(d));
+  for (var d = 1; d <= 16; d++) DRILLS.push(mm(d, DUEBEL[d]));
 
   /* Metrisches Regelgewinde. Gemessen wird der Schaft über dem Gewinde; das
    * Gewinde selbst misst sich ein bis zwei Zehntel kleiner als sein Nennmaß.
