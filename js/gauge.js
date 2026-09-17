@@ -56,25 +56,40 @@ window.Gauge = (function () {
   ];
 
   /* Schlüsselweite ist der Abstand der beiden Schlüsselflächen – genau das,
-   * was zwischen die beiden Striche passt. Die Mutter, zu der sie gehört,
-   * steht daneben (Sechskant nach DIN 934). */
-  var WRENCHES = [
-    named(5.5, 'SW 5,5', 'Mutter M3'),
-    named(7, 'SW 7', 'Mutter M4'),
-    named(8, 'SW 8', 'Mutter M5'),
-    named(10, 'SW 10', 'Mutter M6'),
-    named(11, 'SW 11', ''),
-    named(12, 'SW 12', ''),
-    named(13, 'SW 13', 'Mutter M8'),
-    named(14, 'SW 14', ''),
-    named(15, 'SW 15', ''),
-    named(16, 'SW 16', ''),
-    named(17, 'SW 17', 'Mutter M10'),
-    named(18, 'SW 18', ''),
-    named(19, 'SW 19', 'Mutter M12'),
-    named(21, 'SW 21', ''),
-    named(22, 'SW 22', 'Mutter M14'),
-    named(24, 'SW 24', 'Mutter M16')
+   * was zwischen die beiden Striche passt und was der Sechskant breit ist.
+   *
+   * Die Reihe fängt bei den Innensechskanten an (DIN 912) und geht bis zu den
+   * großen Sechskantmuttern (DIN 934): Ein Inbusschlüssel ist selbst ein
+   * Sechskant, für ihn gilt dieselbe Lehre. Wo beides auf dieselbe Weite
+   * fällt, steht beides daneben. */
+  function sw(value, sub) {
+    return named(value, 'SW ' + String(value).replace('.', ','), sub);
+  }
+
+  var HEX_SIZES = [
+    sw(1.5, 'Inbus M2'),
+    sw(2, 'Inbus M2,5'),
+    sw(2.5, 'Inbus M3'),
+    sw(3, 'Inbus M4'),
+    sw(4, 'Inbus M5'),
+    sw(5, 'Inbus M6'),
+    sw(5.5, 'Mutter M3'),
+    sw(6, 'Inbus M8'),
+    sw(7, 'Mutter M4'),
+    sw(8, 'Mutter M5 · Inbus M10'),
+    sw(10, 'Mutter M6 · Inbus M12'),
+    sw(11, ''),
+    sw(12, ''),
+    sw(13, 'Mutter M8'),
+    sw(14, ''),
+    sw(15, ''),
+    sw(16, ''),
+    sw(17, 'Mutter M10'),
+    sw(18, ''),
+    sw(19, 'Mutter M12'),
+    sw(21, ''),
+    sw(22, 'Mutter M14'),
+    sw(24, 'Mutter M16')
   ];
 
   /* Kupfer nach EN 1057, Verbund- und PE-Rohre in ihrer eigenen Reihe. */
@@ -99,8 +114,8 @@ window.Gauge = (function () {
   var SETS = {
     drill: { kind: 'slots', name: 'Bohrer', items: DRILLS, hint: 'Bohrer waagerecht in den Schlitz legen' },
     screw: { kind: 'slots', name: 'Schraube', items: SCREWS, hint: 'Schaft in den Schlitz legen, über dem Gewinde' },
-    wrench: { kind: 'slots', name: 'Schlüssel', items: WRENCHES, hint: 'Mutter über die Schlüsselflächen anlegen' },
-    hex: { kind: 'hex', name: 'Sechskant', items: WRENCHES, hint: 'Mutter oder Schraubenkopf auflegen und drehen, bis er deckt' },
+    wrench: { kind: 'slots', name: 'Schlüssel', items: HEX_SIZES, hint: 'Über die beiden Schlüsselflächen anlegen' },
+    hex: { kind: 'hex', name: 'Sechskant', items: HEX_SIZES, hint: 'Mutter, Kopf oder Inbus auflegen und drehen, bis er deckt' },
     'pipe-mm': { kind: 'halves', name: 'Rohr mm', items: PIPES_MM, hint: 'Rohr an den linken Rand halten · Außendurchmesser' },
     'pipe-in': { kind: 'halves', name: 'Rohr Zoll', items: PIPES_IN, hint: 'Rohr an den linken Rand halten · Außendurchmesser' }
   };
@@ -242,7 +257,9 @@ window.Gauge = (function () {
     var cx = 10 + span / 2;
 
     ctx.strokeStyle = on ? css('--accent') : css('--text');
-    ctx.lineWidth = on ? 2.5 : 1.4;
+    /* Bei den kleinen Weiten wäre ein dicker Strich ein gutes Stück des
+     * Maßes – dann ist nicht mehr zu sehen, was deckt. */
+    ctx.lineWidth = span < 24 ? (on ? 1.8 : 1) : (on ? 2.5 : 1.4);
     ctx.lineJoin = 'round';
     ctx.beginPath();
 
@@ -277,6 +294,15 @@ window.Gauge = (function () {
     /* Der Schlitz braucht Länge zum Anlegen, die Beschriftung ihren Platz. */
     var length = Math.max(90, Math.min(52 * pxPerMm, width - reserve - 30));
 
+    /* Sechskante sind verschieden breit – ohne feste Spalte würde die
+     * Beschriftung von Zeile zu Zeile wandern. */
+    var column = 0;
+    if (set().kind === 'hex') {
+      var widest = 0;
+      items.forEach(function (item) { widest = Math.max(widest, item.mm * pxPerMm); });
+      column = Math.min(10 + widest + 16, width - reserve - 10);
+    }
+
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
@@ -286,7 +312,7 @@ window.Gauge = (function () {
       var cy = y + height / 2;
       var on = pick() === item;
       var after = slots ? drawSlot(item, cy, span, length, on)
-        : set().kind === 'hex' ? drawHex(item, cy, span, on)
+        : set().kind === 'hex' ? Math.max(column, drawHex(item, cy, span, on))
         : drawHalf(item, cy, span, on);
 
       ctx.font = (on ? '700 ' : '600 ') + '17px system-ui, -apple-system, sans-serif';

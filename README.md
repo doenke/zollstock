@@ -192,7 +192,7 @@ Anzeige:
 | --- | --- | --- |
 | **Bohrer** | Schlitze | 1–16 mm in ganzen Schritten |
 | **Schraube** | Schlitze | metrisches Regelgewinde M3–M16, Schaftdurchmesser |
-| **Schlüssel** | Schlitze | Schlüsselweiten SW 5,5 – SW 24 |
+| **Schlüssel** | Schlitze | Schlüsselweiten SW 1,5 – SW 24 |
 | **Sechskant** | Sechsecke | dieselben Weiten als Umriss zum Auflegen |
 | **Rohr mm** | Halbkreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
 | **Rohr Zoll** | Halbkreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
@@ -224,8 +224,12 @@ Sechskant nach DIN 934 (M10 → SW 17, M12 → SW 19); ISO 4032 führt dort 16 u
 18.
 
 **Schlüsselweiten** sind der Abstand der beiden Schlüsselflächen – genau das,
-was zwischen die Striche passt. Die Mutter, zu der eine Weite gehört, steht
-daneben, soweit es eine gibt.
+was zwischen die Striche passt und was der Sechskant breit ist. Die Reihe
+fängt bei den Innensechskanten an (SW 1,5 nach DIN 912) und geht bis zu den
+großen Muttern (SW 24 nach DIN 934): Ein Inbusschlüssel ist selbst ein
+Sechskant, für ihn gilt dieselbe Lehre. Wozu eine Weite gehört, steht daneben
+– wo beides auf dieselbe Weite fällt, beides (SW 8 ist Mutter M5 und
+Inbus M10).
 
 Der **Sechskant** zeigt dieselben Weiten als Umriss: Mutter oder Schraubenkopf
 auflegen und drehen, bis er deckt. Das prüft beide Maße auf einmal –
@@ -233,6 +237,11 @@ Schlüsselweite und Eckenmaß –, während ein Schlitz nur die Weite kennt und
 dafür parallel ausgerichtet sein will. Gezeichnet wird ab 30°, damit die
 beiden Flanken senkrecht stehen und die Breite des Umrisses genau die
 Schlüsselweite ist; die Höhe ist dann das Eckenmaß, also das 2/√3-fache.
+
+Bei den kleinen Weiten wird der Strich dünner: Ein 1,4 px breiter Strich wäre
+bei SW 1,5 ein knappes Fünftel des Maßes, dann ist nicht mehr zu sehen, was
+deckt. Die Beschriftung steht in einer festen Spalte, sonst wanderte sie mit
+jeder Zeile weiter nach rechts.
 
 **Rohre** werden an die Kante gehalten und mit einem **Halbkreis** verglichen,
 dessen Mittelpunkt auf ihr liegt – die andere Hälfte ragt über den Rand
