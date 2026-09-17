@@ -2,6 +2,7 @@
 (function () {
   'use strict';
 
+  var THEME_KEY = 'zollstock.theme.v1';
   var currentView = 'ruler';
   var wakeLock = null;
 
@@ -34,6 +35,58 @@
   function setupTabs() {
     document.querySelectorAll('.tab').forEach(function (tab) {
       tab.addEventListener('click', function () { showView(tab.dataset.view); });
+    });
+  }
+
+  /* ---------- Heller Grund ---------- */
+
+  /* Zum Anlegen dunkler Teile – auf schwarzem Grund ist ein Bohrer kaum vom
+   * Hintergrund zu unterscheiden. Die Wahl bleibt gespeichert; voreingestellt
+   * bleibt Dunkel, weil danach die Skalen am ruhigsten aussehen. */
+  function theme() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+
+  function setTheme(name, remember) {
+    var light = name === 'light';
+
+    if (light) document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+
+    var button = document.getElementById('btn-theme');
+    button.classList.toggle('is-on', light);
+    button.setAttribute('aria-pressed', light ? 'true' : 'false');
+    button.title = light ? 'Zurück auf dunklen Grund' : 'Heller Grund zum Anlegen';
+
+    /* Auch die Leiste des Browsers soll mitgehen. */
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+
+    if (remember) {
+      try {
+        localStorage.setItem(THEME_KEY, name);
+      } catch (err) {
+        /* Privater Modus – gilt dann nur für diese Sitzung. */
+      }
+    }
+
+    /* Die Zeichenflächen holen ihre Farben aus dem Stylesheet. */
+    window.Ruler.refresh();
+    window.Gauge.refresh();
+    window.Protractor.draw();
+  }
+
+  function setupTheme() {
+    var stored = null;
+    try {
+      stored = localStorage.getItem(THEME_KEY);
+    } catch (err) {
+      /* ohne Speicher bleibt es beim dunklen Grund */
+    }
+
+    setTheme(stored === 'light' ? 'light' : 'dark', false);
+    document.getElementById('btn-theme').addEventListener('click', function () {
+      setTheme(theme() === 'light' ? 'dark' : 'light', true);
     });
   }
 
@@ -202,6 +255,7 @@
 
     setupTabs();
     setupToolbar();
+    setupTheme();
     showBuild();
     updateHint();
     setupLifecycle();

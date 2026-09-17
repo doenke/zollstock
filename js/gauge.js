@@ -19,14 +19,63 @@ window.Gauge = (function () {
 
   var STORE_KEY = 'zollstock.gauge.v1';
 
-  function mm(value, note) {
-    return { mm: value, label: String(value).replace('.', ','), note: note || '' };
+  function fmtMm(value) {
+    return (Math.round(value * 10) / 10).toString().replace('.', ',') + ' mm';
+  }
+
+  /* Ein Eintrag trägt sein Maß, seine Beschriftung und eine Nebenzeile. Bei
+   * Schrauben und Zollrohren ist die Beschriftung ein Name, das Maß steht
+   * dann in der Nebenzeile. */
+  function mm(value, sub) {
+    return { mm: value, label: fmtMm(value), sub: sub || '' };
+  }
+
+  function named(value, label, sub) {
+    return { mm: value, label: label, sub: sub };
   }
 
   /* Nur ganze Millimeter: Ein halber Millimeter sind auf dem Bildschirm nur
    * ein paar Bildpunkte – so genau lässt sich ein Bohrer nicht anlegen. */
   var DRILLS = [];
-  for (var d = 1; d <= 16; d++) DRILLS.push(mm(d, 'Bohrer'));
+  for (var d = 1; d <= 16; d++) DRILLS.push(mm(d));
+
+  /* Metrisches Regelgewinde. Gemessen wird der Schaft über dem Gewinde; das
+   * Gewinde selbst misst sich ein bis zwei Zehntel kleiner als sein Nennmaß.
+   * Kernloch und Schlüsselweite stehen daneben – die eigentliche Frage am
+   * Werkzeugkasten ist ja meist nicht "wie dick", sondern "was brauche ich". */
+  var SCREWS = [
+    named(3, 'M3', 'Kernloch 2,5 mm · SW 5,5'),
+    named(4, 'M4', 'Kernloch 3,3 mm · SW 7'),
+    named(5, 'M5', 'Kernloch 4,2 mm · SW 8'),
+    named(6, 'M6', 'Kernloch 5,0 mm · SW 10'),
+    named(8, 'M8', 'Kernloch 6,8 mm · SW 13'),
+    named(10, 'M10', 'Kernloch 8,5 mm · SW 17'),
+    named(12, 'M12', 'Kernloch 10,2 mm · SW 19'),
+    named(14, 'M14', 'Kernloch 12,0 mm · SW 22'),
+    named(16, 'M16', 'Kernloch 14,0 mm · SW 24')
+  ];
+
+  /* Schlüsselweite ist der Abstand der beiden Schlüsselflächen – genau das,
+   * was zwischen die beiden Striche passt. Die Mutter, zu der sie gehört,
+   * steht daneben (Sechskant nach DIN 934). */
+  var WRENCHES = [
+    named(5.5, 'SW 5,5', 'Mutter M3'),
+    named(7, 'SW 7', 'Mutter M4'),
+    named(8, 'SW 8', 'Mutter M5'),
+    named(10, 'SW 10', 'Mutter M6'),
+    named(11, 'SW 11', ''),
+    named(12, 'SW 12', ''),
+    named(13, 'SW 13', 'Mutter M8'),
+    named(14, 'SW 14', ''),
+    named(15, 'SW 15', ''),
+    named(16, 'SW 16', ''),
+    named(17, 'SW 17', 'Mutter M10'),
+    named(18, 'SW 18', ''),
+    named(19, 'SW 19', 'Mutter M12'),
+    named(21, 'SW 21', ''),
+    named(22, 'SW 22', 'Mutter M14'),
+    named(24, 'SW 24', 'Mutter M16')
+  ];
 
   /* Kupfer nach EN 1057, Verbund- und PE-Rohre in ihrer eigenen Reihe. */
   var PIPES_MM = [
@@ -39,31 +88,28 @@ window.Gauge = (function () {
 
   /* Gewinderohre nach EN 10255 (DIN 2440). Der Zollwert ist der Gewindename,
    * der Außendurchmesser steht daneben. */
+  function pipe(value, label) { return named(value, label, fmtMm(value) + ' außen'); }
+
   var PIPES_IN = [
-    { mm: 10.2, label: '⅛″', note: 'Gewinderohr' },
-    { mm: 13.5, label: '¼″', note: 'Gewinderohr' },
-    { mm: 17.2, label: '⅜″', note: 'Gewinderohr' },
-    { mm: 21.3, label: '½″', note: 'Gewinderohr' },
-    { mm: 26.9, label: '¾″', note: 'Gewinderohr' },
-    { mm: 33.7, label: '1″', note: 'Gewinderohr' },
-    { mm: 42.4, label: '1¼″', note: 'Gewinderohr' },
-    { mm: 48.3, label: '1½″', note: 'Gewinderohr' },
-    { mm: 60.3, label: '2″', note: 'Gewinderohr' },
-    { mm: 76.1, label: '2½″', note: 'Gewinderohr' },
-    { mm: 88.9, label: '3″', note: 'Gewinderohr' }
+    pipe(10.2, '⅛″'), pipe(13.5, '¼″'), pipe(17.2, '⅜″'), pipe(21.3, '½″'),
+    pipe(26.9, '¾″'), pipe(33.7, '1″'), pipe(42.4, '1¼″'), pipe(48.3, '1½″'),
+    pipe(60.3, '2″'), pipe(76.1, '2½″'), pipe(88.9, '3″')
   ];
 
   var SETS = {
-    drill: { kind: 'slots', name: 'Bohrer', items: DRILLS, hint: 'Bohrer waagerecht in den passenden Schlitz legen' },
-    'pipe-mm': { kind: 'halves', name: 'Rohr mm', items: PIPES_MM, hint: 'Rohr an den linken Rand halten' },
-    'pipe-in': { kind: 'halves', name: 'Rohr Zoll', items: PIPES_IN, hint: 'Rohr an den linken Rand halten' }
+    drill: { kind: 'slots', name: 'Bohrer', items: DRILLS, hint: 'Bohrer waagerecht in den Schlitz legen' },
+    screw: { kind: 'slots', name: 'Schraube', items: SCREWS, hint: 'Schaft in den Schlitz legen, über dem Gewinde' },
+    wrench: { kind: 'slots', name: 'Schlüssel', items: WRENCHES, hint: 'Mutter über die Schlüsselflächen anlegen' },
+    'pipe-mm': { kind: 'halves', name: 'Rohr mm', items: PIPES_MM, hint: 'Rohr an den linken Rand halten · Außendurchmesser' },
+    'pipe-in': { kind: 'halves', name: 'Rohr Zoll', items: PIPES_IN, hint: 'Rohr an den linken Rand halten · Außendurchmesser' }
   };
 
-  var ORDER = ['drill', 'pipe-mm', 'pipe-in'];
+  var ORDER = ['drill', 'screw', 'wrench', 'pipe-mm', 'pipe-in'];
 
   var canvas, ctx, els = {};
   var state = load() || { set: 'drill' };
-  var chosen = { drill: null, 'pipe-mm': null, 'pipe-in': null };
+  var chosen = {};
+  ORDER.forEach(function (key) { chosen[key] = null; });
   var hits = [];             /* Trefferflächen der letzten Zeichnung */
   var frame = null;
 
@@ -93,25 +139,10 @@ window.Gauge = (function () {
 
   /* ---------- Anzeige über der Lehre ---------- */
 
-  function fmtMm(value) {
-    return (Math.round(value * 10) / 10).toString().replace('.', ',') + ' mm';
-  }
-
   function showReadout() {
     var item = pick();
-
-    if (!item) {
-      els.main.textContent = set().name;
-      els.sub.textContent = set().hint;
-      return;
-    }
-
-    /* Beim Zollrohr ist der Name das Gewinde, das Maß gehört daneben. */
-    var inch = item.label.indexOf('″') >= 0;
-    els.main.textContent = inch ? item.label : fmtMm(item.mm);
-    els.sub.textContent = inch
-      ? fmtMm(item.mm) + ' außen · ' + item.note
-      : item.note + (set().kind === 'halves' ? ' · Außendurchmesser' : '');
+    els.main.textContent = item ? item.label : set().name;
+    els.sub.textContent = item ? (item.sub || set().name) : set().hint;
   }
 
   function choose(item) {
@@ -196,9 +227,18 @@ window.Gauge = (function () {
   function drawList(width, pxPerMm) {
     var items = set().items;
     var slots = set().kind === 'slots';
-    /* Der Schlitz braucht Länge zum Anlegen, die Beschriftung ihren Platz. */
-    var length = Math.max(90, Math.min(52 * pxPerMm, width - 112));
     var y = 0;
+
+    /* Wie viel Platz die Beschriftung braucht, hängt am längsten Eintrag –
+     * "Kernloch 10,2 mm · SW 19" ist breiter als "12 mm". */
+    var reserve = 0;
+    ctx.font = '700 17px system-ui, -apple-system, sans-serif';
+    items.forEach(function (item) { reserve = Math.max(reserve, ctx.measureText(item.label).width); });
+    ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+    items.forEach(function (item) { reserve = Math.max(reserve, ctx.measureText(item.sub).width); });
+
+    /* Der Schlitz braucht Länge zum Anlegen, die Beschriftung ihren Platz. */
+    var length = Math.max(90, Math.min(52 * pxPerMm, width - reserve - 30));
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -212,22 +252,18 @@ window.Gauge = (function () {
         ? drawSlot(item, cy, span, length, on)
         : drawHalf(item, cy, span, on);
 
-      var inch = item.label.indexOf('\u2033') >= 0;
-      var main = inch ? item.label : fmtMm(item.mm);
-      var note = slots ? '' : inch ? fmtMm(item.mm) + ' außen' : item.note;
-
       ctx.font = (on ? '700 ' : '600 ') + '17px system-ui, -apple-system, sans-serif';
-      var need = ctx.measureText(main).width;
+      var need = ctx.measureText(item.label).width;
       /* Neben die Form, wenn dort Platz ist – sonst hinein. */
       var lx = after + need < width - 10 ? after : Math.max(16, after / 2 - need / 2);
 
       ctx.fillStyle = on ? css('--accent') : css('--text');
-      ctx.fillText(main, lx, note ? cy - 8 : cy);
+      ctx.fillText(item.label, lx, item.sub ? cy - 8 : cy);
 
-      if (note) {
+      if (item.sub) {
         ctx.font = '600 12px system-ui, -apple-system, sans-serif';
         ctx.fillStyle = css('--text-dim');
-        ctx.fillText(note, lx, cy + 10);
+        ctx.fillText(item.sub, lx, cy + 10);
       }
 
       hits.push({ item: item, top: y, bottom: y + height });
@@ -313,6 +349,12 @@ window.Gauge = (function () {
     /* Der neue Satz fängt oben an, nicht dort, wo der alte gerade stand. */
     els.scroll.scrollTop = 0;
     showSet();
+    /* Der gewählte Knopf soll auch sichtbar sein, wenn die Leiste schiebt. */
+    els.buttons.forEach(function (btn) {
+      if (btn.dataset.gauge === key && btn.scrollIntoView) {
+        btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+    });
     showReadout();
     draw();
   }

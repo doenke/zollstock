@@ -45,6 +45,8 @@
     <div class="tools">
       <div class="seg seg--mode seg--gauge" role="group" aria-label="Lehre">
         <button class="seg__btn" data-gauge="drill" type="button" aria-pressed="true">Bohrer</button>
+        <button class="seg__btn" data-gauge="screw" type="button" aria-pressed="false">Schraube</button>
+        <button class="seg__btn" data-gauge="wrench" type="button" aria-pressed="false">Schlüssel</button>
         <button class="seg__btn" data-gauge="pipe-mm" type="button" aria-pressed="false">Rohr mm</button>
         <button class="seg__btn" data-gauge="pipe-in" type="button" aria-pressed="false">Rohr Zoll</button>
       </div>
@@ -76,6 +78,10 @@
   <div class="topbar__actions">
     <button class="iconbtn" id="btn-zeropoint" type="button" title="Nullpunkt wechseln" aria-label="Nullpunkt wechseln">
       <span class="iconbtn__arrow" id="btn-zeropoint-arrow">↓</span><span class="iconbtn__tag" id="btn-zeropoint-tag"></span>
+    </button>
+    <button class="iconbtn" id="btn-theme" type="button" title="Heller Grund zum Anlegen" aria-label="Heller Grund" aria-pressed="false">
+      <!-- Kontrastzeichen: halb gefüllter Kreis – die Sonne wäre vom Zahnrad daneben kaum zu unterscheiden. -->
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
     </button>
     <button class="iconbtn" id="btn-calibrate" type="button" title="Einstellungen" aria-label="Einstellungen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>

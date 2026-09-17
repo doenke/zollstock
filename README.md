@@ -110,6 +110,19 @@ obere Wert für die linke, der untere für die rechte Kante. Gespeichert wird in
 `localStorage` (`zollstock.edge.v2`); eine ältere Messung „mit Hülle" wird
 beim ersten Start für beide Kanten übernommen.
 
+### Heller Grund
+
+Der Knopf mit dem halb gefüllten Kreis oben rechts schaltet auf hellen Grund:
+weiße Fläche, schwarze Striche. Gedacht ist er zum Anlegen – ein dunkler
+Bohrer vor schwarzem Bildschirm ist kaum zu beurteilen, vor Weiß steht sein
+Umriss. Bei Sonne ist es ohnehin besser lesbar.
+
+Umgesetzt ist er als zweiter Satz derselben Farbwerte unter
+`:root[data-theme="light"]`; die Zeichenflächen holen ihre Farben zur Laufzeit
+von dort, ein Neuzeichnen genügt also. Die Wahl liegt in `localStorage`
+(`zollstock.theme.v1`), voreingestellt bleibt Dunkel. Die Leiste des Browsers
+geht über `meta[name=theme-color]` mit.
+
 ### Genauigkeit
 
 Die Nulllinie liegt am Rand des **sichtbaren Bereichs**, nicht am Gehäuserand.
@@ -123,6 +136,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | Tippen auf die Skala | Messmarke dorthin setzen |
 | Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
 | ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
+| ◐ | heller Grund zum Anlegen |
 | ⚙ | Einstellungen: Kalibrierung, Gerätekante, laufender Stand |
 | Lineal / Lehre / Winkel | Ansicht wechseln |
 | Nullpunkt und Einstellungen | nur in der Linealansicht, im Winkelmesser ausgeblendet |
@@ -175,8 +189,14 @@ Anzeige:
 | Satz | Form | Maße |
 | --- | --- | --- |
 | **Bohrer** | Schlitze | 1–16 mm in ganzen Schritten |
+| **Schraube** | Schlitze | metrisches Regelgewinde M3–M16, Schaftdurchmesser |
+| **Schlüssel** | Schlitze | Schlüsselweiten SW 5,5 – SW 24 |
 | **Rohr mm** | Halbkreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
 | **Rohr Zoll** | Halbkreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
+
+Fünf Sätze passen nicht mehr nebeneinander auf ein Handy – die Leiste unter
+der Anzeige schiebt sich seitlich, statt umzubrechen, und rückt den gewählten
+Satz ins Bild.
 
 Beide Formen stehen als **Liste untereinander**, jedes Maß am linken
 Bildschirmrand; durchgeblättert wird durch **Scrollen**. Die Zeichenfläche
@@ -193,6 +213,17 @@ Halbe Millimeter gibt es bewusst nicht: Ein halber Millimeter sind auf dem
 Bildschirm nur ein paar Bildpunkte – so genau lässt sich ein Bohrer von Hand
 nicht anlegen, und eine Zahl vorzugaukeln, die nicht trägt, hilft niemandem.
 
+**Schrauben** werden über dem Gewinde am Schaft gemessen; das Gewinde selbst
+misst sich ein bis zwei Zehntel unter seinem Nennmaß. Neben jedem Maß stehen
+Kernloch und Schlüsselweite – die Frage am Werkzeugkasten ist ja meist nicht
+„wie dick", sondern „was brauche ich dafür". Die Schlüsselweiten folgen dem
+Sechskant nach DIN 934 (M10 → SW 17, M12 → SW 19); ISO 4032 führt dort 16 und
+18.
+
+**Schlüsselweiten** sind der Abstand der beiden Schlüsselflächen – genau das,
+was zwischen die Striche passt. Die Mutter, zu der eine Weite gehört, steht
+daneben, soweit es eine gibt.
+
 **Rohre** werden an die Kante gehalten und mit einem **Halbkreis** verglichen,
 dessen Mittelpunkt auf ihr liegt – die andere Hälfte ragt über den Rand
 hinaus. Ausgerichtet wird an den beiden kurzen Strichen, die die Enden des
@@ -201,9 +232,12 @@ Bogen mit seiner Außenkante zusammenfallen. Der Halbkreis braucht nur den
 halben Platz in der Breite – auch 3″ (88,9 mm) ist damit auf einem Handy
 darstellbar.
 
-Alle Maße sind **Außendurchmesser**. Bei Zollrohren ist die Zollangabe der
-Gewindename, nicht das Maß: ½″ hat 21,3 mm außen, 1″ hat 33,7 mm. Die Anzeige
-oben links nennt deshalb beides.
+Bei Rohren sind alle Maße **Außendurchmesser**. Bei Zollrohren ist die
+Zollangabe der Gewindename, nicht das Maß: ½″ hat 21,3 mm außen, 1″ hat
+33,7 mm. Die Anzeige oben links nennt deshalb beides.
+
+Auf schwarzem Grund ist ein dunkler Bohrer kaum vom Hintergrund zu
+unterscheiden – dafür gibt es den **hellen Grund** (siehe unten).
 
 Ein Tipp auf einen Schlitz oder Halbkreis hebt ihn hervor – nochmal tippen
 nimmt es zurück. Beim Satzwechsel fängt die Liste wieder oben an.
@@ -363,7 +397,8 @@ auch in einem Unterverzeichnis.
 - [x] Lineal in Originalgröße, Zentimeterteilung an beiden Kanten
 - [x] Bildschirmerkennung und Kalibrierung, Maßstabsprobe an der Karte
 - [x] Randversatz je Wert für Ober- und Unterkante
-- [x] Messlehre für Bohrer und Rohre, metrisch und in Zoll
+- [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten und Rohre
+- [x] Heller Grund zum Anlegen dunkler Teile
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste
 - [x] Offline-Betrieb, installierbar
 

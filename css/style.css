@@ -15,6 +15,23 @@
   color-scheme: dark;
 }
 
+/* Heller Grund: gedacht zum Anlegen. Ein dunkler Bohrer auf dunklem
+ * Bildschirm ist kaum zu beurteilen – vor Weiß steht sein Umriss. Auch bei
+ * Sonne ist es besser lesbar. Die Zeichenflächen holen ihre Farben zur
+ * Laufzeit aus diesen Werten, ein Neuzeichnen genügt also. */
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #eef1f5;
+  --surface-2: #e2e7ee;
+  --line: #c3ccd7;
+  --text: #11161c;
+  --text-dim: #5c6a78;
+  --accent: #b46b00;
+  --accent-ink: #fff8ec;
+  --danger: #c02626;
+  color-scheme: light;
+}
+
 * { box-sizing: border-box; }
 
 /* Ohne !important schlägt jede Regel mit display die Voreinstellung des
@@ -260,8 +277,17 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 
 .seg--mode .seg__btn { padding: 7px 12px; }
 
-/* Drei Knöpfe nebeneinander – die Beschriftung darf nicht umbrechen. */
-.seg--gauge .seg__btn { padding: 7px 10px; font-size: 13px; white-space: nowrap; }
+/* Fünf Sätze passen nicht mehr nebeneinander auf ein Handy: die Leiste
+   schiebt sich seitlich, statt umzubrechen. */
+.seg--gauge {
+  max-width: 100%;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.seg--gauge::-webkit-scrollbar { display: none; }
+.seg--gauge .seg__btn { padding: 7px 10px; font-size: 13px; white-space: nowrap; flex: none; }
 
 .gate {
   position: fixed;
