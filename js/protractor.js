@@ -255,6 +255,28 @@ window.Protractor = (function () {
 
   function reading() { return mode === 'edge' ? edgeAngle() : slope(); }
 
+  /* ---------- Gefälle ---------- */
+
+  var FLAT_MAX = 20;       /* bis hierher ist Gefälle das nützlichere Maß */
+
+  /* Wie weit die Anzeige von der Waagerechten abweicht. Im Kantenmodus zählt
+   * auch die Nähe zur gestreckten Lage – ein Rohr, das andersherum anliegt,
+   * hat dasselbe Gefälle. */
+  function flatAngle() {
+    var away = Math.abs(reading());
+    return mode === 'edge' ? Math.min(away, 180 - away) : away;
+  }
+
+  /* Steigung als Verhältnis: der Tangens der Abweichung. Prozent ist das Maß
+   * für Abwasser und Terrassen (2 %), mm/m das für Dachrinnen. */
+  function flatPercent() { return Math.tan(flatAngle() / DEG) * 100; }
+
+  function slopeText() {
+    var percent = flatPercent();
+    return percent.toFixed(1).replace('.', ',') + ' %   ·   ' +
+      Math.round(percent * 10) + ' mm/m';
+  }
+
   function zeroed() { return mode === 'edge' ? zeroRef !== null : planeRef !== null; }
 
   /* Nullen setzt die aktuelle Lage als Bezug, nochmal drücken nimmt ihn
@@ -646,9 +668,13 @@ window.Protractor = (function () {
     ctx.fillStyle = dim;
 
     if (mode === 'edge') {
-      /* Was noch bis zum rechten und bis zum gestreckten Winkel fehlt. */
+      /* Nahe der Waagerechten ist das Gefälle das gesuchte Maß, weiter weg
+       * sagt es nichts mehr – dort zählt, was bis zum rechten und bis zum
+       * gestreckten Winkel fehlt. Jedes steht, wo es etwas bedeutet. */
       var away = Math.abs(reading());
-      fitText(fmt(Math.abs(90 - away)) + '   ·   ' + fmt(180 - away), cx, y, 14, width);
+      fitText(flatAngle() <= FLAT_MAX
+        ? slopeText()
+        : fmt(Math.abs(90 - away)) + '   ·   ' + fmt(180 - away), cx, y, 14, width);
 
       /* Sinnbild und Zahl nebeneinander, zusammen mittig. */
       var tilt = screenTilt();
@@ -666,7 +692,11 @@ window.Protractor = (function () {
       ctx.fillText(label, left + iconWidth, y + 30);
       ctx.textAlign = 'center';
     } else {
-      fitText('Längs ' + fmt(axisLong()) + '  ·  Quer ' + fmt(axisCross()), cx, y + 15, 13, width);
+      /* Liegt die Fläche fast waagerecht, ist das Gefälle die Zahl, die man
+       * braucht; wohin es kippt, zeigt ohnehin die Libelle darüber. */
+      fitText(flatAngle() <= FLAT_MAX
+        ? slopeText()
+        : 'Längs ' + fmt(axisLong()) + '  ·  Quer ' + fmt(axisCross()), cx, y + 15, 13, width);
     }
 
     /* Nur melden, wenn es etwas zu melden gibt – die Handhabung erklärt sich
@@ -851,6 +881,8 @@ window.Protractor = (function () {
       main: reading(),
       tilt: screenTilt(),
       slope: slope(),
+      flat: flatAngle(),
+      percent: flatPercent(),
       long: axisLong(),
       cross: axisCross(),
       zeroRef: zeroRef,

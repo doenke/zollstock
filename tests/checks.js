@@ -214,9 +214,27 @@ async function winkelWerte(page, t) {
   t.nahe(werte.main, 0, 0.2, 'Kante bei reiner Kippung unverändert');
   t.nahe(werte.tilt, 20, 0.2, 'Kippung 20 Grad aus der Senkrechten');
 
-  /* Fläche gegen eine gemerkte Bezugsfläche. */
+  /* Gefälle: der Tangens der Abweichung von der Waagerechten. */
+  await lage(page, 90 - 1.1458, 90);              /* 2 % */
+  werte = await page.evaluate(function () { return window.Protractor.values(); });
+  t.nahe(werte.flat, 1.1458, 0.05, 'Abweichung von der Waagerechten');
+  t.nahe(werte.percent, 2, 0.05, '2 % Gefälle');
+
+  /* Andersherum angelegt ergibt dasselbe Gefälle. */
+  await lage(page, 90 - 178.8542, 90);
+  werte = await page.evaluate(function () { return window.Protractor.values(); });
+  t.nahe(Math.abs(werte.main), 178.854, 0.05, 'Kante nahe der gestreckten Lage');
+  t.nahe(werte.percent, 2, 0.05, 'dasselbe Gefälle andersherum');
+
   await page.click('[data-mode="surface"]');
   await page.waitForTimeout(100);
+
+  /* Flach liegendes Gerät: beta ist hier die Neigung selbst. */
+  await lage(page, 1.1458, 0);
+  werte = await page.evaluate(function () { return window.Protractor.values(); });
+  t.nahe(werte.percent, 2, 0.05, 'Fläche: 2 % Gefälle');
+
+  /* Fläche gegen eine gemerkte Bezugsfläche. */
   await lage(page, 20, 0);
   await page.click('#btn-zero');
   await lage(page, 50, 0);

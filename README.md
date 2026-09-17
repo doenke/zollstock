@@ -286,8 +286,21 @@ Zwei Messarten, umschaltbar unter der Anzeige:
 
 | Messart | Hauptwert | darunter |
 | --- | --- | --- |
-| **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | wie weit es noch **bis 90°** und **bis 180°** ist, dazu die **Kippung** |
+| **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | **Gefälle** oder, weiter von der Waagerechten, wie weit es noch bis 90° und bis 180° ist; dazu die **Kippung** |
 | **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen; mit gemerkter Bezugsfläche der Winkel zu dieser | **Längs** und **Quer**: die beiden Achsen einzeln |
+
+Das **Gefälle** steht unter der Gradzahl, sobald die Anzeige näher als 20° an
+der Waagerechten liegt: `2,0 % · 20 mm/m`. Das ist die Einheit, in der es auf
+dem Bau vorgegeben wird – Abwasser 2 %, Terrasse 2 %, Dachrinne 3 mm/m –, und
+Grad hilft dort niemandem. Gerechnet wird der Tangens der Abweichung von der
+Waagerechten; im Kantenmodus zählt auch die Nähe zur gestreckten Lage, denn
+ein andersherum angelegtes Rohr hat dasselbe Gefälle.
+
+Weiter von der Waagerechten sagt ein Prozentwert nichts mehr (68° wären
+247 %), dort steht stattdessen, wie weit es bis zum rechten und bis zum
+gestreckten Winkel ist. Jede der beiden Angaben erscheint genau dort, wo sie
+etwas bedeutet. Im Flächenmodus gilt dasselbe: nahe der Waagerechten das
+Gefälle, darüber Längs und Quer – wohin es kippt, zeigt ohnehin die Libelle.
 
 Die **Kippung** – wie weit der Bildschirm aus der Senkrechten kippt – steht als
 Zahl und als Bild da: das Gerät von der Seite gesehen, um seine Kippung
@@ -407,7 +420,7 @@ npm test
 Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
-reicht, ob Gemerktes ein Neuladen übersteht. 35 Behauptungen in elf
+reicht, ob Gemerktes ein Neuladen übersteht. 40 Behauptungen in elf
 Prüfungen; ein Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 Gemessen wird in den Bildpunkten der Zeichenfläche – über die Schwerpunkte der
