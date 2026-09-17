@@ -554,8 +554,10 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
 .calview__text { margin: 0; font-size: 13px; color: var(--text-dim); }
 .calview__actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
 
-/* ---------- Rand messen (Vollbild) ---------- */
-.edgeview {
+/* ---------- Vollbildmessungen: Rand und Maßstabsprobe ---------- */
+/* Beide legen eine Karte an eine feste Linie und schieben eine zweite auf
+   ihr Ende – sie teilen sich deshalb dieselbe Darstellung. */
+.measureview {
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -565,17 +567,18 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
 }
 
 
-.edgeview__stage { position: relative; flex: 1; overflow: hidden; touch-action: none; }
+.measureview__stage { position: relative; flex: 1; overflow: hidden; touch-action: none; }
 
 /* Fläche, die unter der Karte liegt */
-.edgeview__hatch {
+.measureview__hatch {
   position: absolute;
   background: repeating-linear-gradient(135deg, transparent 0 9px, color-mix(in srgb, var(--accent) 13%, transparent) 9px 18px);
 }
 
-.edgeview__line { position: absolute; }
+.measureview__line { position: absolute; }
+.measureview__start { position: absolute; }
 
-.edgeview__hint {
+.measureview__hint {
   position: absolute;
   left: 50%;
   bottom: 16px;
@@ -588,7 +591,7 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
   pointer-events: none;
 }
 
-.edgeview__bar {
+.measureview__bar {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -598,18 +601,26 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
   background: var(--surface);
 }
 
-.edgeview__text { margin: 0; font-size: 13px; color: var(--text-dim); }
+.measureview__text { margin: 0; font-size: 13px; color: var(--text-dim); }
 
-.edgeview__value {
+.measureview__value {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
 }
 
-.edgeview__value output {
+.measureview__value output {
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   font-size: 20px;
 }
 
-.edgeview__actions { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 10px; }
+.measureview__actions { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 10px; }
+
+/* Die Probe hat die längere Beschriftung auf dem letzten Knopf. */
+#checkview .measureview__actions { grid-template-columns: 1fr 1fr 1.7fr; }
+#checkview .measureview__actions .btn { padding-left: 8px; padding-right: 8px; white-space: nowrap; }
+
+/* Der Maßstab daneben ist Beiwerk – die Abweichung ist die Aussage. */
+.measureview__value .aside,
+.measureview__value .aside output { font-size: 13px; font-weight: 600; color: var(--text-dim); }

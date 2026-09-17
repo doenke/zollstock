@@ -179,6 +179,7 @@
 
   function start() {
     window.Calibration.init();
+    window.ScaleCheck.init();
     window.Edge.init();
     window.Ruler.init();
     window.Gauge.init();

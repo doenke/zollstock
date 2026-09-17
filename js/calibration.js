@@ -170,6 +170,7 @@ window.Calibration = (function () {
     els.sheet.hidden = true;
     els.cardView.hidden = true;
     window.Edge.close();
+    window.ScaleCheck.close();
   }
 
   function save() {
@@ -185,6 +186,13 @@ window.Calibration = (function () {
 
   function reset() {
     setDraft(detected.pxPerMm);
+  }
+
+  /* Von der Maßstabsprobe gesetzt: übernehmen und festschreiben. */
+  function apply(value) {
+    if (!isFinite(value)) return;
+    setDraft(value);
+    save();
   }
 
   function init() {
@@ -264,6 +272,7 @@ window.Calibration = (function () {
     close: close,
     pxPerMm: pxPerMm,
     ppi: ppi,
+    apply: apply,
     detected: function () { return detected; },
     updateDetected: updateDetected,
     state: function () { return state; },

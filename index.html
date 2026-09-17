@@ -130,8 +130,11 @@
 
       <!-- Methode: Karte -->
       <div class="method is-active" id="method-card">
-        <p class="method__text">Die genaueste Methode: Eine EC- oder Kreditkarte misst genormt 85,6 × 54,0 mm. Lege sie auf den Bildschirm und passe den Umriss an, bis er exakt deckungsgleich ist.</p>
-        <button class="btn btn--ghost" id="cal-card-open" type="button">Karte anlegen</button>
+        <p class="method__text">Eine EC- oder Kreditkarte misst genormt 85,6 × 54,0 mm. <strong>Prüfen</strong> legt sie an eine feste Linie und lässt dich nur ihr Ende anfahren – das ist genauer und sagt dir, wie weit der Maßstab danebenliegt. <strong>Karte anlegen</strong> passt stattdessen einen Umriss an.</p>
+        <div class="calactions">
+          <button class="btn btn--ghost" id="cal-card-open" type="button">Karte anlegen</button>
+          <button class="btn btn--primary" id="cal-check-open" type="button">Maßstab prüfen</button>
+        </div>
       </div>
 
       <!-- Methode: Linie -->
@@ -205,6 +208,30 @@
   </div>
 </div>
 
+<!-- ---------- Maßstab prüfen (Vollbild) ---------- -->
+<div class="measureview" id="checkview" hidden>
+  <div class="measureview__stage" id="checkview-stage">
+    <div class="measureview__hatch" id="checkview-hatch"></div>
+    <div class="measureview__start" id="checkview-start"></div>
+    <div class="measureview__line" id="checkview-line"></div>
+  </div>
+  <div class="measureview__bar">
+    <p class="measureview__text">Karte an die graue Linie legen, die farbige auf ihr Ende schieben – <span id="checkview-span">lange Seite (85,6 mm)</span>.</p>
+    <p class="measureview__value">Abweichung: <output id="checkview-value">0,0 mm</output> <span class="aside">· <output id="checkview-result">0,000 px/mm</output></span></p>
+    <div class="nudge">
+      <button class="btn btn--nudge" data-nudge-check="-1" type="button">−1</button>
+      <button class="btn btn--nudge" data-nudge-check="-0.1" type="button">−0,1</button>
+      <button class="btn btn--nudge" data-nudge-check="0.1" type="button">+0,1</button>
+      <button class="btn btn--nudge" data-nudge-check="1" type="button">+1</button>
+    </div>
+    <div class="measureview__actions">
+      <button class="btn btn--ghost" id="checkview-cancel" type="button">Abbrechen</button>
+      <button class="btn btn--ghost" id="checkview-rotate" type="button">Drehen</button>
+      <button class="btn btn--primary" id="checkview-done" type="button">Übernehmen</button>
+    </div>
+  </div>
+</div>
+
 <!-- ---------- Karte anlegen (Vollbild) ---------- -->
 <div class="calview" id="calview" hidden>
   <div class="calview__card" id="calview-card">
@@ -230,22 +257,22 @@
 </div>
 
 <!-- ---------- Rand messen (Vollbild) ---------- -->
-<div class="edgeview" id="edgeview" hidden>
-  <div class="edgeview__stage" id="edgeview-stage">
-    <div class="edgeview__hatch" id="edgeview-hatch"></div>
-    <div class="edgeview__line" id="edgeview-line"></div>
-    <p class="edgeview__hint" id="edgeview-hint">Linie auf das Kartenende ziehen</p>
+<div class="measureview" id="edgeview" hidden>
+  <div class="measureview__stage" id="edgeview-stage">
+    <div class="measureview__hatch" id="edgeview-hatch"></div>
+    <div class="measureview__line" id="edgeview-line"></div>
+    <p class="measureview__hint" id="edgeview-hint">Linie auf das Kartenende ziehen</p>
   </div>
-  <div class="edgeview__bar">
-    <p class="edgeview__text">Karte flach auf den Bildschirm legen, bündig an die <span id="edgeview-edge">Oberkante</span> des Geräts – mit Hülle, wenn eine drauf ist. Die Linie auf das Ende der Karte schieben – <span id="edgeview-span">lange Seite (85,6 mm)</span>.</p>
-    <p class="edgeview__value">Rand: <output id="edgeview-value">0,0 mm</output></p>
+  <div class="measureview__bar">
+    <p class="measureview__text">Karte flach auf den Bildschirm legen, bündig an die <span id="edgeview-edge">Oberkante</span> des Geräts – mit Hülle, wenn eine drauf ist. Die Linie auf das Ende der Karte schieben – <span id="edgeview-span">lange Seite (85,6 mm)</span>.</p>
+    <p class="measureview__value">Rand: <output id="edgeview-value">0,0 mm</output></p>
     <div class="nudge">
       <button class="btn btn--nudge" data-nudge-edge="-1" type="button">−1</button>
       <button class="btn btn--nudge" data-nudge-edge="-0.1" type="button">−0,1</button>
       <button class="btn btn--nudge" data-nudge-edge="0.1" type="button">+0,1</button>
       <button class="btn btn--nudge" data-nudge-edge="1" type="button">+1</button>
     </div>
-    <div class="edgeview__actions">
+    <div class="measureview__actions">
       <button class="btn btn--ghost" id="edgeview-cancel" type="button">Abbrechen</button>
       <button class="btn btn--ghost" id="edgeview-rotate" type="button">Drehen</button>
       <button class="btn btn--primary" id="edgeview-done" type="button">Passt</button>
@@ -255,6 +282,7 @@
 
 <script src="js/devices.js"></script>
 <script src="js/calibration.js"></script>
+<script src="js/check.js"></script>
 <script src="js/scales.js"></script>
 <script src="js/edge.js"></script>
 <script src="js/ruler.js"></script>

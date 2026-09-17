@@ -47,13 +47,31 @@ genau braucht, kalibriert – das überstimmt die Erkennung immer.
 
 ### Kalibrierung
 
-Drei Wege, alle unter dem Zahnrad oben rechts:
+Alle Wege liegen unter dem Zahnrad oben rechts:
 
-1. **EC-/Kreditkarte** – genormt 85,6 × 54,0 mm (ISO/IEC 7810 ID-1). Karte auflegen,
-   Umriss im Vollbild anpassen. Genaueste Methode.
-2. **Linie messen** – eine Referenzlinie mit einem echten Lineal messen und die
+1. **Maßstab prüfen** – die empfohlene Methode. Die Karte liegt bündig an einer
+   festen Linie, eine zweite wird auf ihr anderes Ende geschoben. Daneben steht,
+   wie weit der eingestellte Maßstab danebenliegt; *Übernehmen* korrigiert ihn.
+2. **Karte anlegen** – derselbe Bezug als Umriss, den ein Regler auf die Karte
+   zieht.
+3. **Linie messen** – eine Referenzlinie mit einem echten Lineal messen und die
    Länge in Millimetern eintragen.
-3. **PPI eingeben** – Herstellerangabe zur Pixeldichte direkt eintragen.
+4. **PPI eingeben** – Herstellerangabe zur Pixeldichte direkt eintragen.
+
+Die Probe ist der Prüfung wegen da: Ohne sie steht in den Einstellungen nur
+„automatisch“, und niemand weiß, ob der Tabellenwert für dieses Gerät stimmt.
+Sie ist zugleich die genauere Handhabung – beim Umriss müssen zwei Kanten
+gleichzeitig zur Deckung kommen, während ein Regler die Größe ändert; hier
+liegt eine Kante fest an und nur das andere Ende wird angefahren. Die
+Abweichung steht dabei als Zahl daneben, so dass auch ein halber Millimeter
+sichtbar wird. Aus dem Abstand folgt der Maßstab unmittelbar:
+
+```
+px pro Millimeter = Abstand der beiden Linien / Kartenlänge
+```
+
+Passt die lange Kartenseite nicht neben die Bedienleiste, wird auf die kurze
+(54,0 mm) umgestellt; *Drehen* schaltet von Hand um.
 
 Das Ergebnis liegt in `localStorage` (`zollstock.calibration.v1`) und gilt für
 dieses Gerät, bis es über „Automatik“ zurückgesetzt wird.
@@ -302,6 +320,7 @@ index.html              Gerüst aller Ansichten
 css/style.css           Darstellung
 js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
+js/check.js             Maßstabsprobe an der Karte
 js/scales.js            Skalenteilung und Lage des Nullpunkts
 js/edge.js              Randversatz, je Wert für Ober- und Unterkante
 js/ruler.js             Lineal (Canvas)
@@ -342,7 +361,7 @@ auch in einem Unterverzeichnis.
 ## Stand
 
 - [x] Lineal in Originalgröße, Zentimeterteilung an beiden Kanten
-- [x] Bildschirmerkennung und Kalibrierung
+- [x] Bildschirmerkennung und Kalibrierung, Maßstabsprobe an der Karte
 - [x] Randversatz je Wert für Ober- und Unterkante
 - [x] Messlehre für Bohrer und Rohre, metrisch und in Zoll
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste
