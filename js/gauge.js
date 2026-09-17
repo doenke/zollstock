@@ -1,15 +1,16 @@
 /* Messlehre: Schlitze und Kreise in Originalgröße, zum Anlegen von Bohrern
  * und Rohren.
  *
- * Bohrer werden in einen Schlitz gelegt: zwei Linien mit genau dem lichten
- * Abstand des Nenndurchmessers. Passt der Bohrer ohne Luft und ohne Überstand
- * hinein, stimmt das Maß.
+ * Beide Sätze stehen als Liste untereinander, jedes Maß am linken
+ * Bildschirmrand; durchgeblättert wird durch Scrollen.
  *
- * Rohre werden an den linken Bildschirmrand gehalten und mit einem Halbkreis
- * verglichen, dessen Mittelpunkt auf der Kante liegt. Die andere Hälfte ragt
- * über den Rand hinaus – so braucht ein Maß nur den halben Platz in der
- * Breite, und es steht immer nur eines im Bild statt vieler ineinander.
- * Durchgeblättert wird durch Scrollen.
+ * Bohrer werden waagerecht in einen nach links offenen Schlitz gelegt: zwei
+ * Linien mit genau dem lichten Abstand des Nenndurchmessers. Passt der Bohrer
+ * ohne Luft und ohne Überstand hinein, stimmt das Maß.
+ *
+ * Rohre werden an die Kante gehalten und mit einem Halbkreis verglichen,
+ * dessen Mittelpunkt auf ihr liegt. Die andere Hälfte ragt über den Rand
+ * hinaus – so braucht ein Maß nur den halben Platz in der Breite.
  *
  * Alle Maße sind Außendurchmesser. Bei Zollrohren ist die Zollangabe der
  * Gewindename, nicht das Maß: ½″ hat 21,3 mm außen. */
@@ -53,7 +54,7 @@ window.Gauge = (function () {
   ];
 
   var SETS = {
-    drill: { kind: 'slots', name: 'Bohrer', items: DRILLS, hint: 'Bohrer in den passenden Schlitz legen' },
+    drill: { kind: 'slots', name: 'Bohrer', items: DRILLS, hint: 'Bohrer waagerecht in den passenden Schlitz legen' },
     'pipe-mm': { kind: 'halves', name: 'Rohr mm', items: PIPES_MM, hint: 'Rohr an den linken Rand halten' },
     'pipe-in': { kind: 'halves', name: 'Rohr Zoll', items: PIPES_IN, hint: 'Rohr an den linken Rand halten' }
   };
@@ -119,166 +120,118 @@ window.Gauge = (function () {
     draw();
   }
 
-  /* ---------- Schlitze ---------- */
+  /* ---------- Zeilen ---------- */
 
-  var SLOT_GAP_MM = 4.5;     /* Luft zwischen zwei Schlitzen */
-  var PAD_MM = 3;            /* Rand links und rechts */
-  var LABEL_PX = 18;
+  var GAP_MM = 6;            /* Luft zwischen zwei Maßen */
+  var MIN_ROW_PX = 32;       /* damit auch das kleinste Maß beschriftbar bleibt */
 
-  /* Die Schlitze werden zeilenweise umbrochen, so viele wie nebeneinander
-   * passen. Wie viele das sind, hängt am Maßstab – also wird gerechnet,
-   * nicht fest eingeteilt. */
-  function rowsOf(items, width, pxPerMm) {
-    var usable = width - 2 * PAD_MM * pxPerMm;
-    var gap = SLOT_GAP_MM * pxPerMm;
-    var rows = [];
-    var row = [];
-    var used = 0;
-
-    items.forEach(function (item) {
-      var need = item.mm * pxPerMm;
-      var extra = row.length ? gap + need : need;
-
-      if (row.length && used + extra > usable) {
-        rows.push(row);
-        row = [];
-        used = 0;
-        extra = need;
-      }
-
-      row.push(item);
-      used += extra;
-    });
-
-    if (row.length) rows.push(row);
-    return rows;
+  /* Beide Sätze stehen als Liste untereinander, jedes Maß am linken
+   * Bildschirmrand: der Bohrer wird waagerecht in seinen Schlitz gelegt, das
+   * Rohr an den Halbkreis gehalten. Was nicht auf den Bildschirm passt, wird
+   * gescrollt. */
+  function rowHeight(item, pxPerMm) {
+    return Math.max(item.mm * pxPerMm, MIN_ROW_PX) + GAP_MM * pxPerMm;
   }
 
-  function drawSlots(width, height, pxPerMm, rows) {
-    var gap = SLOT_GAP_MM * pxPerMm;
-    var text = css('--text');
-    var dim = css('--text-dim');
-    var accent = css('--accent');
-    var rowHeight = height / rows.length;
-    /* Der Schlitz soll tief genug sein, um den Bohrer sicher anzulegen. */
-    var slotHeight = Math.min(rowHeight - LABEL_PX - 10, 16 * pxPerMm);
-
-    var lw = 2;
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    rows.forEach(function (row, index) {
-      var total = 0;
-      row.forEach(function (item) { total += item.mm * pxPerMm; });
-      total += gap * (row.length - 1);
-
-      var x = (width - total) / 2;
-      var top = index * rowHeight + (rowHeight - slotHeight - LABEL_PX) / 2;
-
-      row.forEach(function (item) {
-        var span = item.mm * pxPerMm;
-        var on = pick() === item;
-
-        /* Gemessen wird der lichte Abstand: die Striche stehen außerhalb,
-         * ihre Innenkanten genau einen Nenndurchmesser auseinander. */
-        var left = x - lw / 2;
-        var right = x + span + lw / 2;
-
-        ctx.strokeStyle = on ? accent : text;
-        ctx.lineWidth = lw;
-        ctx.lineJoin = 'miter';
-        ctx.beginPath();
-        ctx.moveTo(left, top);
-        ctx.lineTo(left, top + slotHeight);
-        ctx.lineTo(right, top + slotHeight);
-        ctx.lineTo(right, top);
-        ctx.stroke();
-
-        ctx.fillStyle = on ? accent : dim;
-        ctx.font = (on ? '700 ' : '600 ') + '13px system-ui, -apple-system, sans-serif';
-        ctx.fillText(item.label, x + span / 2, top + slotHeight + 5);
-
-        hits.push({ item: item, x: x + span / 2, y: top + slotHeight / 2, r: Math.max(22, span / 2 + gap / 2) });
-        x += span + gap;
-      });
-    });
-  }
-
-  /* ---------- Halbkreise ---------- */
-
-  var HALF_GAP_MM = 6;       /* Luft zwischen zwei Halbkreisen */
-
-  function halvesHeight(items, pxPerMm) {
+  function listHeight(items, pxPerMm) {
     var total = 0;
-    items.forEach(function (item) { total += (item.mm + HALF_GAP_MM) * pxPerMm; });
+    items.forEach(function (item) { total += rowHeight(item, pxPerMm); });
     return total;
   }
 
-  /* Der Halbkreis sitzt mit seiner geraden Seite am linken Bildschirmrand:
-   * Das Rohr wird dort angelegt, seine andere Hälfte ragt über die Kante
-   * hinaus. So braucht ein Maß nur den halben Platz in der Breite, und es
-   * steht immer nur eines im Bild – durchgeblättert wird durch Scrollen. */
-  function drawHalves(width, height, pxPerMm) {
+  /* Der Schlitz ist nach links offen – der Bohrer wird von der Kante her
+   * hineingeschoben. Die Striche stehen außerhalb des Nennmaßes, die lichte
+   * Weite dazwischen ist damit genau der Nenndurchmesser. */
+  function drawSlot(item, cy, span, length, on) {
+    var lw = 2;
+    var top = cy - span / 2 - lw / 2;
+    var bottom = cy + span / 2 + lw / 2;
+
+    ctx.strokeStyle = on ? css('--accent') : css('--text');
+    ctx.lineWidth = lw;
+    ctx.lineJoin = 'miter';
+    ctx.beginPath();
+    ctx.moveTo(0, top);
+    ctx.lineTo(length, top);
+    ctx.lineTo(length, bottom);
+    ctx.lineTo(0, bottom);
+    ctx.stroke();
+
+    return length + 16;
+  }
+
+  /* Der Mittelpunkt liegt genau auf der Kante, der Halbmesser zählt von dort:
+   * Das Rohr wird am Rand angelegt, seine andere Hälfte ragt darüber hinaus.
+   * So braucht ein Maß nur den halben Platz in der Breite. */
+  function drawHalf(item, cy, span, on) {
+    var r = span / 2;
+
+    ctx.strokeStyle = on ? css('--accent') : css('--text');
+    ctx.lineWidth = on ? 2.5 : 1.4;
+    ctx.beginPath();
+    ctx.arc(0, cy, r, -Math.PI / 2, Math.PI / 2);
+    ctx.stroke();
+
+    /* Die beiden Enden des Durchmessers, an denen ausgerichtet wird. */
+    ctx.beginPath();
+    ctx.moveTo(0, cy - r);
+    ctx.lineTo(9, cy - r);
+    ctx.moveTo(0, cy + r);
+    ctx.lineTo(9, cy + r);
+    ctx.stroke();
+
+    /* Die gerade Seite nur angedeutet – sie liegt auf der Kante. */
+    ctx.strokeStyle = css('--line');
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 5]);
+    ctx.beginPath();
+    ctx.moveTo(1, cy - r);
+    ctx.lineTo(1, cy + r);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    return r + 16;
+  }
+
+  function drawList(width, pxPerMm) {
     var items = set().items;
-    var text = css('--text');
-    var dim = css('--text-dim');
-    var accent = css('--accent');
-    var gap = HALF_GAP_MM * pxPerMm;
+    var slots = set().kind === 'slots';
+    /* Der Schlitz braucht Länge zum Anlegen, die Beschriftung ihren Platz. */
+    var length = Math.max(90, Math.min(52 * pxPerMm, width - 112));
     var y = 0;
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
     items.forEach(function (item) {
-      var r = item.mm * pxPerMm / 2;
-      var cy = y + gap / 2 + r;
+      var span = item.mm * pxPerMm;
+      var height = rowHeight(item, pxPerMm);
+      var cy = y + height / 2;
       var on = pick() === item;
+      var after = slots
+        ? drawSlot(item, cy, span, length, on)
+        : drawHalf(item, cy, span, on);
 
-      /* Der Mittelpunkt liegt genau auf der Kante, der Halbmesser zählt von
-       * dort – gemessen wird also gegen den ersten sichtbaren Bildpunkt. */
-      ctx.strokeStyle = on ? accent : text;
-      ctx.lineWidth = on ? 2.5 : 1.4;
-      ctx.beginPath();
-      ctx.arc(0, cy, r, -Math.PI / 2, Math.PI / 2);
-      ctx.stroke();
-
-      /* Die beiden Enden des Durchmessers, an denen ausgerichtet wird. */
-      ctx.lineWidth = on ? 2.5 : 1.4;
-      ctx.beginPath();
-      ctx.moveTo(0, cy - r);
-      ctx.lineTo(9, cy - r);
-      ctx.moveTo(0, cy + r);
-      ctx.lineTo(9, cy + r);
-      ctx.stroke();
-
-      /* Die gerade Seite nur angedeutet – sie liegt auf der Kante. */
-      ctx.strokeStyle = css('--line');
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 5]);
-      ctx.beginPath();
-      ctx.moveTo(1, cy - r);
-      ctx.lineTo(1, cy + r);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      /* Neben den Bogen, wenn dort Platz ist – sonst hinein. */
       var inch = item.label.indexOf('\u2033') >= 0;
       var main = inch ? item.label : fmtMm(item.mm);
-      var note = inch ? fmtMm(item.mm) + ' außen' : item.note;
+      var note = slots ? '' : inch ? fmtMm(item.mm) + ' außen' : item.note;
 
       ctx.font = (on ? '700 ' : '600 ') + '17px system-ui, -apple-system, sans-serif';
       var need = ctx.measureText(main).width;
-      var lx = r + 16 + need < width - 10 ? r + 16 : Math.max(16, r / 2 - need / 2);
+      /* Neben die Form, wenn dort Platz ist – sonst hinein. */
+      var lx = after + need < width - 10 ? after : Math.max(16, after / 2 - need / 2);
 
-      ctx.fillStyle = on ? accent : text;
-      ctx.fillText(main, lx, cy - 8);
-      ctx.font = '600 12px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = dim;
-      ctx.fillText(note, lx, cy + 10);
+      ctx.fillStyle = on ? css('--accent') : css('--text');
+      ctx.fillText(main, lx, note ? cy - 8 : cy);
 
-      hits.push({ item: item, top: cy - r, bottom: cy + r });
-      y += item.mm * pxPerMm + gap;
+      if (note) {
+        ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = css('--text-dim');
+        ctx.fillText(note, lx, cy + 10);
+      }
+
+      hits.push({ item: item, top: y, bottom: y + height });
+      y += height;
     });
   }
 
@@ -304,13 +257,7 @@ window.Gauge = (function () {
 
     /* Was nicht in die Höhe passt, wird gescrollt – deshalb wächst die
      * Zeichenfläche mit dem Inhalt. */
-    var items = set().items;
-    var slots = set().kind === 'slots';
-    var rows = slots ? rowsOf(items, w, pxPerMm) : null;
-    var wanted = slots
-      ? rows.length * (14 * pxPerMm + LABEL_PX + 12)
-      : halvesHeight(items, pxPerMm);
-    var height = Math.max(room, wanted);
+    var height = Math.max(room, listHeight(set().items, pxPerMm));
     var h = top + height + bottom;
 
     canvas.style.height = h + 'px';
@@ -322,14 +269,13 @@ window.Gauge = (function () {
     hits = [];
     ctx.save();
     ctx.translate(0, top);
-    if (slots) drawSlots(w, height, pxPerMm, rows);
-    else drawHalves(w, height, pxPerMm);
+    drawList(w, pxPerMm);
     ctx.restore();
 
     /* Die Trefferflächen gelten im Bild, nicht im verschobenen System. */
     hits.forEach(function (hit) {
-      if (hit.y !== undefined) hit.y += top;
-      if (hit.top !== undefined) { hit.top += top; hit.bottom += top; }
+      hit.top += top;
+      hit.bottom += top;
     });
   }
 
@@ -343,15 +289,13 @@ window.Gauge = (function () {
 
   /* ---------- Bedienung ---------- */
 
-  function hitAt(x, y) {
+  function hitAt(y) {
     var best = null;
     var bestDist = Infinity;
 
     hits.forEach(function (hit) {
-      /* Halbkreise bekommen ihr ganzes Band, Schlitze ihr Rechteck. */
-      var dist = hit.top !== undefined
-        ? Math.max(hit.top - y, y - hit.bottom)
-        : Math.max(Math.abs(x - hit.x) - hit.r, Math.abs(y - hit.y) - 26);
+      /* Jedes Maß bekommt sein ganzes Band – getroffen wird es leicht. */
+      var dist = Math.max(hit.top - y, y - hit.bottom);
 
       if (dist < bestDist) {
         bestDist = dist;
@@ -415,7 +359,7 @@ window.Gauge = (function () {
       if (moved > 10 || !quick) return;
 
       var rect = canvas.getBoundingClientRect();
-      var item = hitAt(event.clientX - rect.left, event.clientY - rect.top);
+      var item = hitAt(event.clientY - rect.top);
       /* Nochmal auf dasselbe Maß tippen nimmt die Hervorhebung zurück. */
       choose(item === pick() ? null : item);
     });
