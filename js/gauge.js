@@ -100,11 +100,12 @@ window.Gauge = (function () {
     drill: { kind: 'slots', name: 'Bohrer', items: DRILLS, hint: 'Bohrer waagerecht in den Schlitz legen' },
     screw: { kind: 'slots', name: 'Schraube', items: SCREWS, hint: 'Schaft in den Schlitz legen, über dem Gewinde' },
     wrench: { kind: 'slots', name: 'Schlüssel', items: WRENCHES, hint: 'Mutter über die Schlüsselflächen anlegen' },
+    hex: { kind: 'hex', name: 'Sechskant', items: WRENCHES, hint: 'Mutter oder Schraubenkopf auflegen und drehen, bis er deckt' },
     'pipe-mm': { kind: 'halves', name: 'Rohr mm', items: PIPES_MM, hint: 'Rohr an den linken Rand halten · Außendurchmesser' },
     'pipe-in': { kind: 'halves', name: 'Rohr Zoll', items: PIPES_IN, hint: 'Rohr an den linken Rand halten · Außendurchmesser' }
   };
 
-  var ORDER = ['drill', 'screw', 'wrench', 'pipe-mm', 'pipe-in'];
+  var ORDER = ['drill', 'screw', 'wrench', 'hex', 'pipe-mm', 'pipe-in'];
 
   var canvas, ctx, els = {};
   var state = load() || { set: 'drill' };
@@ -156,12 +157,21 @@ window.Gauge = (function () {
   var GAP_MM = 6;            /* Luft zwischen zwei Maßen */
   var MIN_ROW_PX = 32;       /* damit auch das kleinste Maß beschriftbar bleibt */
 
-  /* Beide Sätze stehen als Liste untereinander, jedes Maß am linken
-   * Bildschirmrand: der Bohrer wird waagerecht in seinen Schlitz gelegt, das
-   * Rohr an den Halbkreis gehalten. Was nicht auf den Bildschirm passt, wird
-   * gescrollt. */
+  /* Das Eckenmaß eines Sechskants zu seiner Schlüsselweite: 2/√3. Ein
+   * Sechskant braucht also mehr Höhe, als seine Weite breit ist. */
+  var HEX_TALL = 2 / Math.sqrt(3);
+
+  /* Alle Sätze stehen als Liste untereinander, jedes Maß am linken
+   * Bildschirmrand: der Bohrer wird waagerecht in seinen Schlitz gelegt, die
+   * Mutter auf den Sechskant, das Rohr an den Halbkreis gehalten. Was nicht
+   * auf den Bildschirm passt, wird gescrollt. */
+  function spanOf(item, pxPerMm) {
+    var px = item.mm * pxPerMm;
+    return set().kind === 'hex' ? px * HEX_TALL : px;
+  }
+
   function rowHeight(item, pxPerMm) {
-    return Math.max(item.mm * pxPerMm, MIN_ROW_PX) + GAP_MM * pxPerMm;
+    return Math.max(spanOf(item, pxPerMm), MIN_ROW_PX) + GAP_MM * pxPerMm;
   }
 
   function listHeight(items, pxPerMm) {
@@ -224,6 +234,33 @@ window.Gauge = (function () {
     return r + 16;
   }
 
+  /* Die Mutter wird flach aufgelegt und gedreht, bis sie deckt. Das prüft
+   * beide Maße auf einmal – Schlüsselweite und Eckenmaß –, während ein
+   * Schlitz nur die Weite kennt und dafür parallel ausgerichtet sein will. */
+  function drawHex(item, cy, span, on) {
+    var r = span / Math.sqrt(3);      /* Umkreis aus der Schlüsselweite */
+    var cx = 10 + span / 2;
+
+    ctx.strokeStyle = on ? css('--accent') : css('--text');
+    ctx.lineWidth = on ? 2.5 : 1.4;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+
+    /* Bei 30 Grad begonnen, damit die beiden Flanken senkrecht stehen und
+     * die Breite genau der Schlüsselweite entspricht. */
+    for (var i = 0; i < 6; i++) {
+      var a = (30 + i * 60) / 180 * Math.PI;
+      var x = cx + Math.cos(a) * r;
+      var y = cy + Math.sin(a) * r;
+      if (i) ctx.lineTo(x, y);
+      else ctx.moveTo(x, y);
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+    return cx + span / 2 + 16;
+  }
+
   function drawList(width, pxPerMm) {
     var items = set().items;
     var slots = set().kind === 'slots';
@@ -248,8 +285,8 @@ window.Gauge = (function () {
       var height = rowHeight(item, pxPerMm);
       var cy = y + height / 2;
       var on = pick() === item;
-      var after = slots
-        ? drawSlot(item, cy, span, length, on)
+      var after = slots ? drawSlot(item, cy, span, length, on)
+        : set().kind === 'hex' ? drawHex(item, cy, span, on)
         : drawHalf(item, cy, span, on);
 
       ctx.font = (on ? '700 ' : '600 ') + '17px system-ui, -apple-system, sans-serif';

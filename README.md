@@ -191,10 +191,11 @@ Anzeige:
 | **Bohrer** | Schlitze | 1–16 mm in ganzen Schritten |
 | **Schraube** | Schlitze | metrisches Regelgewinde M3–M16, Schaftdurchmesser |
 | **Schlüssel** | Schlitze | Schlüsselweiten SW 5,5 – SW 24 |
+| **Sechskant** | Sechsecke | dieselben Weiten als Umriss zum Auflegen |
 | **Rohr mm** | Halbkreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
 | **Rohr Zoll** | Halbkreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
 
-Fünf Sätze passen nicht mehr nebeneinander auf ein Handy – die Leiste unter
+Die Sätze passen nicht mehr nebeneinander auf ein Handy – die Leiste unter
 der Anzeige schiebt sich seitlich, statt umzubrechen, und rückt den gewählten
 Satz ins Bild.
 
@@ -223,6 +224,13 @@ Sechskant nach DIN 934 (M10 → SW 17, M12 → SW 19); ISO 4032 führt dort 16 u
 **Schlüsselweiten** sind der Abstand der beiden Schlüsselflächen – genau das,
 was zwischen die Striche passt. Die Mutter, zu der eine Weite gehört, steht
 daneben, soweit es eine gibt.
+
+Der **Sechskant** zeigt dieselben Weiten als Umriss: Mutter oder Schraubenkopf
+auflegen und drehen, bis er deckt. Das prüft beide Maße auf einmal –
+Schlüsselweite und Eckenmaß –, während ein Schlitz nur die Weite kennt und
+dafür parallel ausgerichtet sein will. Gezeichnet wird ab 30°, damit die
+beiden Flanken senkrecht stehen und die Breite des Umrisses genau die
+Schlüsselweite ist; die Höhe ist dann das Eckenmaß, also das 2/√3-fache.
 
 **Rohre** werden an die Kante gehalten und mit einem **Halbkreis** verglichen,
 dessen Mittelpunkt auf ihr liegt – die andere Hälfte ragt über den Rand
@@ -397,7 +405,7 @@ auch in einem Unterverzeichnis.
 - [x] Lineal in Originalgröße, Zentimeterteilung an beiden Kanten
 - [x] Bildschirmerkennung und Kalibrierung, Maßstabsprobe an der Karte
 - [x] Randversatz je Wert für Ober- und Unterkante
-- [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten und Rohre
+- [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten, Sechskant und Rohre
 - [x] Heller Grund zum Anlegen dunkler Teile
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste
 - [x] Offline-Betrieb, installierbar
