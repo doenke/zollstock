@@ -154,6 +154,23 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 }
 
 /* ---------- Messlehre ---------- */
+/* Die Lehre ist länger als der Bildschirm – sie wird gescrollt. Die
+   Zeichenfläche bekommt ihre Höhe aus dem Inhalt (js/gauge.js). */
+.gauge__scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+#gauge-canvas {
+  position: static;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+}
+
 .gauge__readout {
   position: fixed;
   top: calc(var(--safe-t) + 12px);

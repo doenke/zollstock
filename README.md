@@ -157,8 +157,8 @@ Anzeige:
 | Satz | Form | Maße |
 | --- | --- | --- |
 | **Bohrer** | Schlitze | 1–10 mm in halben Schritten, dann 11, 12, 13, 14, 16 mm |
-| **Rohr mm** | Kreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
-| **Rohr Zoll** | Kreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
+| **Rohr mm** | Halbkreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
+| **Rohr Zoll** | Halbkreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
 
 **Bohrer** werden in einen Schlitz gelegt: zwei Striche mit genau dem lichten
 Abstand des Nenndurchmessers. Weil die Striche außerhalb dieses Abstands
@@ -167,22 +167,28 @@ passt der Bohrer ohne Luft und ohne Überstand hinein, stimmt das Maß. Wie
 viele Schlitze nebeneinander passen, rechnet die App aus dem Maßstab aus und
 bricht entsprechend um; auf einem breiteren Bildschirm werden es mehr.
 
-**Rohre** werden mit dem Ende auf einen Kreis gestellt. Die Kreise liegen
-ineinander – so passen viele Maße auf wenig Fläche, und das Rohr verdeckt
-ohnehin alles, was kleiner ist als es selbst. Gesucht wird der Kreis, der mit
-der Außenkante des Rohrs zusammenfällt. Kreise, die breiter sind als der
-Bildschirm, bleiben oben und unten sichtbar und lassen sich daran anlegen.
+**Rohre** werden an den linken Bildschirmrand gehalten und mit einem
+**Halbkreis** verglichen, dessen Mittelpunkt auf der Kante liegt – die andere
+Hälfte ragt über den Rand hinaus. Ausgerichtet wird an den beiden kurzen
+Strichen, die die Enden des Durchmessers markieren: liegen dort die weitesten
+Stellen des Rohrs, muss der Bogen mit seiner Außenkante zusammenfallen.
+
+Der Halbkreis braucht nur den halben Platz in der Breite – auch 3″ (88,9 mm)
+sind damit auf einem Handy darstellbar. Und es steht immer nur ein Maß im
+Bild statt vieler ineinander; durchgeblättert wird durch **Scrollen**. Die
+Zeichenfläche wächst dafür mit dem Inhalt, gescrollt wird vom Browser.
+Getippt wird ausgewählt, gezogen wird gescrollt – unterschieden wird am
+zurückgelegten Weg.
+
+Passt ein Satz ganz auf den Bildschirm, wie die Bohrer, gibt es nichts zu
+scrollen.
 
 Alle Maße sind **Außendurchmesser**. Bei Zollrohren ist die Zollangabe der
 Gewindename, nicht das Maß: ½″ hat 21,3 mm außen, 1″ hat 33,7 mm. Die Anzeige
 oben links nennt deshalb beides.
 
-Ein Tipp auf einen Schlitz oder Kreis hebt ihn hervor und schreibt Maß und
-Werkstoff aus – nochmal tippen nimmt es zurück. Die Zahlen an den Kreisen
-sitzen reihum auf vier Schrägen, damit Nachbarn den vierfachen Abstand haben,
-und bekommen nur einen schmalen Saum in der Hintergrundfarbe: ein
-freigeräumtes Rechteck würde die Nachbarkreise zerschneiden, und genau an
-denen wird angelegt.
+Ein Tipp auf einen Schlitz oder Halbkreis hebt ihn hervor – nochmal tippen
+nimmt es zurück. Beim Satzwechsel fängt die Liste wieder oben an.
 
 ## Winkelmesser
 

@@ -5,9 +5,11 @@
  * Abstand des Nenndurchmessers. Passt der Bohrer ohne Luft und ohne Überstand
  * hinein, stimmt das Maß.
  *
- * Rohre werden mit dem Ende auf einen Kreis gestellt. Die Kreise liegen
- * ineinander – so passen viele Maße auf wenig Fläche, und das Rohr verdeckt
- * ohnehin alles, was kleiner ist als es selbst.
+ * Rohre werden an den linken Bildschirmrand gehalten und mit einem Halbkreis
+ * verglichen, dessen Mittelpunkt auf der Kante liegt. Die andere Hälfte ragt
+ * über den Rand hinaus – so braucht ein Maß nur den halben Platz in der
+ * Breite, und es steht immer nur eines im Bild statt vieler ineinander.
+ * Durchgeblättert wird durch Scrollen.
  *
  * Alle Maße sind Außendurchmesser. Bei Zollrohren ist die Zollangabe der
  * Gewindename, nicht das Maß: ½″ hat 21,3 mm außen. */
@@ -52,8 +54,8 @@ window.Gauge = (function () {
 
   var SETS = {
     drill: { kind: 'slots', name: 'Bohrer', items: DRILLS, hint: 'Bohrer in den passenden Schlitz legen' },
-    'pipe-mm': { kind: 'rings', name: 'Rohr mm', items: PIPES_MM, hint: 'Rohrende auf den passenden Kreis stellen' },
-    'pipe-in': { kind: 'rings', name: 'Rohr Zoll', items: PIPES_IN, hint: 'Rohrende auf den passenden Kreis stellen' }
+    'pipe-mm': { kind: 'halves', name: 'Rohr mm', items: PIPES_MM, hint: 'Rohr an den linken Rand halten' },
+    'pipe-in': { kind: 'halves', name: 'Rohr Zoll', items: PIPES_IN, hint: 'Rohr an den linken Rand halten' }
   };
 
   var ORDER = ['drill', 'pipe-mm', 'pipe-in'];
@@ -108,7 +110,7 @@ window.Gauge = (function () {
     els.main.textContent = inch ? item.label : fmtMm(item.mm);
     els.sub.textContent = inch
       ? fmtMm(item.mm) + ' außen · ' + item.note
-      : item.note + (set().kind === 'rings' ? ' · Außendurchmesser' : '');
+      : item.note + (set().kind === 'halves' ? ' · Außendurchmesser' : '');
   }
 
   function choose(item) {
@@ -152,9 +154,7 @@ window.Gauge = (function () {
     return rows;
   }
 
-  function drawSlots(width, height, pxPerMm) {
-    var items = set().items;
-    var rows = rowsOf(items, width, pxPerMm);
+  function drawSlots(width, height, pxPerMm, rows) {
     var gap = SLOT_GAP_MM * pxPerMm;
     var text = css('--text');
     var dim = css('--text-dim');
@@ -162,6 +162,7 @@ window.Gauge = (function () {
     var rowHeight = height / rows.length;
     /* Der Schlitz soll tief genug sein, um den Bohrer sicher anzulegen. */
     var slotHeight = Math.min(rowHeight - LABEL_PX - 10, 16 * pxPerMm);
+
     var lw = 2;
 
     ctx.textAlign = 'center';
@@ -204,80 +205,80 @@ window.Gauge = (function () {
     });
   }
 
-  /* ---------- Kreise ---------- */
+  /* ---------- Halbkreise ---------- */
 
-  function drawRings(width, height, pxPerMm) {
+  var HALF_GAP_MM = 6;       /* Luft zwischen zwei Halbkreisen */
+
+  function halvesHeight(items, pxPerMm) {
+    var total = 0;
+    items.forEach(function (item) { total += (item.mm + HALF_GAP_MM) * pxPerMm; });
+    return total;
+  }
+
+  /* Der Halbkreis sitzt mit seiner geraden Seite am linken Bildschirmrand:
+   * Das Rohr wird dort angelegt, seine andere Hälfte ragt über die Kante
+   * hinaus. So braucht ein Maß nur den halben Platz in der Breite, und es
+   * steht immer nur eines im Bild – durchgeblättert wird durch Scrollen. */
+  function drawHalves(width, height, pxPerMm) {
     var items = set().items;
-    var cx = width / 2;
-    var cy = height / 2;
     var text = css('--text');
     var dim = css('--text-dim');
     var accent = css('--accent');
-    var reach = Math.max(width, height) / 2;
+    var gap = HALF_GAP_MM * pxPerMm;
+    var y = 0;
 
-    /* Fadenkreuz zum Ausrichten des Rohrs. */
-    ctx.strokeStyle = css('--line');
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(cx - 9, cy);
-    ctx.lineTo(cx + 9, cy);
-    ctx.moveTo(cx, cy - 9);
-    ctx.lineTo(cx, cy + 9);
-    ctx.stroke();
-
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    var labels = [];
 
-    items.forEach(function (item, index) {
+    items.forEach(function (item) {
       var r = item.mm * pxPerMm / 2;
-      /* Was nicht einmal mehr oben und unten ins Bild ragt, nützt nichts. */
-      if (r > reach) return;
-
+      var cy = y + gap / 2 + r;
       var on = pick() === item;
 
+      /* Der Mittelpunkt liegt genau auf der Kante, der Halbmesser zählt von
+       * dort – gemessen wird also gegen den ersten sichtbaren Bildpunkt. */
       ctx.strokeStyle = on ? accent : text;
-      ctx.lineWidth = on ? 2.5 : 1.2;
+      ctx.lineWidth = on ? 2.5 : 1.4;
       ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.arc(0, cy, r, -Math.PI / 2, Math.PI / 2);
       ctx.stroke();
 
-      hits.push({ item: item, ring: r, x: cx, y: cy });
+      /* Die beiden Enden des Durchmessers, an denen ausgerichtet wird. */
+      ctx.lineWidth = on ? 2.5 : 1.4;
+      ctx.beginPath();
+      ctx.moveTo(0, cy - r);
+      ctx.lineTo(9, cy - r);
+      ctx.moveTo(0, cy + r);
+      ctx.lineTo(9, cy + r);
+      ctx.stroke();
 
-      /* Die Beschriftung wandert reihum auf vier Schrägen: so haben Nachbarn
-       * den vierfachen Abstand und stoßen nicht aneinander. Große Kreise
-       * ragen seitlich aus dem Bild – die werden oben oder unten beschriftet,
-       * wo von ihnen noch etwas zu sehen ist. */
-      var angle = (Math.PI / 4) + (index % 4) * (Math.PI / 2);
-      var spots = [
-        { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r },
-        { x: cx, y: cy - r },
-        { x: cx, y: cy + r }
-      ];
-      var room = r > 5 * pxPerMm / 2;
+      /* Die gerade Seite nur angedeutet – sie liegt auf der Kante. */
+      ctx.strokeStyle = css('--line');
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 5]);
+      ctx.beginPath();
+      ctx.moveTo(1, cy - r);
+      ctx.lineTo(1, cy + r);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-      if (on || room) {
-        for (var i = 0; i < spots.length; i++) {
-          var spot = spots[i];
-          if (spot.x > 16 && spot.x < width - 16 && spot.y > 10 && spot.y < height - 10) {
-            labels.push({ x: spot.x, y: spot.y, text: item.label, on: on });
-            break;
-          }
-        }
-      }
-    });
+      /* Neben den Bogen, wenn dort Platz ist – sonst hinein. */
+      var inch = item.label.indexOf('\u2033') >= 0;
+      var main = inch ? item.label : fmtMm(item.mm);
+      var note = inch ? fmtMm(item.mm) + ' außen' : item.note;
 
-    /* Die Zahlen kommen zum Schluss und bekommen nur einen schmalen Saum in
-     * der Hintergrundfarbe – ein freigeräumtes Rechteck würde die Nachbar-
-     * kreise zerschneiden, und genau an denen wird ja angelegt. */
-    labels.forEach(function (label) {
-      ctx.font = (label.on ? '700 13px' : '600 11px') + ' system-ui, -apple-system, sans-serif';
-      ctx.lineWidth = 3;
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = css('--bg');
-      ctx.strokeText(label.text, label.x, label.y);
-      ctx.fillStyle = label.on ? accent : dim;
-      ctx.fillText(label.text, label.x, label.y);
+      ctx.font = (on ? '700 ' : '600 ') + '17px system-ui, -apple-system, sans-serif';
+      var need = ctx.measureText(main).width;
+      var lx = r + 16 + need < width - 10 ? r + 16 : Math.max(16, r / 2 - need / 2);
+
+      ctx.fillStyle = on ? accent : text;
+      ctx.fillText(main, lx, cy - 8);
+      ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = dim;
+      ctx.fillText(note, lx, cy + 10);
+
+      hits.push({ item: item, top: cy - r, bottom: cy + r });
+      y += item.mm * pxPerMm + gap;
     });
   }
 
@@ -287,31 +288,49 @@ window.Gauge = (function () {
     if (!canvas) return;
 
     var dpr = window.devicePixelRatio || 1;
-    var w = canvas.clientWidth;
-    var h = canvas.clientHeight;
+    var w = els.scroll.clientWidth;
 
     /* Solange die Ansicht verborgen ist, hat die Fläche keine Größe. */
-    if (w < 2 || h < 2) return;
+    if (w < 2 || els.scroll.clientHeight < 2) return;
+
+    var pxPerMm = window.Calibration.pxPerMm();
+    var frame = els.scroll.getBoundingClientRect();
+    /* Anzeige und Werkzeugleiste liegen über der Fläche – der Inhalt bekommt
+     * oben und unten so viel Luft, dass nichts dahinter verschwindet. Beide
+     * brechen je nach Textlänge um, deshalb wird gemessen statt gerechnet. */
+    var top = Math.max(0, els.readout.getBoundingClientRect().bottom - frame.top + 10);
+    var bottom = Math.max(0, frame.bottom - els.tools.getBoundingClientRect().top + 14);
+    var room = Math.max(120, els.scroll.clientHeight - top - bottom);
+
+    /* Was nicht in die Höhe passt, wird gescrollt – deshalb wächst die
+     * Zeichenfläche mit dem Inhalt. */
+    var items = set().items;
+    var slots = set().kind === 'slots';
+    var rows = slots ? rowsOf(items, w, pxPerMm) : null;
+    var wanted = slots
+      ? rows.length * (14 * pxPerMm + LABEL_PX + 12)
+      : halvesHeight(items, pxPerMm);
+    var height = Math.max(room, wanted);
+    var h = top + height + bottom;
+
+    canvas.style.height = h + 'px';
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
     hits = [];
-    var pxPerMm = window.Calibration.pxPerMm();
-    /* Die Werkzeugleiste bricht je nach Textlänge um – sie wird ausgemessen. */
-    var bottom = els.tools.getBoundingClientRect().top - canvas.getBoundingClientRect().top - 10;
-    var top = els.readout.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top + 8;
-    var height = Math.max(120, bottom - top);
-
     ctx.save();
     ctx.translate(0, top);
-    if (set().kind === 'slots') drawSlots(w, height, pxPerMm);
-    else drawRings(w, height, pxPerMm);
+    if (slots) drawSlots(w, height, pxPerMm, rows);
+    else drawHalves(w, height, pxPerMm);
     ctx.restore();
 
     /* Die Trefferflächen gelten im Bild, nicht im verschobenen System. */
-    hits.forEach(function (hit) { hit.y += top; });
+    hits.forEach(function (hit) {
+      if (hit.y !== undefined) hit.y += top;
+      if (hit.top !== undefined) { hit.top += top; hit.bottom += top; }
+    });
   }
 
   function refresh() {
@@ -329,9 +348,10 @@ window.Gauge = (function () {
     var bestDist = Infinity;
 
     hits.forEach(function (hit) {
-      var dist = hit.ring === undefined
-        ? Math.max(Math.abs(x - hit.x) - hit.r, Math.abs(y - hit.y) - 26)
-        : Math.abs(Math.sqrt((x - hit.x) * (x - hit.x) + (y - hit.y) * (y - hit.y)) - hit.ring);
+      /* Halbkreise bekommen ihr ganzes Band, Schlitze ihr Rechteck. */
+      var dist = hit.top !== undefined
+        ? Math.max(hit.top - y, y - hit.bottom)
+        : Math.max(Math.abs(x - hit.x) - hit.r, Math.abs(y - hit.y) - 26);
 
       if (dist < bestDist) {
         bestDist = dist;
@@ -339,13 +359,15 @@ window.Gauge = (function () {
       }
     });
 
-    return best && bestDist <= (best.ring === undefined ? 0 : 18) ? best.item : null;
+    return best && bestDist <= 0 ? best.item : null;
   }
 
   function setSet(key) {
     if (!SETS[key] || state.set === key) return;
     state.set = key;
     persist();
+    /* Der neue Satz fängt oben an, nicht dort, wo der alte gerade stand. */
+    els.scroll.scrollTop = 0;
     showSet();
     showReadout();
     draw();
@@ -364,6 +386,7 @@ window.Gauge = (function () {
     ctx = canvas.getContext('2d');
 
     els = {
+      scroll: document.getElementById('gauge-scroll'),
       tools: document.querySelector('#view-gauge .tools'),
       readout: document.getElementById('gauge-readout'),
       main: document.getElementById('gauge-main'),
@@ -375,12 +398,29 @@ window.Gauge = (function () {
       btn.addEventListener('click', function () { setSet(btn.dataset.gauge); });
     });
 
+    /* Getippt wird ausgewählt, gezogen wird gescrollt – unterschieden wird
+     * am zurückgelegten Weg, das Scrollen selbst macht der Browser. */
+    var down = null;
+
     canvas.addEventListener('pointerdown', function (event) {
+      down = { x: event.clientX, y: event.clientY, time: Date.now() };
+    });
+
+    canvas.addEventListener('pointerup', function (event) {
+      if (!down) return;
+
+      var moved = Math.abs(event.clientX - down.x) + Math.abs(event.clientY - down.y);
+      var quick = Date.now() - down.time < 600;
+      down = null;
+      if (moved > 10 || !quick) return;
+
       var rect = canvas.getBoundingClientRect();
       var item = hitAt(event.clientX - rect.left, event.clientY - rect.top);
       /* Nochmal auf dasselbe Maß tippen nimmt die Hervorhebung zurück. */
       choose(item === pick() ? null : item);
     });
+
+    canvas.addEventListener('pointercancel', function () { down = null; });
 
     window.Calibration.onChange(refresh);
 
