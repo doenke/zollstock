@@ -110,9 +110,13 @@ Pruefung.prototype.ok = function (bedingung, text) {
   if (!bedingung) this.fehler.push(text);
 };
 
+/* Listen und Objekte werden über ihre Schreibweise verglichen – sonst
+ * scheitert jede Behauptung über ein Feld an der Objektgleichheit. */
 Pruefung.prototype.gleich = function (ist, soll, text) {
   this.zahl++;
-  if (ist !== soll) this.fehler.push(text + ': ist ' + JSON.stringify(ist) + ', soll ' + JSON.stringify(soll));
+  var a = ist && typeof ist === 'object' ? JSON.stringify(ist) : ist;
+  var b = soll && typeof soll === 'object' ? JSON.stringify(soll) : soll;
+  if (a !== b) this.fehler.push(text + ': ist ' + JSON.stringify(ist) + ', soll ' + JSON.stringify(soll));
 };
 
 Pruefung.prototype.nahe = function (ist, soll, toleranz, text) {

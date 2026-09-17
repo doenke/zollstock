@@ -80,6 +80,9 @@
     <button class="iconbtn" id="btn-zeropoint" type="button" title="Nullpunkt wechseln" aria-label="Nullpunkt wechseln">
       <span class="iconbtn__arrow" id="btn-zeropoint-arrow">↓</span><span class="iconbtn__tag" id="btn-zeropoint-tag"></span>
     </button>
+    <button class="iconbtn" id="btn-rotation" type="button" title="Drehung des Bildschirms sperren" aria-label="Drehung sperren" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></svg>
+    </button>
     <button class="iconbtn" id="btn-theme" type="button" title="Heller Grund zum Anlegen" aria-label="Heller Grund" aria-pressed="false">
       <!-- Kontrastzeichen: halb gefüllter Kreis – die Sonne wäre vom Zahnrad daneben kaum zu unterscheiden. -->
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
@@ -95,6 +98,9 @@
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
   <span>Neue Version – tippen zum Laden</span>
 </button>
+
+<!-- ---------- Kurze Meldung ---------- -->
+<p class="toast" id="toast" hidden></p>
 
 <!-- ---------- Tableiste ---------- -->
 <nav class="tabbar">

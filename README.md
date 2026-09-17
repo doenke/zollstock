@@ -133,6 +133,21 @@ Ist die Kante an diesem Ende nicht vermessen, steht ihr Nullpunkt dort nicht
 zur Wahl. Die Skala bleibt dann an derselben Seite und rückt auf den
 Bildschirmrand, statt in die Mitte zu springen.
 
+### Drehsperre
+
+Der Knopf mit dem Vorhängeschloss sperrt den Bildschirm auf die Lage, in der
+das Gerät gerade ist – nützlich, wenn beim Anlegen sonst ständig die Ansicht
+kippt. Nochmal drücken gibt wieder frei.
+
+Dahinter steht `screen.orientation.lock()`. Chrome erlaubt das nur einer
+installierten App oder im Vollbild; läuft die App im Browsertab, holt sie das
+Vollbild dazu und verlässt es beim Freigeben wieder – randgenau messen lässt
+sich dort ohnehin nur so. Wer das Vollbild über die Geste des Systems
+verlässt, verliert damit auch die Sperre; der Knopf geht dann von selbst aus.
+
+Auf iOS gibt es die Schnittstelle nicht. Dort erscheint der Knopf gar nicht
+erst, statt als tote Taste dazustehen.
+
 ### Heller Grund
 
 Der Knopf mit dem halb gefüllten Kreis oben rechts schaltet auf hellen Grund:
@@ -161,6 +176,7 @@ App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollb
 | Tippen auf die Skala | Messmarke dorthin setzen |
 | Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
 | ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
+| 🔒 | Drehung des Bildschirms sperren |
 | ◐ | heller Grund zum Anlegen |
 | ⚙ | Einstellungen: Kalibrierung, Gerätekante, laufender Stand |
 | Lineal / Lehre / Winkel | Ansicht wechseln; die zuletzt benutzte kommt beim nächsten Start wieder |
@@ -446,7 +462,7 @@ npm test
 Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
-reicht, ob Gemerktes ein Neuladen übersteht. 47 Behauptungen in dreizehn
+reicht, ob Gemerktes ein Neuladen übersteht. 54 Behauptungen in fünfzehn
 Prüfungen; ein Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 Gemessen wird in den Bildpunkten der Zeichenfläche – über die Schwerpunkte der

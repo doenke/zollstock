@@ -58,6 +58,107 @@
     showView(VIEWS.indexOf(stored) >= 0 ? stored : 'ruler');
   }
 
+  /* ---------- Kurze Meldung ---------- */
+
+  var toastTimer = null;
+
+  function toast(text) {
+    var box = document.getElementById('toast');
+    box.textContent = text;
+    box.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { box.hidden = true; }, 2800);
+  }
+
+  /* ---------- Drehsperre ---------- */
+
+  var rotationLocked = false;
+  var fullscreenForLock = false;
+
+  function showRotation() {
+    var button = document.getElementById('btn-rotation');
+    button.classList.toggle('is-on', rotationLocked);
+    button.setAttribute('aria-pressed', rotationLocked ? 'true' : 'false');
+    button.title = rotationLocked ? 'Drehung wieder freigeben' : 'Drehung des Bildschirms sperren';
+  }
+
+  /* Gesperrt wird auf die Lage, in der das Gerät gerade ist. Chrome erlaubt
+   * das nur einer installierten App oder im Vollbild – läuft die App im
+   * Browsertab, holen wir das Vollbild dazu. Randgenau messen lässt sich dort
+   * ohnehin nur so. */
+  function lockRotation() {
+    var art = screen.orientation.type || 'portrait-primary';
+
+    return screen.orientation.lock(art).catch(function (err) {
+      var root = document.documentElement;
+      if (!root.requestFullscreen) throw err;
+
+      return root.requestFullscreen().then(function () {
+        fullscreenForLock = true;
+        return screen.orientation.lock(art);
+      });
+    });
+  }
+
+  function releaseRotation() {
+    try {
+      screen.orientation.unlock();
+    } catch (err) {
+      /* War nicht gesperrt – dann ist nichts zu tun. */
+    }
+
+    if (fullscreenForLock && document.exitFullscreen) {
+      document.exitFullscreen().catch(function () { /* schon verlassen */ });
+    }
+
+    fullscreenForLock = false;
+    rotationLocked = false;
+    showRotation();
+  }
+
+  function toggleRotation() {
+    if (rotationLocked) {
+      releaseRotation();
+      return;
+    }
+
+    lockRotation().then(function () {
+      rotationLocked = true;
+      showRotation();
+      if (fullscreenForLock) toast('Drehung gesperrt – dafür im Vollbild');
+    }).catch(function () {
+      fullscreenForLock = false;
+      rotationLocked = false;
+      showRotation();
+      toast('Drehsperre geht hier nicht – die App zum Startbildschirm hinzufügen');
+    });
+  }
+
+  function setupRotationLock() {
+    var button = document.getElementById('btn-rotation');
+
+    /* Ohne die Schnittstelle – auf iOS gibt es sie nicht – wäre es eine tote
+     * Taste. Dann lieber keine. */
+    if (!screen.orientation || typeof screen.orientation.lock !== 'function') {
+      button.hidden = true;
+      return;
+    }
+
+    button.addEventListener('click', toggleRotation);
+
+    /* Wer das Vollbild über die Geste des Systems verlässt, verliert damit
+     * auch die Sperre. */
+    document.addEventListener('fullscreenchange', function () {
+      if (!document.fullscreenElement && fullscreenForLock) {
+        fullscreenForLock = false;
+        rotationLocked = false;
+        showRotation();
+      }
+    });
+
+    showRotation();
+  }
+
   /* ---------- Heller Grund ---------- */
 
   /* Zum Anlegen dunkler Teile – auf schwarzem Grund ist ein Bohrer kaum vom
@@ -276,6 +377,7 @@
     /* Erst der Grund, dann die Ansicht: sonst zeichnet die wiederhergestellte
      * Ansicht kurz in den falschen Farben. */
     setupTheme();
+    setupRotationLock();
     setupTabs();
     setupToolbar();
     showBuild();

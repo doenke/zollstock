@@ -66,10 +66,29 @@ async function main() {
 
       /* Die Drehung des Bildes lässt sich echt nicht herbeiführen – hier
        * steht ein Platzhalter, den die Prüfungen setzen können. */
-      Object.defineProperty(screen, 'orientation', {
-        configurable: true,
-        value: { angle: 0, type: 'portrait-primary', addEventListener: function () {}, removeEventListener: function () {} }
-      });
+      window.__sperre = [];
+
+      /* Eine Prüfung will das Gegenteil sehen: ein Gerät ohne Drehsperre. */
+      var ohneSperre = false;
+      try {
+        ohneSperre = localStorage.getItem('__ohneSperre') === '1';
+      } catch (err) {
+        /* ohne Speicher bleibt es bei der Sperre */
+      }
+
+      var lage = {
+        angle: 0,
+        type: 'portrait-primary',
+        addEventListener: function () {},
+        removeEventListener: function () {}
+      };
+
+      if (!ohneSperre) {
+        lage.lock = function (art) { window.__sperre.push(art); return Promise.resolve(); };
+        lage.unlock = function () { window.__sperre.push('frei'); };
+      }
+
+      Object.defineProperty(screen, 'orientation', { configurable: true, value: lage });
     }, checks.PX_PER_MM);
 
     const page = await ctx.newPage();

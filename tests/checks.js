@@ -448,6 +448,38 @@ async function gemerktes(page, t) {
     null, 'Zurücksetzen räumt den Speicher');
 }
 
+/* ---------- Drehsperre ---------- */
+
+async function drehsperre(page, t) {
+  const gedrueckt = function () {
+    return page.getAttribute('#btn-rotation', 'aria-pressed');
+  };
+
+  t.gleich(await page.isVisible('#btn-rotation'), true, 'Knopf da, wo die Schnittstelle da ist');
+  t.gleich(await gedrueckt(), 'false', 'anfangs nicht gesperrt');
+
+  await page.click('#btn-rotation');
+  await page.waitForTimeout(150);
+  t.gleich(await page.evaluate(function () { return window.__sperre.slice(); }),
+    ['portrait-primary'], 'sperrt auf die Lage, in der das Gerät gerade ist');
+  t.gleich(await gedrueckt(), 'true', 'Knopf zeigt die Sperre');
+
+  await page.click('#btn-rotation');
+  await page.waitForTimeout(150);
+  t.gleich(await page.evaluate(function () { return window.__sperre.slice(); }),
+    ['portrait-primary', 'frei'], 'zweiter Druck gibt wieder frei');
+  t.gleich(await gedrueckt(), 'false', 'Knopf wieder aus');
+}
+
+/* Ohne die Schnittstelle – auf iOS – darf keine tote Taste stehenbleiben. */
+async function drehsperreOhne(page, t) {
+  await page.evaluate(function () { localStorage.setItem('__ohneSperre', '1'); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(150);
+
+  t.gleich(await page.isVisible('#btn-rotation'), false, 'Knopf bleibt weg, wenn nichts zu sperren ist');
+}
+
 /* ---------- Heller Grund ---------- */
 
 /* Ein gezeichneter Strich, an seiner Helligkeit erkennbar: hell auf dunklem
@@ -509,6 +541,8 @@ module.exports = {
     { name: 'Gerätekante: messen', lauf: kanteMessen },
     { name: 'Maßstabsprobe', lauf: probe },
     { name: 'Gemerktes', lauf: gemerktes },
+    { name: 'Drehsperre', lauf: drehsperre },
+    { name: 'Drehsperre: ohne Schnittstelle', lauf: drehsperreOhne },
     { name: 'Heller Grund', lauf: hellerGrund }
   ]
 };
