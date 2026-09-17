@@ -593,6 +593,19 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
 }
 
 
+/* Gemessen wird an einer Kante des Bildschirms, und die Karte liegt dort an.
+   Die Messfläche muss deshalb bis an genau diese Kante reichen – bei der
+   Unterkante gehört die Bedienleiste also nach oben. Sonst endet die Fläche
+   eine Leistenhöhe zu früh und die Linie kommt nie ans Kartenende. */
+.measureview--flip { flex-direction: column-reverse; }
+
+.measureview--flip .measureview__bar {
+  padding: calc(var(--safe-t) + 12px) calc(var(--safe-r) + 16px) 14px calc(var(--safe-l) + 16px);
+  border-top: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0 0 18px 18px;
+}
+
 .measureview__stage { position: relative; flex: 1; overflow: hidden; touch-action: none; }
 
 /* Fläche, die unter der Karte liegt */

@@ -105,7 +105,10 @@ breitere Rand –, und Hüllen sind unten oft anders ausgeschnitten als oben, wo
 die Kamera sitzt. Ein Unterschied von ein bis zwei Millimetern ist normal.
 
 Die Umschaltung in den Einstellungen wählt, welche Kante gemessen wird; die
-Vollbildmessung legt die Karte dann an diese Kante. Im Querformat gilt der
+Vollbildmessung legt die Karte dann an diese Kante. Die Messfläche muss dabei
+bis genau an diese Bildschirmkante reichen – bei der Unterkante wandert die
+Bedienleiste deshalb nach oben. Sonst endete die Fläche eine Leistenhöhe zu
+früh, und die Linie käme nie bis ans Kartenende. Im Querformat gilt der
 obere Wert für die linke, der untere für die rechte Kante. Gespeichert wird in
 `localStorage` (`zollstock.edge.v2`); eine ältere Messung „mit Hülle" wird
 beim ersten Start für beide Kanten übernommen.

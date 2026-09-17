@@ -151,6 +151,13 @@ window.Edge = (function () {
   function chooseSpan() {
     /* Gemessen wird immer entlang des Lineals. */
     vertical = window.Scales.vertical();
+
+    /* Die Karte liegt an einer Kante des Bildschirms an, und die Messfläche
+     * muss bis genau dorthin reichen. Bei der Unterkante wandert die
+     * Bedienleiste deshalb nach oben – im Querformat spannt die Fläche
+     * ohnehin über die volle Breite. */
+    els.view.classList.toggle('measureview--flip', vertical && state.active === 'bottom');
+
     var available = (vertical ? els.stage.clientHeight : els.stage.clientWidth) - HINT_PX;
     cardSpan = CARD_LONG * window.Calibration.pxPerMm() <= available ? CARD_LONG : CARD_SHORT;
   }
