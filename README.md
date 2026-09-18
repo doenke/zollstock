@@ -53,8 +53,8 @@ Zollstock passt zu dir, wenn du ...
 ## Loslegen
 
 Zollstock ist eine einzelne statische Seite – kein Build, keine
-Abhängigkeiten, kein Konto. Du brauchst nur die Adresse deiner Installation
-(siehe [Veröffentlichen](#veröffentlichen)).
+Abhängigkeiten, kein Konto. Du kopierst das Verzeichnis auf deinen Webspace
+und rufst die Adresse auf – mehr braucht es nicht.
 
 1. **Seite öffnen.**
 2. **Zum Startbildschirm hinzufügen.** Als installierte App läuft Zollstock im
@@ -420,34 +420,19 @@ abwürgt, ob die Pixeldichte für dieses Display stimmt oder ob ein Bohrer
 wirklich in den Schlitz passt. Sie prüft Rechnung und Anordnung, nicht die
 Physik – das Handy bleibt die letzte Instanz.
 
-### Lokal starten
+### Aufspielen
 
-```bash
-python3 -m http.server 8000
-# http://localhost:8000
-```
-
-Ein Server ist nötig: Über `file://` gibt es weder `localStorage` noch einen
-Service Worker.
-
-### Veröffentlichen
-
-`.github/workflows/deploy.yml` spiegelt den Stand des `main`-Branches per SFTP
-auf einen Webspace – Einrichtung und Secrets stehen in
-[DEPLOYMENT.md](DEPLOYMENT.md). `tests/` und `docs/` bleiben dabei außen vor.
-
-Der Deploy stempelt den Commit in den Service Worker und in die Seite. Unten
-in den Einstellungen steht er als **Stand:** – damit lässt sich feststellen,
-welche Fassung wirklich läuft, statt es zu vermuten. Ohne Deploy steht dort
-`lokal`.
+Das Verzeichnis auf den eigenen Webspace kopieren, fertig. Alle Pfade sind
+relativ, es läuft also in jedem Unterordner. `tests/` und `docs/` gehören
+nicht dazu – sie werden im Betrieb nicht gebraucht.
 
 Eine neue Fassung lädt sich selbst nach, sobald sie übernommen hat und gerade
 niemand hinsieht: beim Weglegen, damit sie beim nächsten Hinsehen da ist.
 Solange die App im Bild ist, bleibt es beim antippbaren Hinweis, damit
 niemandem mitten in der Messung der Bildschirm wegspringt.
 
-Genauso gut läuft die App über GitHub Pages: Settings → Pages, Branch wählen,
-Ordner `/ (root)`. Alle Pfade sind relativ.
+Welche Fassung wirklich läuft, steht unten in den Einstellungen als
+**Stand:** – damit lässt es sich feststellen, statt es zu vermuten.
 
 ### Stand
 
