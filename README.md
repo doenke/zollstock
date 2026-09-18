@@ -1,12 +1,292 @@
-# Zollstock
+<img src="icons/icon-192.png" alt="" width="96" height="96">
 
-Statische PWA zum Messen: zeigt ein **Lineal in Originalgröße** auf dem Display,
-eine **Messlehre** für Bohrer, Schrauben und Rohre und einen **Winkelmesser**,
-der die Lage des Geräts ausliest.
+# Zollstock 📐
 
-Kein Build, keine Abhängigkeiten, offline nutzbar.
+Zollstock ist dein Messwerkzeug für die Hosentasche: ein Lineal in
+Originalgröße auf dem Display, eine Lehre für Bohrer, Schrauben und Rohre und
+ein Winkelmesser, der die Lage des Geräts ausliest. Einmal kalibriert zeigt
+dein Handy echte Millimeter – und sagt dir auch, welcher Dübel in dieses Loch
+gehört.
 
-## Wie die Originalgröße zustande kommt
+Kurz gesagt: Das Werkzeug, das du sowieso in der Tasche hast, weiß plötzlich,
+wie dick dieser Bohrer ist.
+
+| Lineal | Messlehre | Winkelmesser |
+| --- | --- | --- |
+| ![Lineal mit Zentimeterteilung an beiden Kanten und gesetzter Messmarke](docs/lineal.png) | ![Bohrerlehre mit Schlitzen und Dübelangaben](docs/lehre.png) | ![Winkelmesser mit Bogenskala und Gefälle in Prozent](docs/winkel.png) |
+
+## Was Zollstock für dich macht
+
+- **In Originalgröße messen** – die Zentimeterteilung steht an beiden Kanten,
+  du kannst also von jeder Seite anlegen.
+- **Dort anfangen, wo es passt** – der Nullpunkt wandert von der Gerätekante
+  über den Bildschirmrand bis in die Mitte. Auch Werkstücke, die sich nicht
+  ans Gehäuse legen lassen, bekommen einen sichtbaren Nullstrich.
+- **Bohrer, Schrauben und Rohre bestimmen** – auflegen, die passende Form
+  suchen, ablesen. Daneben steht, was dazugehört: Dübel, Kernloch,
+  Schlüsselweite.
+- **Winkel und Gefälle messen** – Gerätekante anlegen oder flach auflegen.
+  Nahe der Waagerechten rechnet die App in Prozent und mm/m um, so wie es auf
+  dem Bau vorgegeben wird.
+- **Ohne Hinsehen arbeiten** – die Haltetaste friert den Wert ein, und bei 0°
+  und 45° gibt das Gerät einen Stups. Praktisch dort, wo du den Bildschirm
+  beim Anlegen nicht siehst.
+- **Hell oder dunkel anlegen** – ein dunkler Bohrer auf schwarzem Grund ist
+  kaum zu beurteilen; ein Knopf macht die Fläche weiß.
+- **Wissen, wie genau es ist** – die App sagt dir, was sie erkannt hat, wie
+  sicher sie ist, und lässt dich den Maßstab mit einer Karte nachprüfen.
+- **Offline dabeihaben** – Zollstock ist eine PWA, lässt sich zum
+  Startbildschirm hinzufügen und braucht danach kein Netz mehr. Die zuletzt
+  benutzte Ansicht ist beim nächsten Start wieder da.
+
+## Für wen ist das?
+
+Zollstock passt zu dir, wenn du ...
+
+- öfter mal schnell nachmisst und der Zollstock gerade im Keller liegt,
+- vor dem Regal stehst und wissen willst, welcher Dübel in welches Loch gehört,
+- ein Rohr oder eine Mutter bestimmen musst, ohne Messschieber in Reichweite,
+- ein Rohr mit Gefälle verlegst oder ein Brett gerade haben willst,
+- ein Werkzeug magst, das dir sagt, wo seine Grenzen liegen, statt eine
+  Nachkommastelle vorzutäuschen.
+
+## Loslegen
+
+Zollstock ist eine einzelne statische Seite – kein Build, keine
+Abhängigkeiten, kein Konto. Du brauchst nur die Adresse deiner Installation
+(siehe [Veröffentlichen](#veröffentlichen)).
+
+1. **Seite öffnen.**
+2. **Zum Startbildschirm hinzufügen.** Als installierte App läuft Zollstock im
+   Vollbild – nur dann reicht der Bildschirm bis an den Rand, und nur dann
+   stimmt das Messen an der Gerätekante.
+3. **Einmal den Maßstab prüfen.** Einstellungen (Zahnrad) → *Maßstab prüfen*,
+   EC-Karte anlegen. Zehn Sekunden, und du weißt, ob die Erkennung stimmt.
+
+## Ein erster Rundgang
+
+### 1. Den Maßstab prüfen
+
+Zollstock erkennt die meisten Geräte selbst und rechnet mit der Pixeldichte
+des Herstellers. Das ist ein guter Startwert, aber ungeprüft: Beim Galaxy S22
+etwa unterscheiden sich die beiden kursierenden Diagonalen um 0,8 mm auf die
+Bildschirmlänge.
+
+Die Probe legt eine EC-Karte (genormt 85,6 × 54,0 mm) bündig an eine feste
+Linie, du schiebst eine zweite auf ihr anderes Ende. Daneben steht, wie weit
+der Maßstab danebenliegt – *Übernehmen* korrigiert ihn. Steht dort `0,0 mm`,
+heißt der Knopf **Passt**, und du weißt es statt es zu hoffen.
+
+### 2. Messen
+
+Tippen setzt die Messmarke, Ziehen verschiebt sie. Liegt die Null im
+sichtbaren Bereich, steht sie als durchgezogene Linie quer über dem
+Bildschirm – daran wird angelegt.
+
+Der Knopf mit dem Pfeil schaltet den Nullpunkt weiter, von einer Kante zur
+anderen. Die Marke bleibt dabei liegen und ihre Zahl wandert: Du legst sie
+einmal auf ein Merkmal und liest ab, was es von der anderen Kante aus misst.
+
+### 3. Bohrer, Schraube, Rohr bestimmen
+
+In der Lehre legst du den Bohrer waagerecht in den Schlitz, der ihn genau
+ausfüllt. Die Mutter kommt auf den Sechskant und wird gedreht, bis er deckt.
+Das Rohr hältst du an den linken Bildschirmrand, wo Halbkreise liegen.
+
+Neben jedem Maß steht, was dazugehört – `6 mm · Dübel 6 · Schraube 3,5–5`
+oder `SW 8 · Mutter M5 · Inbus M10`.
+
+### 4. Winkel und Gefälle
+
+Gerätekante ans Werkstück anlegen (**Kante**) oder das Gerät flach auflegen
+(**Fläche**). Nahe der Waagerechten steht unter der Gradzahl das Gefälle in
+Prozent und mm/m.
+
+**Nullen** macht die aktuelle Lage zur Null – anlegen, nullen, alles Weitere
+zählt von dort. Im Flächenmodus heißt derselbe Knopf **Fläche merken**: Gerät
+auf die erste Fläche legen, merken, auf die zweite legen, Winkel ablesen.
+
+## Genau messen: Kalibrierung und Gerätekante
+
+Unter dem Zahnrad liegen alle Wege zum Maßstab:
+
+| Weg | Wofür? |
+| --- | --- |
+| **Maßstab prüfen** | Der empfohlene. Karte an die Linie, zweite Linie auf ihr Ende. Sagt, wie weit es danebenliegt, und korrigiert auf Wunsch. |
+| **Karte anlegen** | Derselbe Bezug als Umriss, den ein Regler auf die Karte zieht. |
+| **Linie messen** | Eine Referenzlinie mit einem echten Lineal messen und die Länge eintragen. |
+| **PPI eingeben** | Herstellerangabe zur Pixeldichte direkt eintragen. |
+
+Die Probe ist die genauere Handhabung: Beim Umriss müssen zwei Kanten
+gleichzeitig zur Deckung kommen, während ein Regler die Größe ändert – hier
+liegt eine Kante fest an, und nur das andere Ende wird angefahren. Die
+Abweichung steht als Zahl daneben, so wird auch ein halber Millimeter
+sichtbar.
+
+**Die Gerätekante** ist der Rand zwischen dem Gehäuse (mit Hülle, wenn eine
+drauf ist) und dem ersten Bildpunkt. Ist er bekannt, beginnt die Skala dort
+statt am Bildschirmrand – dann kannst du das Werkstück ans Gehäuse legen.
+Gemessen wird er mit derselben Karte als Lückenfüller:
+
+```
+Rand = Kartenlänge − sichtbarer Anteil
+```
+
+Ober- und Unterkante werden getrennt gemessen. Das Display sitzt selten mittig
+im Gehäuse – die Kinnleiste unten ist meist der breitere Rand –, und Hüllen
+sind unten oft anders ausgeschnitten als oben, wo die Kamera sitzt. Ein bis
+zwei Millimeter Unterschied sind normal.
+
+## Der Nullpunkt
+
+Der Knopf in der Kopfzeile schaltet weiter, von einer Kante zur anderen:
+
+| Lage | Null liegt |
+| --- | --- |
+| oben, an der Gerätekante | an der Oberkante des Geräts, außerhalb des Bildschirms |
+| oben, am Bildschirmrand | am ersten Bildpunkt |
+| oben, 1 cm vom Rand | einen Zentimeter innerhalb des Bildschirmrands |
+| mittig | in der Bildschirmmitte, zählt nach beiden Seiten |
+| unten, 1 cm vom Rand | einen Zentimeter innerhalb der Unterkante |
+| unten, am Bildschirmrand | am letzten Bildpunkt |
+| unten, an der Gerätekante | an der Unterkante des Geräts |
+
+Eine Gerätekante erscheint nur, wenn ihr Rand vermessen ist – oben und unten
+unabhängig voneinander. Die Lagen *1 cm vom Rand* sind für Werkstücke gedacht,
+die sich nicht ans Gehäuse legen lassen: Der Nullstrich liegt sichtbar auf dem
+Bildschirm, das Werkstück wird daran ausgerichtet. *Mittig* zählt nach beiden
+Seiten und hilft beim Mittigfinden.
+
+Der Knopf zeigt als Pfeil, wo die Null sitzt und wohin gezählt wird (↓ ↑ ↕, im
+Querformat → ← ↔), dazu `K` für Gerätekante und `1` für den Zentimeter
+Abstand. Beim Wechseln wird die Lage kurz ausgeschrieben.
+
+## Die Messlehre
+
+Sechs Sätze, umschaltbar unter der Anzeige:
+
+| Satz | Form | Maße |
+| --- | --- | --- |
+| **Bohrer** | Schlitze | 1–16 mm, mit Dübel und Schraube |
+| **Schraube** | Schlitze | metrisches Regelgewinde M3–M16, mit Kernloch und Schlüsselweite |
+| **Schlüssel** | Schlitze | Schlüsselweiten SW 1,5 – SW 24 |
+| **Sechskant** | Sechsecke | dieselben Weiten als Umriss zum Auflegen |
+| **Rohr mm** | Halbkreise | Kupfer nach EN 1057 und Verbund-/PE-Rohre |
+| **Rohr Zoll** | Halbkreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
+
+Alles steht als Liste untereinander, jedes Maß am linken Bildschirmrand;
+durchgeblättert wird durch Scrollen. Ein Tipp hebt ein Maß hervor.
+
+**Warum das genau genug ist:** Die Striche eines Schlitzes stehen außerhalb
+des Nennmaßes, die lichte Weite dazwischen ist deshalb auf den
+Zehntelmillimeter genau der Nennwert. Du vergleichst also unmittelbar, statt
+abzulesen – und siehst sofort, ob der Bohrer den Schlitz ausfüllt oder
+übersteht. Halbe Millimeter gibt es bewusst nicht: So genau lässt sich ein
+Bohrer von Hand nicht anlegen, und eine Zahl vorzugaukeln, die nicht trägt,
+hilft niemandem.
+
+**Rohre** hältst du an die Kante und vergleichst mit einem Halbkreis, dessen
+Mittelpunkt auf ihr liegt – die andere Hälfte ragt über den Rand hinaus. So
+braucht ein Maß nur den halben Platz in der Breite, und auch 3″ (88,9 mm)
+passt auf ein Handy. Ausgerichtet wird an den beiden kurzen Strichen, die die
+Enden des Durchmessers markieren.
+
+Bei Rohren sind alle Maße **Außendurchmesser**. Die Zollangabe ist der
+Gewindename, nicht das Maß: ½″ hat 21,3 mm außen, 1″ hat 33,7 mm. Die Anzeige
+nennt deshalb beides.
+
+**Sechskant statt Schlitz:** Die Mutter auflegen und drehen, bis der Umriss
+deckt, prüft beide Maße auf einmal – Schlüsselweite und Eckenmaß –, während
+ein Schlitz nur die Weite kennt und dafür parallel ausgerichtet sein will. Ein
+Inbusschlüssel ist selbst ein Sechskant, deshalb fängt die Reihe bei SW 1,5 an.
+
+## Der Winkelmesser
+
+Aus dem Lagesensor wird die Richtung „oben“ berechnet, daraus zwei Messarten:
+
+| Messart | Hauptwert | so wird angelegt |
+| --- | --- | --- |
+| **Kante** | Drehung in der Bildschirmebene | Gerätekante ans Werkstück |
+| **Fläche** | Neigung der Auflagefläche | Gerät flach auflegen |
+
+Angezeigt wird auf zwei Skalen: grob als Bogen mit Gradstrichen, der wie ein
+Lot im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift –
+fein als Bandskala darunter, die alle 45° eine Null hat und in
+Viertelgrad-Schritten zählt. Im Flächenmodus tritt eine Dosenlibelle an die
+Stelle des Bogens; ihr Bereich richtet sich nach der Abweichung.
+
+**Gefälle** steht unter der Gradzahl, sobald es näher als 20° an der
+Waagerechten liegt: `2,0 % · 20 mm/m`. Das ist die Einheit, in der es auf dem
+Bau vorgegeben wird – Abwasser 2 %, Terrasse 2 %, Dachrinne 3 mm/m. Weiter
+davon weg sagt ein Prozentwert nichts mehr (68° wären 247 %), dort steht
+stattdessen, wie weit es bis zum rechten und bis zum gestreckten Winkel ist.
+
+**Nullen** macht die aktuelle Lage zur Null, ohne Rundung. Der Nullpunkt hängt
+dabei am Gerät, nicht am Bildschirm: Wer gegen eine Kante nullt und das Gerät
+danach dreht, will den tatsächlichen Abstand zu dieser Kante sehen.
+
+**Fläche merken** speichert eine Bezugsfläche: Gerät auflegen, drücken, auf die
+zweite Fläche legen – angezeigt wird der Winkel zwischen beiden. Der Lagesensor
+kennt nur die Richtung der Schwerkraft, nicht die Himmelsrichtung; gemessen
+wird deshalb der Winkel, um den das Gerät zwischen beiden Auflagen gekippt
+wurde. Solange du es dabei nicht um die Senkrechte drehst, ist das genau der
+Winkel zwischen den Flächen.
+
+**Halten** friert die Lage ein, bis erneut gedrückt wird – gedacht für Stellen,
+an denen das Gerät angelegt werden muss, ohne dass man den Bildschirm sieht.
+Ein Tipp auf die Skala tut dasselbe. Dazu passt der **Stups** auf jeder
+45er-Marke: Die Null bekommt zwei, damit sie sich unterscheidet. Geräte ohne
+`navigator.vibrate` (iOS) bleiben still – und ein eingeschaltetes „Nicht
+stören“ schluckt ihn auch.
+
+Auf iOS muss der Zugriff auf den Lagesensor einmal bestätigt werden; dafür
+erscheint eine Schaltfläche.
+
+## Drehsperre und heller Grund
+
+Zwei Knöpfe in der Kopfzeile, die beim Anlegen helfen:
+
+Das **Vorhängeschloss** sperrt den Bildschirm auf die Lage, in der das Gerät
+gerade ist – sonst kippt beim Anlegen ständig die Ansicht weg. Chrome erlaubt
+das nur einer installierten App oder im Vollbild; läuft Zollstock im
+Browsertab, holt es sich das Vollbild dazu und verlässt es beim Freigeben
+wieder. Auf iOS gibt es die Schnittstelle nicht, dort erscheint der Knopf
+gar nicht erst.
+
+Der **halb gefüllte Kreis** macht die Fläche weiß. Ein dunkler Bohrer vor
+schwarzem Bildschirm ist kaum zu beurteilen, vor Weiß steht sein Umriss – und
+bei Sonne ist es ohnehin besser lesbar.
+
+## Wie genau ist das?
+
+Ehrlich gesagt: so genau wie deine Kalibrierung, nicht genauer.
+
+- **Ungeprüft** rechnet die App mit der Herstellerangabe zur Pixeldichte. Das
+  liegt meist unter einem Prozent daneben – auf 10 cm also unter einem
+  Millimeter, aber eben ungeprüft. Unter *Einstellungen → Kalibrierung* steht,
+  was erkannt wurde und wie sicher.
+- **Nach der Probe mit der Karte** liegt der Maßstab auf etwa zwei Zehntel
+  je 10 cm genau – die Karte ist 85,6 mm lang, ein Bildpunkt daneben sind
+  zwei Promille.
+- **Die Nulllinie** liegt am Rand des sichtbaren Bereichs, nicht am
+  Gehäuserand. Im Browser verschiebt die Adressleiste diesen Rand – für
+  randgenaues Messen die App zum Startbildschirm hinzufügen.
+- **Der Winkelmesser** hängt am Beschleunigungssensor; ruhig gehalten sind das
+  ein bis drei Zehntelgrad.
+
+Während des Messens hält die App den Bildschirm wach, soweit der Browser das
+unterstützt.
+
+Viel Erfolg beim Messen, Bohren und Geradehängen. 📐
+
+---
+
+## Technische Doku
+
+Dieser Abschnitt ist für alle gedacht, die verstehen wollen, woher die
+Millimeter kommen, oder die selbst am Code arbeiten.
+
+### Wie die Originalgröße zustande kommt
 
 Browser geben die physische Pixeldichte nicht direkt preis. Verfügbar sind nur:
 
@@ -33,89 +313,19 @@ Panel hat (etwa FHD+ statt WQHD+ eingestellt), wird die Dichte im selben
 Verhältnis heruntergerechnet.
 
 **Apple** nennt kein Modell, dort sind CSS-Auflösung und Pixelverhältnis je
-Gerät aber eindeutig. Diese Tabelle gilt ausschließlich für iOS-Geräte: die
-Schlüssel sind nicht herstellerübergreifend eindeutig – ein Galaxy S22/S23
-meldet mit 360 × 780 bei dpr 3 genau dasselbe wie ein iPhone 13 mini.
+Gerät aber eindeutig. Diese Tabelle gilt ausschließlich für iOS: Die Schlüssel
+sind nicht herstellerübergreifend eindeutig – ein Galaxy S22 meldet mit
+360 × 780 bei dpr 3 genau dasselbe wie ein iPhone 13 mini.
 
 Ohne Treffer greift die Konvention der Plattform (Mobilgeräte ≈ 160 dpi,
-Desktop = 96 dpi) – das ist nur eine Näherung, deshalb weist die App dann auf
-die Kalibrierung hin. Unter *Einstellungen → Kalibrierung* steht, was erkannt
-wurde und wie sicher.
+Desktop = 96 dpi). Das ist nur eine Näherung, deshalb weist die App dann auf
+die Kalibrierung hin. Eine Kalibrierung überstimmt die Erkennung immer und
+liegt in `localStorage` (`zollstock.calibration.v1`).
 
-Die Tabellenwerte sind Herstellerangaben und ein guter Startwert. Wer es
-genau braucht, kalibriert – das überstimmt die Erkennung immer.
+### Die Gerätekante beim Drehen
 
-### Kalibrierung
-
-Alle Wege liegen unter dem Zahnrad oben rechts:
-
-1. **Maßstab prüfen** – die empfohlene Methode. Die Karte liegt bündig an einer
-   festen Linie, eine zweite wird auf ihr anderes Ende geschoben. Daneben steht,
-   wie weit der eingestellte Maßstab danebenliegt; *Übernehmen* korrigiert ihn.
-2. **Karte anlegen** – derselbe Bezug als Umriss, den ein Regler auf die Karte
-   zieht.
-3. **Linie messen** – eine Referenzlinie mit einem echten Lineal messen und die
-   Länge in Millimetern eintragen.
-4. **PPI eingeben** – Herstellerangabe zur Pixeldichte direkt eintragen.
-
-Die Probe ist der Prüfung wegen da: Ohne sie steht in den Einstellungen nur
-„automatisch“, und niemand weiß, ob der Tabellenwert für dieses Gerät stimmt.
-Sie ist zugleich die genauere Handhabung – beim Umriss müssen zwei Kanten
-gleichzeitig zur Deckung kommen, während ein Regler die Größe ändert; hier
-liegt eine Kante fest an und nur das andere Ende wird angefahren. Die
-Abweichung steht dabei als Zahl daneben, so dass auch ein halber Millimeter
-sichtbar wird. Aus dem Abstand folgt der Maßstab unmittelbar:
-
-```
-px pro Millimeter = Abstand der beiden Linien / Kartenlänge
-```
-
-Passt die lange Kartenseite nicht neben die Bedienleiste, wird auf die kurze
-(54,0 mm) umgestellt; *Drehen* schaltet von Hand um.
-
-Das Ergebnis liegt in `localStorage` (`zollstock.calibration.v1`) und gilt für
-dieses Gerät, bis es über „Automatik“ zurückgesetzt wird.
-
-### Gerätekante
-
-Zwischen der Kante des Geräts und dem ersten Bildpunkt liegen einige
-Millimeter Rahmen – mit Hülle deutlich mehr. Wer ein Werkstück an die
-Gehäusekante anlegt, misst diesen Rand sonst mit.
-
-Gemessen wird er wieder mit der Karte, diesmal als Lückenfüller: Die Karte
-liegt flach auf dem Bildschirm, bündig an der Kante des Geräts – mit Hülle,
-wenn eine drauf ist – und ragt mit bekannter Länge auf das Display. Sichtbar
-ist davon nur der Teil hinter dem Rand – der Rest steckt darunter:
-
-```
-Rand = Kartenlänge − sichtbarer Anteil
-```
-
-In der Vollbildmessung wird eine Linie auf das Ende der Karte geschoben, den
-Rest rechnet die App aus. Passt die lange Seite nicht neben die Bedienleiste,
-wird automatisch auf die kurze Seite (54,0 mm) umgestellt; *Drehen* schaltet
-von Hand um.
-
-Ist der Rand bekannt, beginnt die Skala an der Gerätekante statt am
-Bildschirmrand – die erste Zahl oben ist dann nicht mehr die Null.
-
-**Oben** und **unten** werden getrennt gemessen und getrennt gespeichert: Das
-Display sitzt selten mittig im Gehäuse – die Kinnleiste unten ist meist der
-breitere Rand –, und Hüllen sind unten oft anders ausgeschnitten als oben, wo
-die Kamera sitzt. Ein Unterschied von ein bis zwei Millimetern ist normal.
-
-Die Umschaltung in den Einstellungen wählt, welche Kante gemessen wird; die
-Vollbildmessung legt die Karte dann an diese Kante. Die Messfläche muss dabei
-bis genau an diese Bildschirmkante reichen – bei der Unterkante wandert die
-Bedienleiste deshalb nach oben. Sonst endete die Fläche eine Leistenhöhe zu
-früh, und die Linie käme nie bis ans Kartenende. Gespeichert wird in
-`localStorage` (`zollstock.edge.v2`); eine ältere Messung „mit Hülle" wird
-beim ersten Start für beide Kanten übernommen.
-
-Welcher der beiden Werte gilt, hängt nicht am gewählten Nullpunkt, sondern an
-der **Drehung des Bildes**. Das Lineal zählt in Bildschirmkoordinaten, sein
-Anfang liegt oben bzw. links – dort liegt aber je nach Drehung eine andere
-Kante des Geräts:
+Das Lineal zählt in Bildschirmkoordinaten – sein Anfang liegt oben bzw. links.
+Welche Gerätekante dort liegt, sagt aber erst die Drehung des Bildes:
 
 | `screen.orientation.angle` | Anfang des Lineals | dort liegt |
 | --- | --- | --- |
@@ -129,193 +339,10 @@ also weiterhin Ober- und Unterkante – nur seitlich, und bei 270° vertauscht.
 `Edge.edgeAt()` löst das auf; ohne diese Zuordnung rechnete die Skala in zwei
 von vier Lagen mit dem Rand der falschen Kante.
 
-Ist die Kante an diesem Ende nicht vermessen, steht ihr Nullpunkt dort nicht
-zur Wahl. Die Skala bleibt dann an derselben Seite und rückt auf den
-Bildschirmrand, statt in die Mitte zu springen.
+### Woher der Winkel kommt
 
-### Drehsperre
-
-Der Knopf mit dem Vorhängeschloss sperrt den Bildschirm auf die Lage, in der
-das Gerät gerade ist – nützlich, wenn beim Anlegen sonst ständig die Ansicht
-kippt. Nochmal drücken gibt wieder frei.
-
-Dahinter steht `screen.orientation.lock()`. Chrome erlaubt das nur einer
-installierten App oder im Vollbild; läuft die App im Browsertab, holt sie das
-Vollbild dazu und verlässt es beim Freigeben wieder – randgenau messen lässt
-sich dort ohnehin nur so. Wer das Vollbild über die Geste des Systems
-verlässt, verliert damit auch die Sperre; der Knopf geht dann von selbst aus.
-
-Auf iOS gibt es die Schnittstelle nicht. Dort erscheint der Knopf gar nicht
-erst, statt als tote Taste dazustehen.
-
-### Heller Grund
-
-Der Knopf mit dem halb gefüllten Kreis oben rechts schaltet auf hellen Grund:
-weiße Fläche, schwarze Striche. Gedacht ist er zum Anlegen – ein dunkler
-Bohrer vor schwarzem Bildschirm ist kaum zu beurteilen, vor Weiß steht sein
-Umriss. Bei Sonne ist es ohnehin besser lesbar.
-
-Auch die zuletzt benutzte Ansicht wird gemerkt (`zollstock.view.v1`).
-
-Umgesetzt ist der helle Grund als zweiter Satz derselben Farbwerte unter
-`:root[data-theme="light"]`; die Zeichenflächen holen ihre Farben zur Laufzeit
-von dort, ein Neuzeichnen genügt also. Die Wahl liegt in `localStorage`
-(`zollstock.theme.v1`), voreingestellt bleibt Dunkel. Die Leiste des Browsers
-geht über `meta[name=theme-color]` mit.
-
-### Genauigkeit
-
-Die Nulllinie liegt am Rand des **sichtbaren Bereichs**, nicht am Gehäuserand.
-Im Browser verschiebt die Adressleiste diesen Rand. Für randgenaues Messen die
-App zum Startbildschirm hinzufügen – als installierte PWA läuft sie im Vollbild.
-
-## Bedienung
-
-| Element | Funktion |
-| --- | --- |
-| Tippen auf die Skala | Messmarke dorthin setzen |
-| Ziehen | Marke verschieben; dicht am Griff wird sie angefasst statt versetzt |
-| ↓ ↑ ↕ | Nullpunkt wechseln (siehe unten) |
-| 🔒 | Drehung des Bildschirms sperren |
-| ◐ | heller Grund zum Anlegen |
-| ⚙ | Einstellungen: Kalibrierung, Gerätekante, laufender Stand |
-| Lineal / Lehre / Winkel | Ansicht wechseln; die zuletzt benutzte kommt beim nächsten Start wieder |
-| Nullpunkt und Einstellungen | nur in der Linealansicht, im Winkelmesser ausgeblendet |
-| Nullen / Fläche merken | aktuelle Lage zur Null bzw. zur Bezugsfläche machen; nochmal drücken hebt sie auf |
-| Halten / Tippen auf die Skala | Messwert einfrieren und wieder lösen |
-| Kante / Fläche | Messart des Winkelmessers |
-
-An beiden Kanten steht dieselbe **Zentimeterteilung** mit Millimeterstrichen –
-so lässt sich von jeder Seite anlegen. Die Messmarke nennt den Wert in
-Zentimetern.
-
-Das Lineal läuft entlang der längeren Bildschirmkante und folgt der
-Geräteausrichtung.
-
-Der Knopf in der Kopfzeile schaltet den **Nullpunkt** weiter, von einer Kante
-zur anderen:
-
-| Lage | Null liegt |
-| --- | --- |
-| oben, an der Gerätekante | an der Oberkante des Geräts, außerhalb des Bildschirms |
-| oben, am Bildschirmrand | am ersten Bildpunkt |
-| oben, 1 cm vom Rand | einen Zentimeter innerhalb des Bildschirmrands |
-| mittig | in der Bildschirmmitte, zählt nach beiden Seiten |
-| unten, 1 cm vom Rand | einen Zentimeter innerhalb der Unterkante |
-| unten, am Bildschirmrand | am letzten Bildpunkt |
-| unten, an der Gerätekante | an der Unterkante des Geräts |
-
-Eine Gerätekante erscheint nur, wenn ihr Rand vermessen ist – oben und unten
-unabhängig voneinander. Der Knopf zeigt als Pfeil, wo die Null sitzt und wohin
-gezählt wird (↓ ↑ ↕, im Querformat → ← ↔), dazu `K` für Gerätekante und `1`
-für den Zentimeter Abstand. Beim Wechseln wird die Lage kurz ausgeschrieben.
-
-Liegt die Null im sichtbaren Bereich, wird sie als durchgezogene Linie quer
-über den Bildschirm gezeichnet und an beiden Skalen groß beschriftet – daran
-wird angelegt. Die Messmarke ist gestrichelt, so sind beide
-auseinanderzuhalten.
-
-Die Marke sitzt an einer **Stelle des Bildschirms**, nicht bei einem Wert:
-Wechselt der Nullpunkt, bleibt sie liegen und ihre Zahl wandert. Nur so nützt
-das Umschalten etwas, wenn die Marke schon auf einem Merkmal des Werkstücks
-liegt – man legt sie einmal an und liest ab, was sie von der anderen Kante
-aus misst.
-
-Die Lagen *1 cm vom Rand* sind für Werkstücke gedacht, die sich nicht am
-Gehäuse anlegen lassen: Der Nullstrich liegt sichtbar auf dem Bildschirm, das
-Werkstück wird daran ausgerichtet. *Mittig* zählt nach beiden Seiten und hilft
-beim Mittigfinden. Während des Messens hält die App den Bildschirm wach
-(Wake-Lock, sofern vom Browser unterstützt).
-
-## Messlehre
-
-Die Lehre nutzt dasselbe, was das Lineal nutzt – den kalibrierten Maßstab –,
-nur als Vergleichsform statt als Skala. Drei Sätze, umschaltbar unter der
-Anzeige:
-
-| Satz | Form | Maße |
-| --- | --- | --- |
-| **Bohrer** | Schlitze | 1–16 mm in ganzen Schritten, mit Dübel und Schraube |
-| **Schraube** | Schlitze | metrisches Regelgewinde M3–M16, Schaftdurchmesser |
-| **Schlüssel** | Schlitze | Schlüsselweiten SW 1,5 – SW 24 |
-| **Sechskant** | Sechsecke | dieselben Weiten als Umriss zum Auflegen |
-| **Rohr mm** | Halbkreise | Kupfer nach EN 1057 (6–54 mm) und Verbund-/PE-Rohre (16–63 mm) |
-| **Rohr Zoll** | Halbkreise | Gewinderohre nach EN 10255 / DIN 2440, ⅛″ bis 3″ |
-
-Die Sätze passen nicht mehr nebeneinander auf ein Handy – die Leiste unter
-der Anzeige schiebt sich seitlich, statt umzubrechen, und rückt den gewählten
-Satz ins Bild.
-
-Beide Formen stehen als **Liste untereinander**, jedes Maß am linken
-Bildschirmrand; durchgeblättert wird durch **Scrollen**. Die Zeichenfläche
-wächst dafür mit dem Inhalt, gescrollt wird vom Browser. Getippt wird
-ausgewählt, gezogen wird gescrollt – unterschieden wird am zurückgelegten Weg.
-
-**Bohrer** werden waagerecht in einen nach links offenen Schlitz gelegt: zwei
-Striche mit genau dem lichten Abstand des Nenndurchmessers. Weil die Striche
-außerhalb dieses Abstands stehen, ist die lichte Weite auf den
-Zehntelmillimeter genau der Nennwert – passt der Bohrer ohne Luft und ohne
-Überstand hinein, stimmt das Maß.
-
-Halbe Millimeter gibt es bewusst nicht: Ein halber Millimeter sind auf dem
-Bildschirm nur ein paar Bildpunkte – so genau lässt sich ein Bohrer von Hand
-nicht anlegen, und eine Zahl vorzugaukeln, die nicht trägt, hilft niemandem.
-
-Wo ein Universaldübel dazugehört, steht er daneben: `6 mm · Dübel 6 ·
-Schraube 3,5–5` (Maße nach Fischer SX und Baugleichen). Am Bohrer ist die
-Frage selten „wie dick", sondern „was passt da rein" – und die stellt sich
-genau dann, wenn man ihn in der Hand hält. Die übrigen Maße bleiben ohne
-Nebenzeile, statt sie mit Ungefährem zu füllen.
-
-**Schrauben** werden über dem Gewinde am Schaft gemessen; das Gewinde selbst
-misst sich ein bis zwei Zehntel unter seinem Nennmaß. Neben jedem Maß stehen
-Kernloch und Schlüsselweite – die Frage am Werkzeugkasten ist ja meist nicht
-„wie dick", sondern „was brauche ich dafür". Die Schlüsselweiten folgen dem
-Sechskant nach DIN 934 (M10 → SW 17, M12 → SW 19); ISO 4032 führt dort 16 und
-18.
-
-**Schlüsselweiten** sind der Abstand der beiden Schlüsselflächen – genau das,
-was zwischen die Striche passt und was der Sechskant breit ist. Die Reihe
-fängt bei den Innensechskanten an (SW 1,5 nach DIN 912) und geht bis zu den
-großen Muttern (SW 24 nach DIN 934): Ein Inbusschlüssel ist selbst ein
-Sechskant, für ihn gilt dieselbe Lehre. Wozu eine Weite gehört, steht daneben
-– wo beides auf dieselbe Weite fällt, beides (SW 8 ist Mutter M5 und
-Inbus M10).
-
-Der **Sechskant** zeigt dieselben Weiten als Umriss: Mutter oder Schraubenkopf
-auflegen und drehen, bis er deckt. Das prüft beide Maße auf einmal –
-Schlüsselweite und Eckenmaß –, während ein Schlitz nur die Weite kennt und
-dafür parallel ausgerichtet sein will. Gezeichnet wird ab 30°, damit die
-beiden Flanken senkrecht stehen und die Breite des Umrisses genau die
-Schlüsselweite ist; die Höhe ist dann das Eckenmaß, also das 2/√3-fache.
-
-Bei den kleinen Weiten wird der Strich dünner: Ein 1,4 px breiter Strich wäre
-bei SW 1,5 ein knappes Fünftel des Maßes, dann ist nicht mehr zu sehen, was
-deckt. Die Beschriftung steht in einer festen Spalte, sonst wanderte sie mit
-jeder Zeile weiter nach rechts.
-
-**Rohre** werden an die Kante gehalten und mit einem **Halbkreis** verglichen,
-dessen Mittelpunkt auf ihr liegt – die andere Hälfte ragt über den Rand
-hinaus. Ausgerichtet wird an den beiden kurzen Strichen, die die Enden des
-Durchmessers markieren: liegen dort die weitesten Stellen des Rohrs, muss der
-Bogen mit seiner Außenkante zusammenfallen. Der Halbkreis braucht nur den
-halben Platz in der Breite – auch 3″ (88,9 mm) ist damit auf einem Handy
-darstellbar.
-
-Bei Rohren sind alle Maße **Außendurchmesser**. Bei Zollrohren ist die
-Zollangabe der Gewindename, nicht das Maß: ½″ hat 21,3 mm außen, 1″ hat
-33,7 mm. Die Anzeige oben links nennt deshalb beides.
-
-Auf schwarzem Grund ist ein dunkler Bohrer kaum vom Hintergrund zu
-unterscheiden – dafür gibt es den **hellen Grund** (siehe unten).
-
-Ein Tipp auf einen Schlitz oder Halbkreis hebt ihn hervor – nochmal tippen
-nimmt es zurück. Beim Satzwechsel fängt die Liste wieder oben an.
-
-## Winkelmesser
-
-Aus `beta` und `gamma` des Lagesensors wird die Richtung „oben" im
-Gerätesystem berechnet – die dritte Zeile der Drehmatrix Z-X'-Y'':
+Aus `beta` und `gamma` des Lagesensors wird die Richtung „oben“ im
+Gerätesystem berechnet (dritte Zeile der Drehmatrix Z-X'-Y''):
 
 ```
 ux = −cos(beta) · sin(gamma)
@@ -324,131 +351,32 @@ uz =  cos(beta) · cos(gamma)
 ```
 
 Senkrecht im Hochformat ergibt das (0, 1, 0), flach auf dem Tisch (0, 0, 1).
-Dreht das Betriebssystem die Ansicht ins Querformat, wird der Vektor um
-`screen.orientation.angle` mitgedreht – sonst zeigte die Skala im Querformat
-90° daneben. Dabei ist die Zählrichtung entscheidend: `screen.orientation.angle`
-zählt, um wie viel das **Bild** im Uhrzeigersinn gedreht ist, das alte
-`window.orientation` von iOS zählt andersherum und wird umgerechnet. Ein Tiefpass glättet das Zittern des Sensors.
+Daraus folgen beide Messarten: die Drehung in der Bildschirmebene als
+`atan2(−ux, uy)`, die Neigung der Auflagefläche als `acos(|uz|)`.
 
-Zwei Messarten, umschaltbar unter der Anzeige:
+Dreht das Betriebssystem die Ansicht mit, muss die Lage in dasselbe System
+gebracht werden. `screen.orientation.angle` zählt, um wie viel das **Bild** im
+Uhrzeigersinn gedreht ist; das alte `window.orientation` von iOS zählt
+andersherum und wird umgerechnet. Beide Fragen – die nach der Gerätekante und
+die nach dem Winkel – beantwortet `Scales.angle()`.
 
-| Messart | Hauptwert | darunter |
-| --- | --- | --- |
-| **Kante** | Drehung in der Bildschirmebene, `atan2(−ux, uy)` – Gerätekante anlegen | **Gefälle** oder, weiter von der Waagerechten, wie weit es noch bis 90° und bis 180° ist; dazu die **Kippung** |
-| **Fläche** | Neigung der Auflagefläche, `acos(|uz|)` – Gerät flach auflegen; mit gemerkter Bezugsfläche der Winkel zu dieser | **Längs** und **Quer**: die beiden Achsen einzeln |
+Für die gemerkte Bezugsfläche wird die kürzeste Drehung gesucht, die „oben“
+der Bezugsfläche auf die Senkrechte bringt (Formel von Rodrigues); auf den so
+gekippten Vektor wirken Hauptwert und Libelle genauso wie sonst auf den
+ungedrehten.
 
-Das **Gefälle** steht unter der Gradzahl, sobald die Anzeige näher als 20° an
-der Waagerechten liegt: `2,0 % · 20 mm/m`. Das ist die Einheit, in der es auf
-dem Bau vorgegeben wird – Abwasser 2 %, Terrasse 2 %, Dachrinne 3 mm/m –, und
-Grad hilft dort niemandem. Gerechnet wird der Tangens der Abweichung von der
-Waagerechten; im Kantenmodus zählt auch die Nähe zur gestreckten Lage, denn
-ein andersherum angelegtes Rohr hat dasselbe Gefälle.
-
-Weiter von der Waagerechten sagt ein Prozentwert nichts mehr (68° wären
-247 %), dort steht stattdessen, wie weit es bis zum rechten und bis zum
-gestreckten Winkel ist. Jede der beiden Angaben erscheint genau dort, wo sie
-etwas bedeutet. Im Flächenmodus gilt dasselbe: nahe der Waagerechten das
-Gefälle, darüber Längs und Quer – wohin es kippt, zeigt ohnehin die Libelle.
-
-Die **Kippung** – wie weit der Bildschirm aus der Senkrechten kippt – steht als
-Zahl und als Bild da: das Gerät von der Seite gesehen, um seine Kippung
-geneigt, daneben ein gestricheltes Lot. Steht es senkrecht, decken sich beide.
-Über 45° wechselt die Farbe und es wird zum Aufrichten geraten, weil der
-Hauptwert dann ungenau wird.
-
-Angezeigt wird auf zwei Skalen: grob als Bogen mit 1°-Strichen, der wie ein Lot
-im Raum stehen bleibt, während der feste Zeiger oben den Wert abgreift. Die
-Zahlen darauf stehen immer lotrecht, unabhängig davon, wie weit die Teilung
-gedreht ist – bei gesetztem Nullpunkt dreht sie nach dem Gerätewinkel, die
-Beschriftung wird dann entsprechend zurückgedreht – im
-Flächenmodus stattdessen als Dosenlibelle. Deren Bereich richtet sich nach der
-Abweichung – 10°, 30° oder 90°, mit Ringen bei einem Fünftel, der Hälfte und
-am Rand –, sonst klebte die Blase beim Messen gegen eine Bezugsfläche dauernd
-außen. Kleiner wird der Bereich erst ein Stück innerhalb der nächsten Stufe,
-damit er nicht an der Grenze hin und her springt. Die
-Null und jeder Viertelkreis darauf (45°, 90°, 135°, 180°) stehen mit längerem
-Strich und größerer Zahl da und werden immer beschriftet, auch wenn die
-übrige Teilung gerade in Zehnerschritten zählt.
-
-Der Bogen zeigt nur einen Ausschnitt von ± 25°. Das ist Absicht: Bei einem
-Vollkreis begrenzt die Bildschirmbreite den Halbmesser, die Gradstriche
-rücken eng zusammen. Ein Ausschnitt darf einen mehr als doppelt so großen
-Halbmesser haben – die Teilung wird entsprechend feiner, und was darüber
-hinausgeht, wandert beim Kippen ins Bild.
-
-Fein als Bandskala darunter. Sie hat **alle 45° eine Null** und zählt von dort
-nach beiden Seiten, in Viertelgrad-Schritten. Gebraucht wird ohnehin nur der
-Bereich um die jeweilige Null: Dort steht die feine Teilung mit Zahlen, weiter
-außen bleiben nur die Gradstriche und werden schwächer. Zwischen zwei Nullen
-sieht man deshalb bloß noch eine gleichmäßige Strichfolge – und weiß sofort,
-dass keine Marke in der Nähe ist.
-
-Steht die Anzeige auf einer **45er-Marke** – also waagerecht, senkrecht oder
-im Winkel dazwischen –, gibt das Gerät einen kurzen Stups; die Null bekommt
-zwei, damit sie sich unterscheidet. Gemeldet wird beim Eintreten in ein
-Fenster von 0,3°, gelöst wird bei 1,2°. Wer das Gerät anlegt und den
-Bildschirm dabei nicht sieht, merkt so, wann es sitzt. Geräte ohne
-`navigator.vibrate` (iOS) lassen es still.
-
-**Halten** friert die Lage ein: Ring, Libelle, Bandskala und Anzeige stehen
-still, bis erneut gedrückt wird – gedacht für Stellen, an denen das Gerät
-angelegt werden muss, ohne dass man den Bildschirm dabei sieht. Ein Tipp auf
-die Skala selbst tut dasselbe, sie ist die größere Fläche. Während des Haltens
-ruht auch die Zeichenschleife.
-
-**Ohne Nullpunkt** misst der Winkelmesser gegen Waagerechte und Senkrechte.
-Das gilt in jeder Geräteausrichtung: Dreht das Betriebssystem die Ansicht mit,
-wird der Bildschirm zum Bezug, und ein an der Kante angelegtes Gerät zeigt
-hochkant wie quer dieselbe Abweichung.
-
-**Nullen** macht die aktuelle Lage zur Null, ohne jede Rundung – für Messungen
-gegen eine beliebige Bezugskante: anlegen, nullen, alles Weitere zählt von
-dort. Nochmal drücken hebt den Nullpunkt wieder auf.
-
-Nullpunkt und gemerkte Bezugsfläche überstehen ein Neuladen
-(`zollstock.protractor.v1`) – sie gehören zur laufenden Arbeit, und seit die
-App sich selbst nachlädt, wären sie sonst mitten im Messen weg. Dass sie
-gelten, ist an der Taste zu sehen, die dann „Zurücksetzen“ heißt. Der
-Haltezustand wird nicht gemerkt: einen eingefrorenen Messwert über einen
-Neustart zu retten, ergibt keinen Sinn.
-
-Ein so gesetzter Nullpunkt hängt am **Gerät**, nicht am Bildschirm. Wer gegen
-eine Kante nullt und das Gerät danach dreht, will den tatsächlichen Abstand zu
-dieser Kante sehen – auch dann, wenn das Betriebssystem zwischendurch die
-Ansicht ins Querformat dreht. Gerechnet wird dafür mit dem Winkel im
-Gerätesystem statt im Bildschirmsystem.
-
-Im **Flächenmodus** merkt sich dieselbe Taste – dort **Fläche merken** – die
-Bezugsfläche: Gerät auflegen, drücken, auf die zweite Fläche legen. Angezeigt
-wird dann der Winkel zwischen beiden Flächen, die Libelle und die Werte für
-Längs und Quer beziehen sich ebenfalls darauf, und das Fadenkreuz der Libelle
-steht in der Signalfarbe. Zusammen mit **Halten** lassen sich auch Flächen
-merken, an denen man den Bildschirm nicht sieht: erst halten, dann merken.
-
-Gerechnet wird mit der kürzesten Drehung, die „oben" der Bezugsfläche auf die
-Senkrechte bringt (Formel von Rodrigues); auf den so gekippten Vektor wirken
-Hauptwert und Libelle genauso wie sonst auf den ungedrehten. Der Lagesensor
-kennt nur die Richtung der Schwerkraft, nicht die Himmelsrichtung – gemessen
-wird deshalb der Winkel, um den das Gerät zwischen beiden Auflagen gekippt
-wurde. Solange es dabei nicht um die Senkrechte gedreht wird, ist das genau
-der Winkel zwischen den Flächen.
-
-Auf iOS muss der Zugriff auf den Lagesensor einmal bestätigt werden
-(`DeviceOrientationEvent.requestPermission`); dafür erscheint eine
-Schaltfläche. Fehlt der Sensor ganz, sagt die App das und bleibt bei 0°.
-
-## Aufbau
+### Aufbau
 
 ```
 index.html              Gerüst aller Ansichten
-css/style.css           Darstellung
+css/style.css           Darstellung, heller und dunkler Grund
 js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
 js/check.js             Maßstabsprobe an der Karte
-js/scales.js            Skalenteilung und Lage des Nullpunkts
+js/scales.js            Skalenteilung, Lage des Nullpunkts, Bildschirmdrehung
 js/edge.js              Randversatz, je Wert für Ober- und Unterkante
 js/ruler.js             Lineal (Canvas)
-js/gauge.js             Messlehre für Bohrer und Rohre
+js/gauge.js             Messlehre für Bohrer, Schrauben und Rohre
 js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
 sw.js                   Offline-Cache
@@ -457,7 +385,11 @@ scripts/make-icons.js   erzeugt die PNG-Icons (node scripts/make-icons.js)
 tests/                  Prüfstrecke – gehört nicht zur App
 ```
 
-## Prüfstrecke
+Kein Build, keine Abhängigkeiten. Die Zeichenflächen holen ihre Farben zur
+Laufzeit aus dem Stylesheet, ein Neuzeichnen genügt deshalb beim Wechsel des
+Grundes.
+
+### Prüfstrecke
 
 ```bash
 cd tests
@@ -469,7 +401,8 @@ Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
 reicht, ob Gemerktes ein Neuladen übersteht. 58 Behauptungen in sechzehn
-Prüfungen; ein Teilwort als Argument läuft nur die passenden (`npm test lehre`).
+Prüfungen; ein Teilwort als Argument läuft nur die passenden
+(`npm test lehre`).
 
 Gemessen wird in den Bildpunkten der Zeichenfläche – über die Schwerpunkte der
 gezeichneten Striche, weil die gegen Kantenglättung unempfindlich sind. Der
@@ -482,53 +415,55 @@ Abhängigkeiten bleibt. Gefunden wird der Browser über `CHROME_PATH`, über
 `PLAYWRIGHT_BROWSERS_PATH` oder an den üblichen Orten; sonst hilft
 `npx playwright install chromium`.
 
-**Was sie nicht kann:** Sie sieht nicht, dass „Nicht stören" das Vibrieren
-abwürgt, ob 425 ppi für dieses Display stimmen oder ob ein Bohrer wirklich in
-den Schlitz passt. Sie prüft Rechnung und Anordnung, nicht die Physik – das
-Handy bleibt die letzte Instanz.
+**Was sie nicht kann:** Sie sieht nicht, dass „Nicht stören“ das Vibrieren
+abwürgt, ob die Pixeldichte für dieses Display stimmt oder ob ein Bohrer
+wirklich in den Schlitz passt. Sie prüft Rechnung und Anordnung, nicht die
+Physik – das Handy bleibt die letzte Instanz.
 
-## Lokal starten
+### Lokal starten
 
 ```bash
 python3 -m http.server 8000
 # http://localhost:8000
 ```
 
-Ein Service Worker wird nur über HTTPS oder auf `localhost` registriert.
+Ein Server ist nötig: Über `file://` gibt es weder `localStorage` noch einen
+Service Worker.
 
-Die App liefert ihre Dateien aus dem Cache aus – anders ginge Offline-Betrieb
-nicht. Nach einem Deploy fällt dem Browser beim Öffnen auf, dass `sw.js` sich
-geändert hat; er lädt den neuen Stand in einen Cache mit dem neuen Namen und
-die App blendet „Neue Version – tippen zum Laden" ein. Eine installierte App,
-die nur aus dem Hintergrund geholt wird, prüft beim Sichtbarwerden selbst
-nach.
+### Veröffentlichen
 
-## Veröffentlichen
+`.github/workflows/deploy.yml` spiegelt den Stand des `main`-Branches per SFTP
+auf einen Webspace – Einrichtung und Secrets stehen in
+[DEPLOYMENT.md](DEPLOYMENT.md). `tests/` und `docs/` bleiben dabei außen vor.
 
-Die App wird per SFTP aus GitHub auf den Webspace gespiegelt – der Workflow
-liegt unter `.github/workflows/deploy.yml`. Einrichtung, Secrets und der
-Umgang mit Hostschlüsseln stehen in **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+Der Deploy stempelt den Commit in den Service Worker und in die Seite. Unten
+in den Einstellungen steht er als **Stand:** – damit lässt sich feststellen,
+welche Fassung wirklich läuft, statt es zu vermuten. Ohne Deploy steht dort
+`lokal`.
 
-Alternativ als GitHub Pages: *Settings → Pages → Source: Deploy from a branch*,
-Branch wählen, Ordner `/ (root)`. Alle Pfade sind relativ, die App läuft daher
-auch in einem Unterverzeichnis.
+Eine neue Fassung lädt sich selbst nach, sobald sie übernommen hat und gerade
+niemand hinsieht: beim Weglegen, damit sie beim nächsten Hinsehen da ist.
+Solange die App im Bild ist, bleibt es beim antippbaren Hinweis, damit
+niemandem mitten in der Messung der Bildschirm wegspringt.
 
-## Stand
+Genauso gut läuft die App über GitHub Pages: Settings → Pages, Branch wählen,
+Ordner `/ (root)`. Alle Pfade sind relativ.
+
+### Stand
 
 - [x] Lineal in Originalgröße, Zentimeterteilung an beiden Kanten
 - [x] Bildschirmerkennung und Kalibrierung, Maßstabsprobe an der Karte
 - [x] Randversatz je Wert für Ober- und Unterkante
 - [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten, Sechskant und Rohre
-- [x] Heller Grund zum Anlegen dunkler Teile
-- [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste
+- [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten
 - [x] Gefälle in Prozent und mm/m nahe der Waagerechten
-- [x] Drehsperre für den Bildschirm
+- [x] Drehsperre und heller Grund
 - [x] Offline-Betrieb, installierbar, lädt neue Fassungen selbst nach
 - [x] Prüfstrecke unter `tests/`
 
 ## Lizenz
 
-Zollstock steht unter der [MIT-Lizenz](LICENSE).
+[MIT](LICENSE)
 
 Fremder Code ist nicht enthalten: keine Bibliotheken, kein Build-Schritt, die
 Icons erzeugt `scripts/make-icons.js` selbst.

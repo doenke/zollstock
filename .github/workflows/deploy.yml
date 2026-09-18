@@ -194,6 +194,7 @@ jobs:
                    --exclude '^\.github/' \
                    --exclude '^\.gitignore$' \
                    --exclude '^tests/' \
+                   --exclude '^docs/' \
                    ./ \"$REMOTE_DIR\";
           "
 
