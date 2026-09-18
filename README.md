@@ -404,34 +404,17 @@ Grundes.
 
 ### Prüfstrecke
 
+Unter `tests/` liegt eine Prüfstrecke, die nachrechnet, was sich nachrechnen
+lässt: lichte Weiten, Lage der Null, die Umrechnungen des Winkelmessers.
+
 ```bash
 cd tests
 npm install
 npm test
 ```
 
-Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
-Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
-Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
-reicht, ob Gemerktes ein Neuladen übersteht. 58 Behauptungen in sechzehn
-Prüfungen; ein Teilwort als Argument läuft nur die passenden
-(`npm test lehre`).
-
-Gemessen wird in den Bildpunkten der Zeichenfläche – über die Schwerpunkte der
-gezeichneten Striche, weil die gegen Kantenglättung unempfindlich sind. Der
-Maßstab wird dafür fest auf 5,5 px/mm gesetzt, damit die Erwartungswerte nicht
-am erkannten Gerät hängen.
-
-Die Prüfstrecke braucht `playwright-core` und einen Chromium. Ihre
-`package.json` liegt in `tests/`, damit das Projekt selbst ohne Build und ohne
-Abhängigkeiten bleibt. Gefunden wird der Browser über `CHROME_PATH`, über
-`PLAYWRIGHT_BROWSERS_PATH` oder an den üblichen Orten; sonst hilft
-`npx playwright install chromium`.
-
-**Was sie nicht kann:** Sie sieht nicht, dass „Nicht stören“ das Vibrieren
-abwürgt, ob die Pixeldichte für dieses Display stimmt oder ob ein Bohrer
-wirklich in den Schlitz passt. Sie prüft Rechnung und Anordnung, nicht die
-Physik – das Handy bleibt die letzte Instanz.
+Wie sie misst, was dazugehört und wo ihre Grenzen liegen, steht in
+[PRUEFSTRECKE.md](PRUEFSTRECKE.md).
 
 ### Aufspielen
 
