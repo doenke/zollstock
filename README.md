@@ -11,6 +11,14 @@ gehört.
 Kurz gesagt: Das Werkzeug, das du sowieso in der Tasche hast, weiß plötzlich,
 wie dick dieser Bohrer ist.
 
+**Einfach ausprobieren:** Unter
+[zollstock.kanonenwiese.de](https://zollstock.kanonenwiese.de) läuft eine
+Instanz, und wer mag, darf sie benutzen. **Kein Tracking, keine Werbung, kein
+Konto** – die App schickt nichts an irgendwen, sie lädt nur sich selbst. Eine
+Garantie, dass die Adresse für immer erreichbar bleibt, gibt es allerdings
+nicht: Wenn du dich darauf verlassen willst, stell dir die App mit ein paar
+Handgriffen selbst hin (siehe [Loslegen](#loslegen)).
+
 | Lineal | Messlehre | Winkelmesser |
 | --- | --- | --- |
 | ![Lineal mit Zentimeterteilung an beiden Kanten und gesetzter Messmarke](docs/lineal.png) | ![Bohrerlehre mit Schlitzen und Dübelangaben](docs/lehre.png) | ![Winkelmesser mit Bogenskala und Gefälle in Prozent](docs/winkel.png) |
@@ -35,6 +43,9 @@ wie dick dieser Bohrer ist.
   kaum zu beurteilen; ein Knopf macht die Fläche weiß.
 - **Wissen, wie genau es ist** – die App sagt dir, was sie erkannt hat, wie
   sicher sie ist, und lässt dich den Maßstab mit einer Karte nachprüfen.
+- **Für sich bleiben** – kein Tracking, keine Werbung, kein Konto, keine
+  fremden Server. Kalibrierung und Einstellungen liegen im Browser deines
+  Geräts, und dort bleiben sie auch.
 - **Offline dabeihaben** – Zollstock ist eine PWA, lässt sich zum
   Startbildschirm hinzufügen und braucht danach kein Netz mehr. Die zuletzt
   benutzte Ansicht ist beim nächsten Start wieder da.
@@ -53,8 +64,10 @@ Zollstock passt zu dir, wenn du ...
 ## Loslegen
 
 Zollstock ist eine einzelne statische Seite – kein Build, keine
-Abhängigkeiten, kein Konto. Du kopierst das Verzeichnis auf deinen Webspace
-und rufst die Adresse auf – mehr braucht es nicht.
+Abhängigkeiten, kein Konto. Entweder du nimmst
+[zollstock.kanonenwiese.de](https://zollstock.kanonenwiese.de), oder du
+kopierst dir das Verzeichnis auf deinen eigenen Webspace und rufst die
+Adresse auf – mehr braucht es nicht.
 
 1. **Seite öffnen.**
 2. **Zum Startbildschirm hinzufügen.** Als installierte App läuft Zollstock im
