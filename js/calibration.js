@@ -269,9 +269,7 @@ window.Calibration = (function () {
   return {
     init: init,
     open: open,
-    close: close,
     pxPerMm: pxPerMm,
-    ppi: ppi,
     apply: apply,
     detected: function () { return detected; },
     updateDetected: updateDetected,

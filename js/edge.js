@@ -66,6 +66,8 @@ window.Edge = (function () {
   function persist() {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      /* Ist der alte Stand übernommen, wird er nicht mehr gebraucht. */
+      localStorage.removeItem(OLD_KEY);
     } catch (err) {
       /* Privater Modus – gilt dann nur für diese Sitzung. */
     }
@@ -283,7 +285,6 @@ window.Edge = (function () {
     offsetOf: offsetOf,
     has: has,
     edgeAt: edgeAt,
-    sideName: sideName,
     close: function () { els.view.hidden = true; },
     onChange: function (fn) { listeners.push(fn); }
   };

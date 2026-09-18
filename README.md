@@ -1,8 +1,8 @@
 # Zollstock
 
 Statische PWA zum Messen: zeigt ein **Lineal in Originalgröße** auf dem Display,
-eine **Messlehre** für Bohrer und Rohre und einen **Winkelmesser**, der die Lage
-des Geräts ausliest.
+eine **Messlehre** für Bohrer, Schrauben und Rohre und einen **Winkelmesser**,
+der die Lage des Geräts ausliest.
 
 Kein Build, keine Abhängigkeiten, offline nutzbar.
 
@@ -214,6 +214,12 @@ Liegt die Null im sichtbaren Bereich, wird sie als durchgezogene Linie quer
 über den Bildschirm gezeichnet und an beiden Skalen groß beschriftet – daran
 wird angelegt. Die Messmarke ist gestrichelt, so sind beide
 auseinanderzuhalten.
+
+Die Marke sitzt an einer **Stelle des Bildschirms**, nicht bei einem Wert:
+Wechselt der Nullpunkt, bleibt sie liegen und ihre Zahl wandert. Nur so nützt
+das Umschalten etwas, wenn die Marke schon auf einem Merkmal des Werkstücks
+liegt – man legt sie einmal an und liest ab, was sie von der anderen Kante
+aus misst.
 
 Die Lagen *1 cm vom Rand* sind für Werkstücke gedacht, die sich nicht am
 Gehäuse anlegen lassen: Der Nullstrich liegt sichtbar auf dem Bildschirm, das
@@ -462,7 +468,7 @@ npm test
 Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
-reicht, ob Gemerktes ein Neuladen übersteht. 54 Behauptungen in fünfzehn
+reicht, ob Gemerktes ein Neuladen übersteht. 58 Behauptungen in sechzehn
 Prüfungen; ein Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 Gemessen wird in den Bildpunkten der Zeichenfläche – über die Schwerpunkte der
@@ -515,7 +521,10 @@ auch in einem Unterverzeichnis.
 - [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten, Sechskant und Rohre
 - [x] Heller Grund zum Anlegen dunkler Teile
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten, Haltetaste
-- [x] Offline-Betrieb, installierbar
+- [x] Gefälle in Prozent und mm/m nahe der Waagerechten
+- [x] Drehsperre für den Bildschirm
+- [x] Offline-Betrieb, installierbar, lädt neue Fassungen selbst nach
+- [x] Prüfstrecke unter `tests/`
 
 ## Lizenz
 

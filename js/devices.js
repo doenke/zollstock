@@ -231,7 +231,6 @@ window.Devices = (function () {
   return {
     detect: detect,
     refine: refine,
-    screenInfo: screenInfo,
     MM_PER_INCH: MM_PER_INCH
   };
 })();

@@ -99,6 +99,55 @@ async function linealNullpunkte(page, t) {
   }
 }
 
+/* Die Marke sitzt an einer Stelle des Bildschirms, nicht bei einem Wert:
+ * Beim Wechsel des Nullpunkts bleibt sie liegen und ihre Zahl wandert. */
+async function linealMarke(page, t) {
+  await page.evaluate(function () {
+    localStorage.setItem('zollstock.scales.v1', JSON.stringify({ zero: 'top' }));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(120);
+
+  const y = 300;
+  await page.mouse.click(BREITE / 2, y);
+  await page.waitForTimeout(100);
+
+  const ort = function () {
+    return page.evaluate(function () {
+      const c = document.getElementById('ruler-canvas');
+      const g = c.getContext('2d');
+      const dpr = window.devicePixelRatio;
+      /* Die Marke ist gestrichelt – ihre Zeile hat Lücken, die durchgezogene
+       * Nulllinie hat keine. */
+      for (let y = 0; y < c.height; y++) {
+        const d = g.getImageData(0, y, c.width, 1).data;
+        let treffer = 0, luecken = 0, vorher = false;
+        for (let x = 0; x < c.width; x++) {
+          const da = d[x * 4 + 3] > 120 && d[x * 4] > 180 && d[x * 4 + 2] < 110;
+          if (da) treffer++;
+          if (!da && vorher) luecken++;
+          vorher = da;
+        }
+        if (treffer > c.width / 4 && luecken > 8) return y / dpr;
+      }
+      return -1;
+    });
+  };
+
+  const vorher = await ort();
+  const wert = zahl(await page.textContent('#readout-main'));
+  t.nahe(vorher, y, 2, 'Marke liegt, wo getippt wurde');
+  t.nahe(wert * 10, y / PX_PER_MM, 0.6, 'und zeigt den Wert dieser Stelle');
+
+  /* Nullpunkt auf "1 cm vom Rand" weiterschalten. */
+  await page.click('#btn-zeropoint');
+  await page.waitForTimeout(200);
+
+  t.nahe(await ort(), y, 2, 'Marke bleibt beim Nullpunktwechsel liegen');
+  t.nahe(zahl(await page.textContent('#readout-main')) * 10, y / PX_PER_MM - 10, 0.6,
+    'ihre Zahl wandert um den neuen Bezug');
+}
+
 /* Welche Gerätekante an welchem Ende des Lineals liegt, hängt an der Drehung
  * des Bildes. Bei 180° und 270° liegt dort die Unterkante – sonst rechnet die
  * Skala mit dem Rand der falschen Kante. */
@@ -531,6 +580,7 @@ module.exports = {
   pruefungen: [
     { name: 'Lineal: Nullpunkte', lauf: linealNullpunkte },
     { name: 'Lineal: Kante beim Drehen', lauf: linealDrehung },
+    { name: 'Lineal: Marke beim Nullpunktwechsel', lauf: linealMarke },
     { name: 'Lehre: Schlitze', lauf: schlitze },
     { name: 'Lehre: Bohrerzeilen', lauf: bohrerZeilen },
     { name: 'Lehre: Sechskante', lauf: sechskante },

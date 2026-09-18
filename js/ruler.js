@@ -4,7 +4,11 @@ window.Ruler = (function () {
   'use strict';
 
   var canvas, ctx, readout, readoutMain, hint;
-  var markerMm = null;
+  /* Die Marke sitzt an einer Stelle des Bildschirms, nicht bei einem Wert:
+   * gespeichert wird ihr Abstand vom Anfang des Lineals. Wechselt der
+   * Nullpunkt, bleibt sie also liegen und ihre Zahl wandert – nur so nützt
+   * das Umschalten etwas, wenn die Marke schon auf einem Merkmal liegt. */
+  var markerAt = null;
   var dragging = false;
   var frame = null;
   var GRAB_PX = 28;         /* Fassbereich um die Marke */
@@ -76,8 +80,9 @@ window.Ruler = (function () {
       : { px: geometry.length - inset * pxPerMm, sign: -1, mirrored: false };
   }
 
-  function alongOf(mm) {
-    return geometry.zero.px + geometry.zero.sign * mm * window.Calibration.pxPerMm();
+  /* Wo die Marke gerade liegt, in Bildpunkten. */
+  function markerAlong() {
+    return markerAt * window.Calibration.pxPerMm();
   }
 
   function mmOf(along) {
@@ -197,9 +202,9 @@ window.Ruler = (function () {
   }
 
   function drawMarker() {
-    if (markerMm === null) return;
+    if (markerAt === null) return;
 
-    var along = alongOf(markerMm);
+    var along = markerAlong();
     if (along < 0 || along > geometry.length) return;
 
     var accent = css('--accent');
@@ -244,18 +249,21 @@ window.Ruler = (function () {
 
     drawZeroLine();
     drawMarker();
+
+    /* Die Anzeige hängt am Nullpunkt, der hier gerade erst feststeht. */
+    updateReadout();
   }
 
   /* ---------- Anzeige der Messmarke ---------- */
 
   function updateReadout() {
-    if (markerMm === null) {
+    if (markerAt === null) {
       readout.hidden = true;
       return;
     }
 
     readout.hidden = false;
-    readoutMain.textContent = window.Scales.format(Math.abs(markerMm));
+    readoutMain.textContent = window.Scales.format(Math.abs(mmOf(markerAlong())));
   }
 
   /* ---------- Interaktion ---------- */
@@ -266,9 +274,8 @@ window.Ruler = (function () {
   }
 
   function setMarker(along) {
-    markerMm = mmOf(Math.max(0, Math.min(geometry.length, along)));
+    markerAt = Math.max(0, Math.min(geometry.length, along)) / window.Calibration.pxPerMm();
     hint.classList.add('is-hidden');
-    updateReadout();
     schedule();
   }
 
@@ -284,7 +291,7 @@ window.Ruler = (function () {
   function bindPointer() {
     canvas.addEventListener('pointerdown', function (event) {
       var along = alongFromEvent(event);
-      var handle = markerMm === null ? null : alongOf(markerMm);
+      var handle = markerAt === null ? null : markerAlong();
 
       dragging = true;
       canvas.setPointerCapture(event.pointerId);
@@ -319,14 +326,12 @@ window.Ruler = (function () {
   }
 
   function refresh() {
-    updateReadout();
     draw();
   }
 
   return {
     init: init,
     draw: draw,
-    refresh: refresh,
-    clearMarker: function () { markerMm = null; refresh(); }
+    refresh: refresh
   };
 })();
