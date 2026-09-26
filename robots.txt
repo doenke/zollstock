@@ -1,0 +1,51 @@
+# Zollstock soll nicht in Suchergebnissen auftauchen.
+#
+# Dafür steht in jeder Seite ein <meta name="robots" content="noindex">.
+# Damit eine Suchmaschine das lesen kann, muss sie die Seiten auch abrufen
+# dürfen – ein pauschales "Disallow: /" würde genau das verhindern und die
+# nackte Adresse trotzdem im Index landen lassen. Suchmaschinen dürfen also
+# herkommen und bekommen dann das noindex zu sehen.
+
+User-agent: *
+Allow: /
+Disallow: /tests/
+Disallow: /docs/
+
+# Crawler, die Inhalte zum Trainieren einsammeln, lesen kein noindex.
+# Die bleiben komplett draußen.
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /

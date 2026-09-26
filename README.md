@@ -14,7 +14,9 @@ wie dick dieser Bohrer ist.
 **Einfach ausprobieren:** Unter
 [zollstock.kanonenwiese.de](https://zollstock.kanonenwiese.de) läuft eine
 Instanz, und wer mag, darf sie benutzen. **Kein Tracking, keine Werbung, kein
-Konto** – die App schickt nichts an irgendwen, sie lädt nur sich selbst. Eine
+Konto** – die App schickt nichts an irgendwen, sie lädt nur sich selbst; was
+das im Einzelnen heißt, steht in der
+[Datenschutzerklärung](https://zollstock.kanonenwiese.de/datenschutz.html). Eine
 Garantie, dass die Adresse für immer erreichbar bleibt, gibt es allerdings
 nicht: Wenn du dich darauf verlassen willst, stell dir die App mit ein paar
 Handgriffen selbst hin (siehe [Loslegen](#loslegen)).
@@ -382,7 +384,11 @@ ungedrehten.
 
 ```
 index.html              Gerüst aller Ansichten
+kontakt.html            Kontaktseite
+datenschutz.html        Datenschutzerklärung
+robots.txt              hält Suchmaschinen und Sammler fern
 css/style.css           Darstellung, heller und dunkler Grund
+css/seite.css           Darstellung der beiden Textseiten
 js/devices.js           Bildschirmerkennung, Gerätetabellen
 js/calibration.js       Kalibrierung inkl. Vollbild-Kartenabgleich
 js/check.js             Maßstabsprobe an der Karte
@@ -392,6 +398,7 @@ js/ruler.js             Lineal (Canvas)
 js/gauge.js             Messlehre für Bohrer, Schrauben und Rohre
 js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
+js/seite.js             Grundfarbe und Adresse der Textseiten
 sw.js                   Offline-Cache
 manifest.webmanifest    PWA-Manifest
 scripts/make-icons.js   erzeugt die PNG-Icons (node scripts/make-icons.js)
@@ -422,6 +429,10 @@ Das Verzeichnis auf den eigenen Webspace kopieren, fertig. Alle Pfade sind
 relativ, es läuft also in jedem Unterordner. `tests/` und `docs/` gehören
 nicht dazu – sie werden im Betrieb nicht gebraucht.
 
+Eine Sache musst du dabei anfassen: In `kontakt.html` und `datenschutz.html`
+stehe ich als Verantwortlicher. Stellst du die App öffentlich hin, gehört dort
+dein Name hin, nicht meiner.
+
 Eine neue Fassung lädt sich selbst nach, sobald sie übernommen hat und gerade
 niemand hinsieht: beim Weglegen, damit sie beim nächsten Hinsehen da ist.
 Solange die App im Bild ist, bleibt es beim antippbaren Hinweis, damit
@@ -429,6 +440,23 @@ niemandem mitten in der Messung der Bildschirm wegspringt.
 
 Welche Fassung wirklich läuft, steht unten in den Einstellungen als
 **Stand:** – damit lässt es sich feststellen, statt es zu vermuten.
+
+### Nicht im Index
+
+Zollstock soll nicht über Suchmaschinen gefunden werden. Dafür steht in jeder
+Seite ein `noindex, nofollow`, und `robots.txt` regelt den Rest.
+
+Beides zusammen ist Absicht und kein Versehen: Ein pauschales `Disallow: /`
+allein hilft nicht. Eine Suchmaschine, die nicht herkommen darf, liest auch das
+`noindex` nicht – und wenn die Adresse woanders verlinkt ist (zum Beispiel
+hier), landet sie trotzdem nackt im Index. Suchmaschinen dürfen deshalb
+abrufen und bekommen dann das `noindex` zu sehen; das nimmt die Seite
+zuverlässig heraus. Crawler dagegen, die Inhalte zum Trainieren einsammeln,
+lesen kein `noindex` – die sperrt `robots.txt` namentlich aus.
+
+Sicher ist das nicht, sondern höflich: Wer sich nicht an `robots.txt` hält,
+hält sich nicht daran. Was wirklich nicht ins Netz soll, gehört hinter ein
+Passwort, nicht hinter eine Bitte.
 
 ### Stand
 
@@ -440,6 +468,7 @@ Welche Fassung wirklich läuft, steht unten in den Einstellungen als
 - [x] Gefälle in Prozent und mm/m nahe der Waagerechten
 - [x] Drehsperre und heller Grund
 - [x] Offline-Betrieb, installierbar, lädt neue Fassungen selbst nach
+- [x] Kontakt und Datenschutz, noindex und robots.txt
 - [x] Prüfstrecke unter `tests/`
 
 ## Lizenz

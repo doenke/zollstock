@@ -5,7 +5,11 @@ const CACHE = `zollstock-${VERSION}`;
 const ASSETS = [
   './',
   './index.html',
+  './kontakt.html',
+  './datenschutz.html',
   './css/style.css',
+  './css/seite.css',
+  './js/seite.js',
   './js/devices.js',
   './js/calibration.js',
   './js/check.js',

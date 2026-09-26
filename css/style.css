@@ -169,6 +169,17 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
   color: var(--accent);
 }
 
+.legal {
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.legal a { color: var(--text-dim); }
+
 .build {
   margin: 4px 0 0;
   text-align: center;
