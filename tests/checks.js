@@ -913,6 +913,55 @@ async function lupeLichtImStandbild(page, t) {
   t.gleich(await page.getAttribute('#btn-torch', 'aria-pressed'), 'true', 'und der Schalter zeigt es');
 }
 
+/* Kontrast gilt für das laufende Bild und das Standbild, Relief nur für das
+ * Standbild. Relief macht das Bild grau und verändert es – und beim
+ * Ausschalten muss genau das Original zurückkommen, nicht eine Näherung. */
+async function lupeKontrast(page, t) {
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(700);
+
+  const filter = function (id) {
+    return page.evaluate(function (i) { return document.getElementById(i).style.filter; }, id);
+  };
+  const fingerabdruck = function () {
+    return page.evaluate(function () {
+      const c = document.getElementById('loupe-still');
+      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      let h = 0, grau = true;
+      for (let i = 0; i < d.length; i += 4 * 997) {
+        h = (h * 31 + d[i] + d[i + 1] * 7 + d[i + 2] * 13) >>> 0;
+        if (d[i] !== d[i + 1] || d[i + 1] !== d[i + 2]) grau = false;
+      }
+      return { h: h, grau: grau };
+    });
+  };
+
+  t.gleich(await page.isVisible('#btn-relief'), false, 'Relief gibt es im laufenden Bild nicht');
+
+  await page.click('#btn-contrast');
+  t.ok((await filter('loupe-video')).indexOf('contrast') >= 0, 'Kontrast wirkt auf das laufende Bild');
+  t.gleich(await page.getAttribute('#btn-contrast', 'aria-pressed'), 'true', 'und der Knopf zeigt es');
+
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(200);
+  t.ok((await filter('loupe-still')).indexOf('contrast') >= 0, 'und auf das Standbild');
+  t.gleich(await page.isVisible('#btn-relief'), true, 'im Standbild steht Relief da');
+
+  const original = await fingerabdruck();
+  await page.click('#btn-relief');
+  const relief = await fingerabdruck();
+  t.ok(relief.grau && relief.h !== original.h, 'Relief rechnet das Standbild grau um');
+
+  await page.click('#btn-relief');
+  t.gleich((await fingerabdruck()).h, original.h, 'ausgeschaltet kommt genau das Original zurück');
+
+  await page.click('#btn-relief');
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(150);
+  t.gleich(await page.isVisible('#btn-relief'), false, 'mit „Weiter“ verschwindet Relief');
+  t.ok((await filter('loupe-video')).indexOf('contrast') >= 0, 'Kontrast bleibt an');
+}
+
 /* ---------- Werkzeugwahl ---------- */
 
 /* Die Pille zeigt, wo man ist, und führt zur Auswahl. Jede Karte öffnet ihr
@@ -1030,6 +1079,7 @@ module.exports = {
     { name: 'Lupe: Objektive', lauf: lupeObjektive },
     { name: 'Lupe: Licht', lauf: lupeLicht },
     { name: 'Lupe: Licht im Standbild', lauf: lupeLichtImStandbild },
+    { name: 'Lupe: Kontrast und Relief', lauf: lupeKontrast },
     { name: 'Werkzeugwahl', lauf: werkzeugwahl },
     { name: 'Werkzeugwahl: Platz in der Kopfzeile', lauf: kopfzeilePlatz },
     { name: 'Werkzeugwahl: erster Start', lauf: ersterStart }

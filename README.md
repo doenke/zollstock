@@ -46,7 +46,8 @@ Handgriffen selbst hin (siehe [Loslegen](#loslegen)).
 - **Lesen, was zu klein ist** – die Lupe nimmt die Kamera, vergrößert bis
   achtfach und hält auf Knopfdruck ein Standbild fest. Für die eingeprägte
   Zahl auf dem Bohrer, die Schlüsselweite auf der Mutter, das Typenschild
-  hinter der Waschmaschine.
+  hinter der Waschmaschine. Kontrast und Relief holen auch flache Prägungen
+  hervor.
 - **Wissen, wie genau es ist** – die App sagt dir, was sie erkannt hat, wie
   sicher sie ist, und lässt dich den Maßstab mit einer Karte nachprüfen.
 - **Für sich bleiben** – kein Tracking, keine Werbung, kein Konto, keine
@@ -303,6 +304,14 @@ nichts zu wählen und die Auswahl erscheint nicht. Ein Tele stellt auf kurze
 Entfernung meist nicht scharf; für Dinge weiter weg ist es trotzdem die
 bessere Wahl.
 
+**Kontrast** macht das Bild grau und steiler, im laufenden Bild wie im
+Standbild. Eingeprägte Zahlen haben kaum Farbe; sie bestehen nur aus Licht
+und Schatten an winzigen Kanten, und die treten so deutlicher hervor. Im
+Standbild gibt es zusätzlich **Relief**: Es betont Kanten schräg von oben
+links nach unten rechts, sodass eine Prägung plastisch heraussteht. Das Korn
+des Sensors wird vorher leicht weichgezeichnet, damit es nicht mit verstärkt
+wird. Ausgeschaltet ist das Standbild wieder genau wie vorher.
+
 **Licht** schaltet die Taschenlampe. Eine eingeprägte Zahl liest man ohne
 Streiflicht oft gar nicht. Die Lampe gehört zu einer bestimmten Kamera, oft
 nur zur Hauptkamera. Meldet die offene Kamera keine, ist der Knopf blasser;
@@ -538,7 +547,7 @@ Passwort, nicht hinter eine Bitte.
 - [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten, Sechskant und Rohre
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten
 - [x] Gefälle in Prozent und mm/m nahe der Waagerechten
-- [x] Lupe mit Kamera, Objektivwahl, Standbild und Licht
+- [x] Lupe mit Kamera, Objektivwahl, Standbild, Licht, Kontrast und Relief
 - [x] Drehsperre und heller Grund
 - [x] Offline-Betrieb, installierbar, lädt neue Fassungen selbst nach
 - [x] Kontakt und Datenschutz, noindex und robots.txt

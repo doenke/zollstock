@@ -20,6 +20,17 @@ window.Loupe = (function () {
   var frozen = false;
   var torchOn = false;
   var lightBefore = false;  /* brannte das Licht vor dem Einfrieren? */
+
+  /* Eingeprägte Zahlen haben kaum Farbe und kaum Kontrast – sie bestehen nur
+   * aus Licht und Schatten an winzigen Kanten. Kontrast macht das Bild grau
+   * und steiler, im laufenden Bild wie im Standbild; das rechnet die
+   * Grafikkarte, es kostet nichts. Relief gibt es nur im Standbild: Es
+   * betont Kanten in einer Richtung, sodass Prägungen plastisch hervortreten.
+   * Beides nur für die Anzeige, im Gerät. */
+  var CONTRAST = 'grayscale(1) contrast(1.9) brightness(1.05)';
+  var contrastOn = false;
+  var reliefOn = false;
+  var stillData = null;     /* das Standbild ohne Relief, zum Zurückschalten */
   var hintDone = false;   /* der Hinweis hat seinen Dienst getan */
   var noticeTimer = null;
 
@@ -145,6 +156,12 @@ window.Loupe = (function () {
     els.torch.classList.toggle('is-on', torchOn);
     els.torch.classList.toggle('is-unsure', !capability('torch'));
     els.torch.setAttribute('aria-pressed', torchOn ? 'true' : 'false');
+
+    els.contrast.classList.toggle('is-on', contrastOn);
+    els.contrast.setAttribute('aria-pressed', contrastOn ? 'true' : 'false');
+    els.relief.hidden = !frozen;
+    els.relief.classList.toggle('is-on', reliefOn);
+    els.relief.setAttribute('aria-pressed', reliefOn ? 'true' : 'false');
 
     showLenses();
   }
@@ -288,6 +305,108 @@ window.Loupe = (function () {
     return Math.round(value * 1000) / 1000;
   }
 
+  /* ---------- Kontrast und Relief ---------- */
+
+  function setContrast(on) {
+    contrastOn = on;
+    els.video.style.filter = on ? CONTRAST : '';
+    els.still.style.filter = on ? CONTRAST : '';
+    showTools();
+  }
+
+  /* Relief: Helligkeit plus Gefälle schräg von links oben nach rechts unten,
+   * der klassische Prägestempel-Filter
+   *
+   *   -2 -1  0
+   *   -1  1  1
+   *    0  1  2
+   *
+   * Die Summe ist 1, das Bild bleibt also erkennbar; Kanten bekommen eine
+   * helle und eine dunkle Seite. Danach wird gestreckt: Was zwischen dem
+   * hellsten und dunkelsten Hundertstel liegt, füllt den ganzen Bereich. */
+  function relief(src, w, h) {
+    var s = src.data;
+    var n = w * h;
+    var lum = new Float32Array(n);
+    var val = new Float32Array(n);
+    var i, x, y, p;
+
+    for (i = 0, p = 0; i < n; i++, p += 4) {
+      lum[i] = 0.299 * s[p] + 0.587 * s[p + 1] + 0.114 * s[p + 2];
+    }
+
+    /* Erst leicht weichzeichnen (3 × 3, waagerecht und senkrecht getrennt):
+     * Der Filter verstärkt jede Kante, auch das Korn des Sensors und die
+     * Riefen im Metall. Eine Prägung ist breiter als ein Bildpunkt und
+     * übersteht das, das Korn nicht. */
+    for (y = 0; y < h; y++) {
+      for (x = 1; x < w - 1; x++) {
+        i = y * w + x;
+        val[i] = (lum[i - 1] + lum[i] + lum[i + 1]) / 3;
+      }
+    }
+    for (y = 1; y < h - 1; y++) {
+      for (x = 1; x < w - 1; x++) {
+        i = y * w + x;
+        lum[i] = (val[i - w] + val[i] + val[i + w]) / 3;
+      }
+    }
+
+    for (y = 0; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        i = y * w + x;
+        if (x === 0 || y === 0 || x === w - 1 || y === h - 1) {
+          val[i] = lum[i];
+          continue;
+        }
+        val[i] = lum[i] +
+          2 * (lum[i + w + 1] - lum[i - w - 1]) +
+          (lum[i + w] - lum[i - w]) +
+          (lum[i + 1] - lum[i - 1]);
+      }
+    }
+
+    /* Streckung über ein Histogramm – Werte von −1275 bis 1530 sind möglich,
+     * gezählt wird in ganzen Stufen. */
+    var OFF = 1275;
+    var hist = new Uint32Array(OFF + 1531);
+    for (i = 0; i < n; i++) hist[Math.max(0, Math.min(hist.length - 1, Math.round(val[i]) + OFF))]++;
+
+    var cut = n * 0.01;
+    var lo = 0, hi = hist.length - 1, sum = 0;
+    for (sum = 0; lo < hist.length && sum + hist[lo] <= cut; lo++) sum += hist[lo];
+    for (sum = 0; hi > 0 && sum + hist[hi] <= cut; hi--) sum += hist[hi];
+    lo -= OFF;
+    hi -= OFF;
+    var span = Math.max(1, hi - lo);
+
+    var out = new ImageData(w, h);
+    var o = out.data;
+    for (i = 0, p = 0; i < n; i++, p += 4) {
+      var v = (val[i] - lo) / span * 255;
+      v = v < 0 ? 0 : v > 255 ? 255 : v;
+      o[p] = o[p + 1] = o[p + 2] = v;
+      o[p + 3] = 255;
+    }
+    return out;
+  }
+
+  function setRelief(on) {
+    if (!frozen) return;
+
+    var ctx = els.still.getContext('2d');
+    var w = els.still.width;
+    var h = els.still.height;
+
+    /* Das Original wird erst beim ersten Einschalten aufgehoben – wer nie
+     * Relief will, zahlt auch nicht dafür. */
+    if (!stillData) stillData = ctx.getImageData(0, 0, w, h);
+
+    ctx.putImageData(on ? relief(stillData, w, h) : stillData, 0, 0);
+    reliefOn = on;
+    showTools();
+  }
+
   /* ---------- Standbild ---------- */
 
   /* Das eigentliche Kunststück der Lupe: in die ungünstige Ecke halten,
@@ -337,6 +456,8 @@ window.Loupe = (function () {
     pan.x = 0;
     pan.y = 0;
     zoom = liveZoom;
+    reliefOn = false;
+    stillData = null;
     els.still.hidden = true;
     els.still.style.transform = '';
     els.video.hidden = false;
@@ -689,6 +810,14 @@ window.Loupe = (function () {
       setTorch(!torchOn);
     });
 
+    els.contrast.addEventListener('click', function () {
+      setContrast(!contrastOn);
+    });
+
+    els.relief.addEventListener('click', function () {
+      setRelief(!reliefOn);
+    });
+
     els.gateButton.addEventListener('click', function () {
       showGate(null);
       start();
@@ -731,6 +860,8 @@ window.Loupe = (function () {
     els.infoText = document.getElementById('loupe-info-text');
     els.freeze = document.getElementById('btn-freeze');
     els.torch = document.getElementById('btn-torch');
+    els.contrast = document.getElementById('btn-contrast');
+    els.relief = document.getElementById('btn-relief');
     els.gate = document.getElementById('loupe-gate');
     els.gateText = document.getElementById('loupe-gate-text');
     els.gateButton = document.getElementById('btn-camera');
