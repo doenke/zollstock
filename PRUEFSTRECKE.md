@@ -13,9 +13,9 @@ npm test
 Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
-reicht, ob Gemerktes ein Neuladen übersteht. 58 Behauptungen in sechzehn
-Prüfungen; ein Teilwort als Argument läuft nur die passenden
-(`npm test lehre`).
+reicht, ob Gemerktes ein Neuladen übersteht, ob die Kamera der Lupe
+tatsächlich wieder ausgeht. 79 Behauptungen in zwanzig Prüfungen; ein
+Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 ## Wie gemessen wird
 
@@ -26,7 +26,10 @@ am erkannten Gerät hängen.
 
 Jede Prüfung bekommt einen frischen Browser-Kontext. Lagesensor,
 Bildschirmdrehung und `localStorage` werden vor dem Laden gesetzt, damit die
-App unter bekannten Bedingungen startet.
+App unter bekannten Bedingungen startet. Für die Lupe bringt Chromium eine
+vorgetäuschte Kamera mit: Das Bild interessiert dabei nicht, wohl aber, ob
+ein Datenstrom läuft – und vor allem, ob er beim Wegschalten wieder
+aufhört.
 
 ## Was dazugehört
 

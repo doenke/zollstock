@@ -259,6 +259,57 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 
 .hint.is-hidden { opacity: 0; }
 
+/* In der Lupe steht die Werkzeugleiste auf der üblichen Höhe – der Hinweis
+   muss darüber. */
+.hint--loupe { bottom: calc(var(--safe-b) + 136px); }
+
+/* ---------- Lupe ---------- */
+/* Schwarz als Grund, auch bei hellem Grund: Ein weißer Rahmen um ein
+   Kamerabild blendet und verfälscht den Eindruck von dem, was man ansieht. */
+#view-loupe { background: #000; }
+
+/* touch-action: none, sonst zieht der Browser das Aufziehen an sich. */
+.loupe__stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.loupe__bild {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  transform-origin: center;
+}
+
+/* Der Schieber braucht Platz; daneben stünde er sonst als Strich. */
+.zoomer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(280px, 64vw);
+  padding: 7px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.zoomer input[type="range"] { flex: 1; min-width: 0; margin: 0; }
+
+.zoomer output {
+  min-width: 3.4em;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
 /* ---------- Werkzeuge des Winkelmessers ---------- */
 /* Über die volle Breite, damit die Schaltflächen erst umbrechen, wenn sie
  * wirklich nicht mehr nebeneinander passen. Ein Kasten mit left: 50% hätte

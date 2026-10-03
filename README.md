@@ -4,9 +4,9 @@
 
 Zollstock ist dein Messwerkzeug für die Hosentasche: ein Lineal in
 Originalgröße auf dem Display, eine Lehre für Bohrer, Schrauben und Rohre und
-ein Winkelmesser, der die Lage des Geräts ausliest. Einmal kalibriert zeigt
-dein Handy echte Millimeter – und sagt dir auch, welcher Dübel in dieses Loch
-gehört.
+ein Winkelmesser, der die Lage des Geräts ausliest – dazu eine Lupe für
+alles, was zu klein zum Lesen ist. Einmal kalibriert zeigt dein Handy echte
+Millimeter und sagt dir auch, welcher Dübel in dieses Loch gehört.
 
 Kurz gesagt: Das Werkzeug, das du sowieso in der Tasche hast, weiß plötzlich,
 wie dick dieser Bohrer ist.
@@ -43,11 +43,16 @@ Handgriffen selbst hin (siehe [Loslegen](#loslegen)).
   beim Anlegen nicht siehst.
 - **Hell oder dunkel anlegen** – ein dunkler Bohrer auf schwarzem Grund ist
   kaum zu beurteilen; ein Knopf macht die Fläche weiß.
+- **Lesen, was zu klein ist** – die Lupe nimmt die Kamera, vergrößert bis
+  achtfach und hält auf Knopfdruck ein Standbild fest. Für die eingeprägte
+  Zahl auf dem Bohrer, die Schlüsselweite auf der Mutter, das Typenschild
+  hinter der Waschmaschine.
 - **Wissen, wie genau es ist** – die App sagt dir, was sie erkannt hat, wie
   sicher sie ist, und lässt dich den Maßstab mit einer Karte nachprüfen.
 - **Für sich bleiben** – kein Tracking, keine Werbung, kein Konto, keine
   fremden Server. Kalibrierung und Einstellungen liegen im Browser deines
-  Geräts, und dort bleiben sie auch.
+  Geräts, und dort bleiben sie auch. Das Kamerabild der Lupe wird angezeigt
+  und sonst nichts: nicht gespeichert, nicht verschickt.
 - **Offline dabeihaben** – Zollstock ist eine PWA, lässt sich zum
   Startbildschirm hinzufügen und braucht danach kein Netz mehr. Die zuletzt
   benutzte Ansicht ist beim nächsten Start wieder da.
@@ -120,6 +125,12 @@ Prozent und mm/m.
 **Nullen** macht die aktuelle Lage zur Null – anlegen, nullen, alles Weitere
 zählt von dort. Im Flächenmodus heißt derselbe Knopf **Fläche merken**: Gerät
 auf die erste Fläche legen, merken, auf die zweite legen, Winkel ablesen.
+
+### 5. Lesen, was zu klein ist
+
+**Lupe** öffnen, draufhalten. Mit zwei Fingern aufziehen oder den Schieber
+nehmen. **Standbild** friert das Bild ein – damit kommst du an Stellen, an
+denen du das Display gar nicht sehen kannst.
 
 ## Genau messen: Kalibrierung und Gerätekante
 
@@ -256,6 +267,31 @@ stören“ schluckt ihn auch.
 
 Auf iOS muss der Zugriff auf den Lagesensor einmal bestätigt werden; dafür
 erscheint eine Schaltfläche.
+
+## Die Lupe
+
+Das einzige Werkzeug, das nicht rechnet, sondern nur hinsieht. Gedacht für
+das, was die anderen drei nicht können: die Zahl auf einem Bohrer lesen, der
+schon ein paar Jahre in der Kiste liegt.
+
+Vergrößert wird bis achtfach. Kann die Kamera selbst zoomen – auf Android
+meistens –, dann tut sie es, und das Bild bleibt scharf; sonst wird
+gerechnet, und irgendwann sieht man die Bildpunkte. Das **Standbild** ist der
+eigentliche Kniff: einfrieren, das Gerät aus der Ecke zurückholen und in Ruhe
+ablesen. Ins Standbild lässt sich weiter hineinzoomen, es liegt in der vollen
+Auflösung der Kamera vor. Wo der Browser die Taschenlampe hergibt, steht ein
+Knopf dafür daneben – eine eingeprägte Zahl liest man ohne Streiflicht oft
+gar nicht.
+
+Zwei Dinge, die die Lupe nicht kann: Sie misst nicht. Ohne bekannten Bezug im
+Bild wäre jede Zahl erfunden, und dieses Spiel fängt eine App, die ihre
+Grenzen nennt, gar nicht erst an. Und sie kommt nicht näher heran, als das
+Objektiv scharfstellt – viele Telefone geben unter etwa zehn Zentimetern auf.
+
+Die Kamera läuft nur, solange die Lupe offen und die App im Bild ist. Beim
+Wechsel zu einem anderen Werkzeug oder beim Weglegen wird sie beendet, nicht
+angehalten. Gespeichert oder verschickt wird nichts – siehe
+[Datenschutz](https://zollstock.kanonenwiese.de/datenschutz.html).
 
 ## Drehsperre und heller Grund
 
@@ -397,6 +433,7 @@ js/edge.js              Randversatz, je Wert für Ober- und Unterkante
 js/ruler.js             Lineal (Canvas)
 js/gauge.js             Messlehre für Bohrer, Schrauben und Rohre
 js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
+js/loupe.js             Lupe (Kamera, Standbild, Licht)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
 js/seite.js             Grundfarbe und Adresse der Textseiten
 sw.js                   Offline-Cache
@@ -466,6 +503,7 @@ Passwort, nicht hinter eine Bitte.
 - [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten, Sechskant und Rohre
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten
 - [x] Gefälle in Prozent und mm/m nahe der Waagerechten
+- [x] Lupe mit Kamera, Standbild und Licht
 - [x] Drehsperre und heller Grund
 - [x] Offline-Betrieb, installierbar, lädt neue Fassungen selbst nach
 - [x] Kontakt und Datenschutz, noindex und robots.txt

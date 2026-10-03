@@ -4,14 +4,15 @@
 
   var THEME_KEY = 'zollstock.theme.v1';
   var VIEW_KEY = 'zollstock.view.v1';
-  var VIEWS = ['ruler', 'gauge', 'protractor'];
+  var VIEWS = ['ruler', 'gauge', 'protractor', 'loupe'];
   var currentView = 'ruler';
   var wakeLock = null;
 
   function redraw() {
     if (currentView === 'ruler') window.Ruler.draw();
     else if (currentView === 'gauge') window.Gauge.draw();
-    else window.Protractor.draw();
+    else if (currentView === 'protractor') window.Protractor.draw();
+    /* Die Lupe zeigt ein Kamerabild – da ist nichts nachzuzeichnen. */
   }
 
   function showView(name) {
@@ -34,11 +35,12 @@
     /* Der Nullpunkt gehört zum Lineal. Die Kalibrierung gilt auch für die
      * Messlehre – nur beim Winkelmesser hat beides nichts zu melden. */
     document.getElementById('btn-zeropoint').hidden = name !== 'ruler';
-    document.getElementById('btn-calibrate').hidden = name === 'protractor';
+    document.getElementById('btn-calibrate').hidden = name === 'protractor' || name === 'loupe';
 
-    /* Der Winkelmesser lauscht am Sensor und zeichnet laufend – das läuft nur,
-     * solange seine Ansicht offen ist. */
+    /* Winkelmesser und Lupe greifen beide auf Geräte zu – Lagesensor und
+     * Kamera laufen nur, solange ihre Ansicht offen ist. */
     window.Protractor.setActive(name === 'protractor');
+    window.Loupe.setActive(name === 'loupe');
     if (name === 'ruler') window.Ruler.draw();
     if (name === 'gauge') window.Gauge.draw();
   }
@@ -358,6 +360,7 @@
     window.Ruler.init();
     window.Gauge.init();
     window.Protractor.init();
+    window.Loupe.init();
 
     window.Calibration.onChange(function () {
       updateHint();

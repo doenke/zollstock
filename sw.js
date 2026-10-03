@@ -18,6 +18,7 @@ const ASSETS = [
   './js/ruler.js',
   './js/gauge.js',
   './js/protractor.js',
+  './js/loupe.js',
   './js/app.js',
   './manifest.webmanifest',
   './icons/icon.svg',

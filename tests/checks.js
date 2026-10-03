@@ -573,6 +573,138 @@ async function hellerGrund(page, t) {
     'light', 'heller Grund überlebt das Neuladen');
 }
 
+/* ---------- Lupe ---------- */
+
+/* Der Browser bekommt eine vorgetäuschte Kamera mitgegeben (run.js). Geprüft
+ * wird nicht das Bild, sondern was sich nachhalten lässt: dass ein Strom
+ * läuft, wenn die Ansicht offen ist, und dass er aufhört, wenn sie es nicht
+ * mehr ist. Das Zweite ist das wichtigere – eine Kamera, die weiterläuft,
+ * während man längst im Lineal misst, wäre genau das, was die
+ * Datenschutzerklärung ausschließt. */
+
+async function laeuft(page) {
+  return page.evaluate(function () { return window.Loupe.running(); });
+}
+
+async function lupeStrom(page, t) {
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(600);
+
+  t.gleich(await laeuft(page), true, 'Kamera läuft, sobald die Lupe offen ist');
+  t.gleich(await page.isVisible('#loupe-tools'), true, 'Werkzeuge stehen da');
+  t.gleich(await page.isVisible('#loupe-gate'), false, 'kein Hinweiskasten bei erteilter Freigabe');
+
+  await inAnsicht(page, 'ruler');
+  await page.waitForTimeout(200);
+  t.gleich(await laeuft(page), false, 'Kamera aus, sobald das Lineal übernimmt');
+
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(600);
+  t.gleich(await laeuft(page), true, 'und beim Zurückkommen wieder an');
+
+  /* Weggelegt heißt aus, ohne dass die Ansicht wechselt. */
+  await page.evaluate(function () {
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForTimeout(200);
+  t.gleich(await laeuft(page), false, 'Kamera aus, wenn die App weggelegt wird');
+}
+
+/* Das Standbild hält fest, was gerade im Bild war – und zwar so groß, wie es
+ * im Bild war. Ohne diese Unterscheidung spränge es beim Einfrieren auf 1×
+ * zurück, weil der festgehaltene Rahmen den rechnerischen Zoom nicht enthält. */
+async function lupeStandbild(page, t) {
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(600);
+
+  await page.evaluate(function () {
+    const r = document.getElementById('loupe-zoom');
+    r.value = '4';
+    r.dispatchEvent(new Event('input'));
+  });
+
+  t.gleich(await page.evaluate(function () {
+    return document.getElementById('loupe-video').style.transform;
+  }), 'scale(4)', 'der Schieber vergrößert das laufende Bild');
+
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(200);
+
+  const bild = await page.evaluate(function () {
+    const c = document.getElementById('loupe-still');
+    const v = document.getElementById('loupe-video');
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let summe = 0;
+    for (let i = 0; i < d.length; i += 4000) summe += d[i] + d[i + 1] + d[i + 2];
+    return {
+      steht: !c.hidden && v.hidden,
+      inhalt: summe > 0,
+      voll: c.width === v.videoWidth && c.height === v.videoHeight,
+      skala: c.style.transform
+    };
+  });
+
+  t.gleich(bild.steht, true, 'das Standbild übernimmt, das laufende Bild tritt ab');
+  t.gleich(bild.inhalt, true, 'und es steht wirklich etwas darauf');
+  t.gleich(bild.voll, true, 'festgehalten in der vollen Auflösung der Kamera');
+  t.gleich(bild.skala, 'scale(4)', 'ohne Sprung: so groß wie vorher das laufende Bild');
+
+  await page.evaluate(function () {
+    const r = document.getElementById('loupe-zoom');
+    r.value = '8';
+    r.dispatchEvent(new Event('input'));
+  });
+  t.gleich(await page.evaluate(function () {
+    return document.getElementById('loupe-still').style.transform;
+  }), 'scale(8)', 'im Standbild geht es weiter hinein');
+
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(150);
+  t.gleich(await page.evaluate(function () {
+    const c = document.getElementById('loupe-still');
+    return c.hidden && !document.getElementById('loupe-video').hidden;
+  }), true, 'und wieder zurück zum laufenden Bild');
+}
+
+/* Ohne Freigabe steht kein schwarzes Bild da, sondern ein Satz, der sagt,
+ * was los ist. */
+async function lupeOhneFreigabe(page, t) {
+  await page.evaluate(function () { localStorage.setItem('__kameraAus', '1'); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(150);
+
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(400);
+
+  t.gleich(await laeuft(page), false, 'kein Datenstrom ohne Freigabe');
+  t.gleich(await page.isVisible('#loupe-gate'), true, 'der Hinweiskasten steht da');
+  t.gleich(await page.isVisible('#loupe-tools'), false, 'Werkzeuge, die nichts bedienen, bleiben weg');
+  t.ok((await page.textContent('#loupe-gate-text')).indexOf('abgelehnt') >= 0,
+    'und sagt, dass die Freigabe fehlt');
+}
+
+/* ---------- Tableiste ---------- */
+
+/* Mit vier Werkzeugen und vier Beschriftungen wäre die Leiste 429 px breit
+ * gewesen – mit dreien stand sie auf einem 320-px-Display schon über. */
+async function tableiste(page, t) {
+  for (const breite of [320, 360]) {
+    await page.setViewportSize({ width: breite, height: HOEHE });
+    await page.waitForTimeout(120);
+
+    const mass = await page.evaluate(function () {
+      const bar = document.querySelector('.tabbar').getBoundingClientRect();
+      return { links: bar.left, rechts: bar.right, kacheln: document.querySelectorAll('.tab').length };
+    });
+
+    t.gleich(mass.kacheln, 4, 'vier Werkzeuge in der Leiste (' + breite + ' px)');
+    t.ok(mass.links >= 0 && mass.rechts <= breite,
+      'die Leiste bleibt im Bild (' + breite + ' px): ' + Math.round(mass.links) + '…' + Math.round(mass.rechts));
+  }
+}
+
+
 module.exports = {
   PX_PER_MM: PX_PER_MM,
   BREITE: BREITE,
@@ -593,6 +725,10 @@ module.exports = {
     { name: 'Gemerktes', lauf: gemerktes },
     { name: 'Drehsperre', lauf: drehsperre },
     { name: 'Drehsperre: ohne Schnittstelle', lauf: drehsperreOhne },
-    { name: 'Heller Grund', lauf: hellerGrund }
+    { name: 'Heller Grund', lauf: hellerGrund },
+    { name: 'Lupe: Kamera an und aus', lauf: lupeStrom },
+    { name: 'Lupe: Standbild', lauf: lupeStandbild },
+    { name: 'Lupe: ohne Freigabe', lauf: lupeOhneFreigabe },
+    { name: 'Tableiste: Platz', lauf: tableiste }
   ]
 };

@@ -34,7 +34,12 @@ async function main() {
   }
 
   const server = await lib.serve(WURZEL);
-  const browser = await chromium.launch({ executablePath: browserPfad });
+  /* Eine vorgetäuschte Kamera, damit die Lupe prüfbar ist – ein echtes Bild
+   * braucht keine dieser Prüfungen, wohl aber einen laufenden Datenstrom. */
+  const browser = await chromium.launch({
+    executablePath: browserPfad,
+    args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream']
+  });
 
   console.log('Zollstock – Prüfstrecke');
   console.log('Browser: ' + browserPfad);
@@ -53,7 +58,8 @@ async function main() {
       viewport: { width: checks.BREITE, height: checks.HOEHE },
       deviceScaleFactor: 3,
       isMobile: true,
-      hasTouch: true
+      hasTouch: true,
+      permissions: ['camera']
     });
 
     /* Fester Maßstab, damit die Erwartungswerte nicht am erkannten Gerät
@@ -89,6 +95,22 @@ async function main() {
       }
 
       Object.defineProperty(screen, 'orientation', { configurable: true, value: lage });
+
+      /* Und eine Prüfung will die abgelehnte Freigabe sehen. */
+      var kameraAus = false;
+      try {
+        kameraAus = localStorage.getItem('__kameraAus') === '1';
+      } catch (err) {
+        /* ohne Speicher bleibt die Kamera erlaubt */
+      }
+
+      if (kameraAus && navigator.mediaDevices) {
+        navigator.mediaDevices.getUserMedia = function () {
+          var err = new Error('abgelehnt');
+          err.name = 'NotAllowedError';
+          return Promise.reject(err);
+        };
+      }
     }, checks.PX_PER_MM);
 
     const page = await ctx.newPage();
