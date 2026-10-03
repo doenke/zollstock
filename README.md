@@ -130,7 +130,8 @@ auf die erste Fläche legen, merken, auf die zweite legen, Winkel ablesen.
 
 **Lupe** öffnen, draufhalten. Mit zwei Fingern aufziehen oder den Schieber
 nehmen. **Standbild** friert das Bild ein – damit kommst du an Stellen, an
-denen du das Display gar nicht sehen kannst.
+denen du das Display gar nicht sehen kannst. Im Standbild vergrößerst du mit
+zwei Fingern weiter und verschiebst mit einem.
 
 ## Genau messen: Kalibrierung und Gerätekante
 
@@ -274,17 +275,32 @@ Das einzige Werkzeug, das nicht rechnet, sondern nur hinsieht. Gedacht für
 das, was die anderen drei nicht können: die Zahl auf einem Bohrer lesen, der
 schon ein paar Jahre in der Kiste liegt.
 
-Los geht es bei 3×, danach bei dem Wert, den du zuletzt eingestellt hast.
+Los geht es bei 3×, danach bei dem Wert, den du zuletzt eingestellt hast –
+für jedes Objektiv getrennt.
 Die Zahl am Schieber ist immer die Vergrößerung, die du siehst. Den Teil, den
 die Kamera selbst schafft, übernimmt sie, und das Bild bleibt schärfer; nur
 was darüber hinausgeht, wird gerechnet. Wie weit deine Kamera selbst zoomt,
 steht über dem Schieber. Ob dieser Zoom optisch ist oder schon in der Kamera
 gerechnet wird, verrät kein Browser. Das **Standbild** ist der
 eigentliche Kniff: einfrieren, das Gerät aus der Ecke zurückholen und in Ruhe
-ablesen. Ins Standbild lässt sich weiter hineinzoomen, es liegt in der vollen
-Auflösung der Kamera vor. Wo der Browser die Taschenlampe hergibt, steht ein
-Knopf dafür daneben – eine eingeprägte Zahl liest man ohne Streiflicht oft
-gar nicht.
+ablesen. Ins Standbild geht es mit zwei Fingern bis zum Vierfachen dessen
+weiter, was beim Einfrieren zu sehen war, und zwar um den Punkt zwischen den
+Fingern. Mit einem Finger verschiebst du es. Neue Einzelheiten kommen dabei
+nicht mehr dazu, aber Kleines wird groß genug zum Lesen. **Weiter** kehrt zum
+laufenden Bild mit dem Zoom von vorher zurück.
+
+**Objektiv** wählt zwischen den Kameras auf der Rückseite, soweit der Browser
+sie einzeln zeigt. iOS nennt sie beim Namen (Weit, Tele), Android meist nur
+mit Nummer – welche das Tele ist, findest du durch Ausprobieren heraus. Das
+gewählte Objektiv bleibt gewählt. Zeigt der Browser nur eine Kamera, gibt es
+nichts zu wählen und die Auswahl erscheint nicht. Ein Tele stellt auf kurze
+Entfernung meist nicht scharf; für Dinge weiter weg ist es trotzdem die
+bessere Wahl.
+
+**Licht** schaltet die Taschenlampe. Eine eingeprägte Zahl liest man ohne
+Streiflicht oft gar nicht. Die Lampe gehört zu einer bestimmten Kamera, oft
+nur zur Hauptkamera. Meldet die offene Kamera keine, ist der Knopf blasser;
+versucht wird es trotzdem, und wenn nichts angeht, steht da, warum.
 
 Zwei Dinge, die die Lupe nicht kann: Sie misst nicht. Ohne bekannten Bezug im
 Bild wäre jede Zahl erfunden, und dieses Spiel fängt eine App, die ihre
@@ -436,7 +452,7 @@ js/edge.js              Randversatz, je Wert für Ober- und Unterkante
 js/ruler.js             Lineal (Canvas)
 js/gauge.js             Messlehre für Bohrer, Schrauben und Rohre
 js/protractor.js        Winkelmesser (Lagesensor, Ring- und Bandskala)
-js/loupe.js             Lupe (Kamera, Standbild, Licht)
+js/loupe.js             Lupe (Kamera, Objektive, Standbild, Licht)
 js/app.js               Ansichtswechsel, Bedienelemente, Service Worker
 js/seite.js             Grundfarbe und Adresse der Textseiten
 sw.js                   Offline-Cache
@@ -506,7 +522,7 @@ Passwort, nicht hinter eine Bitte.
 - [x] Messlehre für Bohrer, Schrauben, Schlüsselweiten, Sechskant und Rohre
 - [x] Winkelmesser über den Lagesensor, grobe und feine Skala, zwei Messarten
 - [x] Gefälle in Prozent und mm/m nahe der Waagerechten
-- [x] Lupe mit Kamera, Standbild und Licht
+- [x] Lupe mit Kamera, Objektivwahl, Standbild und Licht
 - [x] Drehsperre und heller Grund
 - [x] Offline-Betrieb, installierbar, lädt neue Fassungen selbst nach
 - [x] Kontakt und Datenschutz, noindex und robots.txt

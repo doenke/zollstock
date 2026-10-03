@@ -1,4 +1,4 @@
-/* Lupe: das Kamerabild vergrößert, mit Standbild und Licht.
+/* Lupe: das Kamerabild vergrößert, mit Standbild, Licht und Objektivwahl.
  *
  * Gedacht für das, was die anderen Werkzeuge nicht können – die eingeprägte
  * Zahl auf einem Bohrer lesen, die Schlüsselweite auf einer Mutter, das
@@ -14,31 +14,96 @@ window.Loupe = (function () {
 
   var stream = null;
   var track = null;
-  var active = false;    /* Ansicht offen? */
-  var starting = false;  /* getUserMedia unterwegs */
+  var active = false;     /* Ansicht offen? */
+  var starting = false;   /* getUserMedia unterwegs */
+  var switching = false;  /* zwischen zwei Objektiven */
   var frozen = false;
   var torchOn = false;
-  var hintDone = false;  /* der Hinweis hat seinen Dienst getan */
+  var hintDone = false;   /* der Hinweis hat seinen Dienst getan */
+  var noticeTimer = null;
 
   /* Die Zahl am Schieber ist die Vergrößerung, die man sieht – auf jedem
    * Gerät dieselbe. Den Teil, den die Kamera selbst schafft, übernimmt sie;
    * nur was darüber hinausgeht, wird gerechnet. */
-  var STORE_KEY = 'zollstock.loupe.v1';
+  var STORE_KEY = 'zollstock.loupe.v2';
+  var OLD_KEY = 'zollstock.loupe.v1';
   var MIN_ZOOM = 1;
-  var MAX_ZOOM = 8;      /* gerechnet geht es nicht sinnvoll weiter */
+  var MAX_ZOOM = 8;      /* gerechnet geht es live nicht sinnvoll weiter */
   var LIMIT = 10;        /* auch wenn die Kamera selbst mehr verspricht */
   /* Mit 1× ist eine Lupe keine. Beim ersten Mal 3×, danach der Wert vom
-   * letzten Mal. */
+   * letzten Mal – je Objektiv, denn 3× am Tele ist etwas anderes als 3× an
+   * der Hauptkamera. */
   var START_ZOOM = 3;
-  var zoom = load();
+  /* Ins Standbild geht es bis zum Vierfachen dessen, was beim Einfrieren zu
+   * sehen war. Neue Einzelheiten kommen dabei nicht mehr dazu, aber Kleines
+   * wird groß genug zum Lesen. */
+  var STILL_EXTRA = 4;
+  var STILL_LIMIT = 32;
+
+  var store = load();
+  var zoom = store.first;
 
   /* Kann die Kamera selbst zoomen, liegen hier ihre Grenzen. Das ist dem
    * Vergrößern im Nachhinein vorzuziehen: Es bleibt schärfer. */
   var native = null;
-  /* Wie viel Vergrößerung schon im festgehaltenen Rahmen steckt – den Teil,
-   * den die Kamera beim Einfrieren selbst gezoomt hatte. Der Rest entsteht
-   * erst beim Anzeigen. */
+
+  /* Standbild: wie viel Vergrößerung schon im festgehaltenen Rahmen steckt
+   * (der Teil, den die Kamera selbst gezoomt hatte), welcher Zoom live
+   * eingestellt war und wohin das Bild verschoben ist. */
   var baked = 1;
+  var liveZoom = 1;
+  var pan = { x: 0, y: 0 };
+
+  /* Die Objektive auf der Rückseite, soweit der Browser sie zeigt. */
+  var lenses = [];
+  var lensId = null;
+
+  /* ---------- Speicher ---------- */
+
+  function validZoom(value) {
+    return typeof value === 'number' && isFinite(value) && value >= MIN_ZOOM && value <= LIMIT;
+  }
+
+  function load() {
+    var fresh = { lens: null, zooms: {}, first: START_ZOOM };
+
+    try {
+      var parsed = JSON.parse(localStorage.getItem(STORE_KEY));
+      if (parsed && typeof parsed === 'object') {
+        var zooms = {};
+        Object.keys(parsed.zooms || {}).forEach(function (id) {
+          if (validZoom(parsed.zooms[id])) zooms[id] = parsed.zooms[id];
+        });
+        return {
+          lens: typeof parsed.lens === 'string' ? parsed.lens : null,
+          zooms: zooms,
+          first: START_ZOOM
+        };
+      }
+
+      /* Bis zur Objektivwahl stand hier nur eine Zahl. Sie gilt weiter für
+       * das Objektiv, das zuerst aufgeht. */
+      var old = parseFloat(localStorage.getItem(OLD_KEY));
+      if (validZoom(old)) fresh.first = old;
+    } catch (err) {
+      /* Privater Modus oder Unlesbares – dann eben von vorn. */
+    }
+
+    return fresh;
+  }
+
+  function persist() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({ lens: store.lens, zooms: store.zooms }));
+      localStorage.removeItem(OLD_KEY);
+    } catch (err) {
+      /* Privater Modus – dann beginnt es beim nächsten Mal wieder bei 3×. */
+    }
+  }
+
+  function zoomFor(id) {
+    return id && validZoom(store.zooms[id]) ? store.zooms[id] : store.first;
+  }
 
   /* ---------- Anzeige ---------- */
 
@@ -46,9 +111,8 @@ window.Loupe = (function () {
     return value.toFixed(1).replace('.', ',') + '×';
   }
 
-  /* Was gerade zu sehen ist: das laufende Bild oder das eingefrorene. */
-  function shown() {
-    return frozen ? els.still : els.video;
+  function short(value) {
+    return (Math.round(value * 10) / 10).toString().replace('.', ',') + '×';
   }
 
   function showGate(text, action) {
@@ -64,7 +128,9 @@ window.Loupe = (function () {
   }
 
   function showTools() {
-    var live = !!stream;
+    /* Beim Wechsel des Objektivs ist kurz kein Strom da – die Werkzeuge
+     * bleiben trotzdem stehen, sonst springt die ganze Leiste. */
+    var live = !!stream || switching;
 
     els.tools.hidden = !live;
     /* Der Hinweis steht im Werkzeugkasten: Ohne Bild verschwindet er mit
@@ -74,32 +140,54 @@ window.Loupe = (function () {
     els.freeze.setAttribute('aria-pressed', frozen ? 'true' : 'false');
     els.freeze.textContent = frozen ? 'Weiter' : 'Standbild';
 
-    /* Das Licht gibt nicht jeder Browser her – dann steht der Knopf auch
-     * nicht da und verspricht nichts. */
-    els.torch.hidden = !(live && capability('torch'));
+    /* Das Licht steht immer da. Meldet die Kamera keine Lampe, ist der
+     * Knopf blasser – versucht wird es trotzdem, und wenn nichts angeht,
+     * steht da, warum. Manche Kameras melden sie erst gar nicht. */
+    els.torch.hidden = !live;
     els.torch.classList.toggle('is-on', torchOn);
+    els.torch.classList.toggle('is-unsure', !capability('torch'));
     els.torch.setAttribute('aria-pressed', torchOn ? 'true' : 'false');
+
+    showLenses();
   }
 
-  function short(value) {
-    return (Math.round(value * 10) / 10).toString().replace('.', ',') + '×';
-  }
-
-  /* Was die Kamera über sich meldet. Ob ein Zoom optisch ist, sagt kein
-   * Browser – nur, ob die Kamera überhaupt selbst zoomt und wie weit. Das
-   * ist schon die Hälfte: Bis dorthin bleibt das Bild schärfer als
-   * gerechnet. */
+  /* Die Zeile über dem Schieber: was die Kamera über sich meldet, im
+   * Standbild, wie es sich bedienen lässt. */
   function showInfo() {
-    if (!stream) {
+    if (noticeTimer) return;  /* eine Meldung steht gerade */
+
+    if (!stream && !switching) {
       els.info.hidden = true;
       return;
     }
 
-    els.infoText.textContent = native
-      ? 'Die Kamera zoomt selbst bis ' + short(native.max) +
-        (native.max < maxZoom() ? ', darüber wird gerechnet' : '')
-      : 'Die Kamera zoomt nicht selbst – die Vergrößerung wird gerechnet';
+    var text;
+
+    if (frozen) {
+      text = 'Standbild – mit zwei Fingern vergrößern, mit einem verschieben';
+    } else if (native) {
+      /* Ob ein Zoom optisch ist, sagt kein Browser – nur, ob die Kamera
+       * überhaupt selbst zoomt und wie weit. Bis dorthin bleibt das Bild
+       * schärfer als gerechnet. */
+      text = 'Die Kamera zoomt selbst bis ' + short(native.max) +
+        (native.max < liveMax() ? ', darüber wird gerechnet' : '');
+    } else {
+      text = 'Die Kamera zoomt nicht selbst – die Vergrößerung wird gerechnet';
+    }
+
+    els.infoText.textContent = text;
     els.info.hidden = false;
+  }
+
+  /* Eine Meldung für ein paar Sekunden an Stelle der Kamerazeile. */
+  function notice(text) {
+    clearTimeout(noticeTimer);
+    els.infoText.textContent = text;
+    els.info.hidden = false;
+    noticeTimer = setTimeout(function () {
+      noticeTimer = null;
+      showInfo();
+    }, 4000);
   }
 
   function hideHint() {
@@ -121,23 +209,6 @@ window.Loupe = (function () {
     }
   }
 
-  function load() {
-    try {
-      var value = parseFloat(localStorage.getItem(STORE_KEY));
-      return isFinite(value) && value >= MIN_ZOOM && value <= LIMIT ? value : START_ZOOM;
-    } catch (err) {
-      return START_ZOOM;
-    }
-  }
-
-  function persist() {
-    try {
-      localStorage.setItem(STORE_KEY, String(zoom));
-    } catch (err) {
-      /* Privater Modus – dann beginnt es beim nächsten Mal wieder bei 3×. */
-    }
-  }
-
   function readNativeZoom() {
     var range = capability('zoom');
 
@@ -152,8 +223,12 @@ window.Loupe = (function () {
     return native ? Math.max(native.min, Math.min(native.max, zoom)) : 1;
   }
 
-  function maxZoom() {
+  function liveMax() {
     return native ? Math.max(MAX_ZOOM, Math.min(LIMIT, native.max)) : MAX_ZOOM;
+  }
+
+  function maxZoom() {
+    return frozen ? Math.min(STILL_LIMIT, Math.max(liveMax(), liveZoom * STILL_EXTRA)) : liveMax();
   }
 
   /* Im Standbild ist der Zoom, den die Kamera beim Einfrieren selbst hatte,
@@ -162,36 +237,70 @@ window.Loupe = (function () {
     return frozen ? baked : MIN_ZOOM;
   }
 
+  function clampZoom(value) {
+    return Math.max(floor(), Math.min(maxZoom(), value));
+  }
+
+  /* Das Standbild darf nur so weit verschoben werden, dass es den Rahmen
+   * noch füllt. */
+  function clampPan(scale) {
+    var maxX = Math.max(0, (scale - 1) * els.stage.clientWidth / 2);
+    var maxY = Math.max(0, (scale - 1) * els.stage.clientHeight / 2);
+
+    pan.x = Math.max(-maxX, Math.min(maxX, pan.x));
+    pan.y = Math.max(-maxY, Math.min(maxY, pan.y));
+  }
+
+  /* Vom Schieber: im Standbild um die Bildmitte herum, damit das, was gerade
+   * in der Mitte steht, dort auch bleibt. */
   function setZoom(value) {
-    zoom = Math.max(floor(), Math.min(maxZoom(), value));
+    var before = zoom;
+    zoom = clampZoom(value);
+
+    if (frozen && before > 0) {
+      pan.x *= zoom / before;
+      pan.y *= zoom / before;
+    }
+
     applyZoom();
   }
 
   function applyZoom() {
-    var factor;
-
     if (frozen) {
       /* Was die Kamera beim Einfrieren selbst gezoomt hatte, steckt schon im
        * Rahmen; nur der Rest wird draufgerechnet. Ohne diese Unterscheidung
        * spränge das Bild beim Einfrieren auf 1× zurück. */
-      factor = zoom / baked;
+      var scale = zoom / baked;
+      clampPan(scale);
+      els.still.style.transform =
+        'translate(' + round(pan.x) + 'px, ' + round(pan.y) + 'px) scale(' + round(scale) + ')';
     } else {
       var part = nativePart();
-      factor = zoom / part;
 
-      if (native) {
+      if (native && track) {
         track.applyConstraints({ advanced: [{ zoom: part }] }).catch(function () {
           /* Dann bleibt es beim Bild, wie die Kamera es liefert. */
         });
       }
+
+      els.video.style.transform = 'scale(' + round(zoom / part) + ')';
+
+      /* Gemerkt wird nur der Zoom des laufenden Bildes, je Objektiv. Ins
+       * Standbild hineinzuzoomen ist ein Blick, keine Einstellung. */
+      if (lensId) {
+        store.zooms[lensId] = zoom;
+        persist();
+      }
     }
 
-    shown().style.transform = 'scale(' + factor + ')';
     els.range.min = floor();
     els.range.max = maxZoom();
     els.range.value = zoom;
     els.out.textContent = fmt(zoom);
-    persist();
+  }
+
+  function round(value) {
+    return Math.round(value * 1000) / 1000;
   }
 
   /* ---------- Standbild ---------- */
@@ -209,38 +318,153 @@ window.Loupe = (function () {
     els.still.getContext('2d').drawImage(els.video, 0, 0, w, h);
 
     baked = nativePart();
+    liveZoom = zoom;
+    pan.x = 0;
+    pan.y = 0;
     frozen = true;
     els.video.hidden = true;
     els.still.hidden = false;
 
     hideHint();
     showTools();
+    showInfo();
     applyZoom();
   }
 
+  /* Zurück zum laufenden Bild – mit dem Zoom, der vor dem Einfrieren
+   * eingestellt war. */
   function thaw() {
+    if (!frozen) return;
+
     frozen = false;
     baked = 1;
+    pan.x = 0;
+    pan.y = 0;
+    zoom = liveZoom;
     els.still.hidden = true;
-    els.still.style.transform = 'scale(1)';
+    els.still.style.transform = '';
     els.video.hidden = false;
 
     showTools();
-    applyZoom();
+    showInfo();
+    setZoom(zoom);
   }
 
   /* ---------- Licht ---------- */
 
-  function setTorch(on) {
-    if (!track || !capability('torch')) return;
+  function torchFailed() {
+    torchOn = false;
+    showTools();
+    notice(lenses.length > 1
+      ? 'Dieses Objektiv gibt seine Lampe nicht frei – mit einem anderen versuchen'
+      : 'Die Kamera gibt ihre Lampe nicht frei');
+  }
 
-    track.applyConstraints({ advanced: [{ torch: on }] }).then(function () {
+  function setTorch(on) {
+    if (!track) return;
+
+    var current = track;
+    var reported = !!capability('torch');
+
+    current.applyConstraints({ advanced: [{ torch: on }] }).then(function () {
+      if (current !== track) return;
+
+      /* Einen Wunsch, den die Kamera nicht erfüllen kann, übergehen manche
+       * Browser stillschweigend. Meldet die Kamera keine Lampe, wird deshalb
+       * nachgesehen, ob sie wirklich brennt. */
+      var settings = current.getSettings ? current.getSettings() : {};
+      if (on && !reported && settings.torch !== true) {
+        torchFailed();
+        return;
+      }
+
       torchOn = on;
       showTools();
     }).catch(function () {
-      torchOn = false;
-      showTools();
+      if (current === track && on) torchFailed();
     });
+  }
+
+  /* ---------- Objektive ---------- */
+
+  var BACK = /back|rear|rück|environment/i;
+  var FRONT = /front|user|vorder|facetime|selfie/i;
+
+  /* Ein kurzer Name aus der Bezeichnung des Browsers. iOS nennt seine
+   * Objektive beim Namen, Android nur „camera2 2, facing back“ – dann
+   * bleibt es bei einer Nummer. */
+  function nameOf(label, index) {
+    if (/tele/i.test(label)) return 'Tele';
+    if (/ultra/i.test(label)) return 'Weit';
+    if (/dual|triple/i.test(label)) return 'Auto';
+    return String(index + 1);
+  }
+
+  function listLenses() {
+    if (!navigator.mediaDevices.enumerateDevices) return;
+
+    navigator.mediaDevices.enumerateDevices().then(function (devices) {
+      var video = devices.filter(function (d) { return d.kind === 'videoinput' && d.deviceId; });
+      var back = video.filter(function (d) { return BACK.test(d.label); });
+      /* Steht nirgends, wohin eine Kamera schaut (am Rechner etwa), gilt
+       * jede, die nicht ausdrücklich nach vorn zeigt. */
+      var candidates = back.length ? back : video.filter(function (d) { return !FRONT.test(d.label); });
+
+      lenses = candidates.map(function (d, i) {
+        return { id: d.deviceId, label: d.label, name: nameOf(d.label, i) };
+      });
+      showLenses();
+    }).catch(function () {
+      lenses = [];
+      showLenses();
+    });
+  }
+
+  function showLenses() {
+    var box = els.lenses;
+
+    /* Mit nur einem Objektiv gibt es nichts zu wählen. */
+    if (lenses.length < 2 || els.tools.hidden) {
+      box.hidden = true;
+      return;
+    }
+
+    var wanted = lenses.map(function (l) { return l.id; }).join('|');
+    if (box.dataset.ids !== wanted) {
+      box.dataset.ids = wanted;
+      box.querySelectorAll('.seg__btn').forEach(function (b) { b.remove(); });
+
+      lenses.forEach(function (lens) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'seg__btn';
+        b.dataset.lens = lens.id;
+        b.textContent = lens.name;
+        b.title = lens.label;
+        b.addEventListener('click', function () { chooseLens(lens.id); });
+        box.appendChild(b);
+      });
+    }
+
+    box.querySelectorAll('.seg__btn').forEach(function (b) {
+      var on = b.dataset.lens === lensId;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.disabled = frozen;
+    });
+    box.hidden = false;
+  }
+
+  function chooseLens(id) {
+    if (id === lensId || starting || frozen) return;
+
+    store.lens = id;
+    persist();
+
+    /* Viele Telefone öffnen nicht zwei Kameras zugleich – erst zu, dann auf. */
+    switching = true;
+    closeStream();
+    start();
   }
 
   /* ---------- Kamera ---------- */
@@ -260,6 +484,26 @@ window.Loupe = (function () {
     return 'Die Kamera ließ sich nicht starten.';
   }
 
+  function constraints() {
+    var video = {
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      /* Chrome rückt die Zoomfähigkeit der Kamera nur heraus, wenn danach
+       * gefragt wird. Kann sie es nicht, kommt das Bild trotzdem. */
+      zoom: true
+    };
+
+    if (store.lens) {
+      video.deviceId = { exact: store.lens };
+    } else {
+      /* ideal statt exact: Ein Gerät mit nur einer Kamera nach vorn soll
+       * nicht leer ausgehen. */
+      video.facingMode = { ideal: 'environment' };
+    }
+
+    return { video: video, audio: false };
+  }
+
   function start() {
     if (stream || starting) return;
 
@@ -271,19 +515,7 @@ window.Loupe = (function () {
 
     starting = true;
 
-    navigator.mediaDevices.getUserMedia({
-      /* ideal statt exact: Ein Gerät mit nur einer Kamera nach vorn soll
-       * nicht leer ausgehen. */
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        /* Chrome rückt die Zoomfähigkeit der Kamera nur heraus, wenn danach
-         * gefragt wird. Kann sie es nicht, kommt das Bild trotzdem. */
-        zoom: true
-      },
-      audio: false
-    }).then(function (opened) {
+    navigator.mediaDevices.getUserMedia(constraints()).then(function (opened) {
       starting = false;
 
       /* In der Zwischenzeit kann längst weitergeschaltet worden sein. Dann
@@ -291,15 +523,21 @@ window.Loupe = (function () {
        * Hintergrund weiterzulaufen. */
       if (!active || document.visibilityState !== 'visible') {
         opened.getTracks().forEach(function (t) { t.stop(); });
+        switching = false;
         return;
       }
 
       stream = opened;
       track = opened.getVideoTracks()[0] || null;
+      switching = false;
       els.video.srcObject = opened;
       els.video.play().catch(function () {
         /* Autoplay verweigert – das Bild steht dann beim ersten Tippen. */
       });
+
+      var settings = track && track.getSettings ? track.getSettings() : {};
+      lensId = settings.deviceId || null;
+      zoom = zoomFor(lensId);
 
       readNativeZoom();
       showGate(null);
@@ -308,16 +546,34 @@ window.Loupe = (function () {
       /* setZoom statt applyZoom: Der gemerkte Wert kann über dem liegen, was
        * dieses Gerät hergibt. */
       setZoom(zoom);
+      /* Die Bezeichnungen der Kameras gibt der Browser erst nach der
+       * Freigabe heraus – deshalb wird erst jetzt nachgesehen. */
+      listLenses();
     }).catch(function (err) {
       starting = false;
+
+      /* Das gemerkte Objektiv gibt es nicht mehr (anderes Gerät, Browser
+       * zurückgesetzt): vergessen und die übliche Kamera nehmen. */
+      if (store.lens && (err.name === 'OverconstrainedError' || err.name === 'NotFoundError')) {
+        store.lens = null;
+        persist();
+        start();
+        return;
+      }
+
+      switching = false;
       showGate(message(err), 'Kamera freigeben');
       showTools();
+      showInfo();
     });
   }
 
-  function stop() {
+  /* Schließt den Datenstrom. Die Lampe geht mit dem Strom aus – das Licht
+   * ist an die Kamera gebunden, nicht an die App. */
+  function closeStream() {
+    thaw();
+
     if (stream) {
-      if (torchOn) setTorch(false);
       stream.getTracks().forEach(function (t) { t.stop(); });
     }
 
@@ -326,25 +582,23 @@ window.Loupe = (function () {
     native = null;
     torchOn = false;
     els.video.srcObject = null;
-    showInfo();
+  }
 
-    thaw();
+  function stop() {
+    switching = false;
+    closeStream();
+    showTools();
+    showInfo();
   }
 
   /* ---------- Bedienung ---------- */
 
-  /* Aufziehen mit zwei Fingern. Der Abstand beim Aufsetzen gilt als
-   * Ausgangsmaß; was danach dazukommt, geht als Faktor auf den Zoom. */
-  function bindPinch() {
+  /* Zwei Finger vergrößern, im Standbild um den Punkt zwischen den Fingern
+   * herum – was dort liegt, bleibt unter ihnen. Ein Finger verschiebt das
+   * Standbild. Im laufenden Bild verschiebt man das Telefon. */
+  function bindGestures() {
     var points = [];
-    var base = 0;
-    var baseZoom = 1;
-
-    function spread() {
-      var dx = points[0].x - points[1].x;
-      var dy = points[0].y - points[1].y;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
+    var base = null;
 
     function index(id) {
       for (var i = 0; i < points.length; i++) {
@@ -353,26 +607,64 @@ window.Loupe = (function () {
       return -1;
     }
 
+    function spread() {
+      var dx = points[0].x - points[1].x;
+      var dy = points[0].y - points[1].y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /* Mitte zwischen den Fingern, gemessen von der Bildmitte aus. */
+    function middle() {
+      var rect = els.stage.getBoundingClientRect();
+      return {
+        x: (points[0].x + points[1].x) / 2 - rect.left - rect.width / 2,
+        y: (points[0].y + points[1].y) / 2 - rect.top - rect.height / 2
+      };
+    }
+
+    function begin() {
+      base = { spread: spread(), zoom: zoom, mid: middle(), pan: { x: pan.x, y: pan.y } };
+    }
+
     els.stage.addEventListener('pointerdown', function (event) {
       if (index(event.pointerId) >= 0 || points.length >= 2) return;
       points.push({ id: event.pointerId, x: event.clientX, y: event.clientY });
-
-      if (points.length === 2) {
-        base = spread();
-        baseZoom = zoom;
-      }
+      if (points.length === 2) begin();
     });
 
     els.stage.addEventListener('pointermove', function (event) {
       var i = index(event.pointerId);
       if (i < 0) return;
 
+      var dx = event.clientX - points[i].x;
+      var dy = event.clientY - points[i].y;
       points[i].x = event.clientX;
       points[i].y = event.clientY;
 
-      if (points.length === 2 && base > 0) {
-        setZoom(baseZoom * spread() / base);
+      if (points.length === 2 && base && base.spread > 0) {
+        var target = base.zoom * spread() / base.spread;
         hideHint();
+
+        if (!frozen) {
+          setZoom(target);
+          return;
+        }
+
+        /* Neuer Versatz so, dass der Bildpunkt, der beim Aufsetzen zwischen
+         * den Fingern lag, jetzt wieder zwischen ihnen liegt. */
+        zoom = clampZoom(target);
+        var k = zoom / base.zoom;
+        var m = middle();
+        pan.x = m.x - (base.mid.x - base.pan.x) * k;
+        pan.y = m.y - (base.mid.y - base.pan.y) * k;
+        applyZoom();
+        return;
+      }
+
+      if (points.length === 1 && frozen) {
+        pan.x += dx;
+        pan.y += dy;
+        applyZoom();
       }
     });
 
@@ -380,7 +672,7 @@ window.Loupe = (function () {
       els.stage.addEventListener(type, function (event) {
         var i = index(event.pointerId);
         if (i >= 0) points.splice(i, 1);
-        base = 0;
+        base = null;
       });
     });
   }
@@ -405,7 +697,17 @@ window.Loupe = (function () {
       start();
     });
 
-    bindPinch();
+    /* Manche Browser liefern die Fähigkeiten der Kamera erst vollständig,
+     * wenn das erste Bild da ist – dann wird nachgelesen. */
+    els.video.addEventListener('playing', function () {
+      if (!stream) return;
+      readNativeZoom();
+      showTools();
+      showInfo();
+      if (!frozen) setZoom(zoom);
+    });
+
+    bindGestures();
 
     /* Weggelegt heißt aus. Niemand soll die Kamera laufen lassen, während
      * er längst etwas anderes tut. */
@@ -425,6 +727,7 @@ window.Loupe = (function () {
     els.still = document.getElementById('loupe-still');
     els.hint = document.getElementById('loupe-hint');
     els.tools = document.getElementById('loupe-tools');
+    els.lenses = document.getElementById('loupe-lenses');
     els.range = document.getElementById('loupe-zoom');
     els.out = document.getElementById('loupe-zoom-out');
     els.info = document.getElementById('loupe-info');
@@ -456,9 +759,17 @@ window.Loupe = (function () {
     return !!stream && stream.getTracks().some(function (t) { return t.readyState === 'live'; });
   }
 
-  /* Für die Prüfstrecke: wie sich die Vergrößerung gerade aufteilt. */
+  /* Für die Prüfstrecke: wie sich die Vergrößerung gerade aufteilt, und
+   * welches Objektiv offen ist. */
   function split() {
-    return { zoom: zoom, kamera: frozen ? baked : nativePart(), max: maxZoom() };
+    return {
+      zoom: zoom,
+      kamera: frozen ? baked : nativePart(),
+      max: maxZoom(),
+      pan: { x: pan.x, y: pan.y },
+      lens: lensId,
+      lenses: lenses.map(function (l) { return l.id; })
+    };
   }
 
   return {

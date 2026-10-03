@@ -618,15 +618,8 @@ async function lupeStandbild(page, t) {
   await inAnsicht(page, 'loupe');
   await page.waitForTimeout(600);
 
-  await page.evaluate(function () {
-    const r = document.getElementById('loupe-zoom');
-    r.value = '4';
-    r.dispatchEvent(new Event('input'));
-  });
-
-  t.gleich(await page.evaluate(function () {
-    return document.getElementById('loupe-video').style.transform;
-  }), 'scale(4)', 'der Schieber vergrößert das laufende Bild');
+  await schieber(page, 4);
+  t.gleich(await skala(page, 'loupe-video'), 4, 'der Schieber vergrößert das laufende Bild');
 
   await page.click('#btn-freeze');
   await page.waitForTimeout(200);
@@ -640,24 +633,23 @@ async function lupeStandbild(page, t) {
     return {
       steht: !c.hidden && v.hidden,
       inhalt: summe > 0,
-      voll: c.width === v.videoWidth && c.height === v.videoHeight,
-      skala: c.style.transform
+      voll: c.width === v.videoWidth && c.height === v.videoHeight
     };
   });
 
   t.gleich(bild.steht, true, 'das Standbild übernimmt, das laufende Bild tritt ab');
   t.gleich(bild.inhalt, true, 'und es steht wirklich etwas darauf');
   t.gleich(bild.voll, true, 'festgehalten in der vollen Auflösung der Kamera');
-  t.gleich(bild.skala, 'scale(4)', 'ohne Sprung: so groß wie vorher das laufende Bild');
+  t.gleich(await skala(page, 'loupe-still'), 4, 'ohne Sprung: so groß wie vorher das laufende Bild');
 
-  await page.evaluate(function () {
-    const r = document.getElementById('loupe-zoom');
-    r.value = '8';
-    r.dispatchEvent(new Event('input'));
-  });
-  t.gleich(await page.evaluate(function () {
-    return document.getElementById('loupe-still').style.transform;
-  }), 'scale(8)', 'im Standbild geht es weiter hinein');
+  await schieber(page, 8);
+  t.gleich(await skala(page, 'loupe-still'), 8, 'im Standbild geht es weiter hinein');
+
+  /* Weiter, als das laufende Bild geht: bis zum Vierfachen dessen, was beim
+   * Einfrieren zu sehen war. */
+  await schieber(page, 30);
+  t.gleich(await page.textContent('#loupe-zoom-out'), '16,0×', 'im Standbild bis zum Vierfachen, hier 16×');
+  t.gleich(await skala(page, 'loupe-still'), 16, 'und so groß ist es dann auch');
 
   await page.click('#btn-freeze');
   await page.waitForTimeout(150);
@@ -665,10 +657,62 @@ async function lupeStandbild(page, t) {
     const c = document.getElementById('loupe-still');
     return c.hidden && !document.getElementById('loupe-video').hidden;
   }), true, 'und wieder zurück zum laufenden Bild');
+  t.gleich(await page.textContent('#loupe-zoom-out'), '4,0×', 'mit dem Zoom von vor dem Einfrieren');
 }
 
-/* Ohne Freigabe steht kein schwarzes Bild da, sondern ein Satz, der sagt,
- * was los ist. */
+/* Finger auf der Bühne, als Zeigerereignisse nachgestellt: Playwright hat
+ * nur eine Maus, für zwei Finger braucht es zwei Zeiger. */
+async function finger(page, art, id, x, y) {
+  await page.evaluate(function (e) {
+    document.getElementById('loupe-stage').dispatchEvent(new PointerEvent(e.art, {
+      pointerId: e.id, clientX: e.x, clientY: e.y, bubbles: true, isPrimary: e.id === 1
+    }));
+  }, { art: art, id: id, x: x, y: y });
+}
+
+async function stand(page) {
+  return page.evaluate(function () { return window.Loupe.split(); });
+}
+
+/* Ein Finger verschiebt das Standbild, aber nur so weit, dass es den Rahmen
+ * noch füllt. Zwei Finger vergrößern um den Punkt zwischen ihnen herum:
+ * Was beim Aufsetzen dort lag, liegt hinterher immer noch dort. */
+async function lupeVerschieben(page, t) {
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(600);
+  await schieber(page, 2);
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(150);
+
+  const mitte = BREITE / 2;
+
+  await finger(page, 'pointerdown', 1, 300, 400);
+  await finger(page, 'pointermove', 1, -700, 400);
+  await finger(page, 'pointerup', 1, -700, 400);
+
+  let s = await stand(page);
+  t.gleich(s.pan.x, -mitte * (2 - 1), 'ein Finger verschiebt – bis zum Rand und nicht weiter');
+  t.ok(/translate\(-180px/.test(await page.evaluate(function () {
+    return document.getElementById('loupe-still').style.transform;
+  })), 'und das Bild folgt');
+
+  /* Bildpunkt unter der Fingermitte, in Koordinaten des Standbilds. */
+  const unterFingern = function (zustand, mx) { return (mx - zustand.pan.x) / zustand.zoom; };
+  const mx = 40;  /* Fingermitte 40 px rechts der Bildmitte */
+  const vorher = unterFingern(s, mx);
+
+  await finger(page, 'pointerdown', 1, mitte + mx - 30, 400);
+  await finger(page, 'pointerdown', 2, mitte + mx + 30, 400);
+  await finger(page, 'pointermove', 1, mitte + mx - 60, 400);
+  await finger(page, 'pointermove', 2, mitte + mx + 60, 400);
+  await finger(page, 'pointerup', 1, mitte + mx - 60, 400);
+  await finger(page, 'pointerup', 2, mitte + mx + 60, 400);
+
+  s = await stand(page);
+  t.gleich(s.zoom, 4, 'doppelter Fingerabstand, doppelte Vergrößerung');
+  t.nahe(unterFingern(s, mx), vorher, 0.001, 'was zwischen den Fingern lag, liegt dort noch');
+}
+
 async function lupeOhneFreigabe(page, t) {
   await page.evaluate(function () { localStorage.setItem('__kameraAus', '1'); });
   await page.reload({ waitUntil: 'networkidle' });
@@ -692,8 +736,12 @@ async function schieber(page, wert) {
   }, wert);
 }
 
+/* Der Vergrößerungsfaktor aus der Transformation eines Bildes. */
 async function skala(page, id) {
-  return page.evaluate(function (i) { return document.getElementById(i).style.transform; }, id);
+  return page.evaluate(function (i) {
+    const m = /scale\(([\d.]+)\)/.exec(document.getElementById(i).style.transform);
+    return m ? parseFloat(m[1]) : null;
+  }, id);
 }
 
 /* Mit 1× ist eine Lupe keine: Beim ersten Mal geht es bei 3× los, danach
@@ -703,7 +751,7 @@ async function lupeStartwert(page, t) {
   await page.waitForTimeout(600);
 
   t.gleich(await page.textContent('#loupe-zoom-out'), '3,0×', 'beim ersten Mal 3×');
-  t.gleich(await skala(page, 'loupe-video'), 'scale(3)', 'und so groß ist das Bild auch');
+  t.gleich(await skala(page, 'loupe-video'), 3, 'und so groß ist das Bild auch');
 
   await schieber(page, 5);
   await inAnsicht(page, 'ruler');
@@ -716,12 +764,23 @@ async function lupeStartwert(page, t) {
   t.gleich(await page.textContent('#loupe-zoom-out'), '5,0×', 'und auch nach dem Neuladen');
   t.ok((await page.textContent('#loupe-info-text')).indexOf('nicht selbst') >= 0,
     'ohne Kamerazoom steht da, dass gerechnet wird');
+
+  /* Bis zur Objektivwahl stand der Zoom als bloße Zahl unter einem anderen
+   * Schlüssel. Der Wert soll den Umzug überstehen. */
+  await page.evaluate(function () {
+    localStorage.removeItem('zollstock.loupe.v2');
+    localStorage.setItem('zollstock.loupe.v1', '6');
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  t.gleich(await page.textContent('#loupe-zoom-out'), '6,0×', 'der alte gemerkte Zoom gilt weiter');
+  t.gleich(await page.evaluate(function () { return localStorage.getItem('zollstock.loupe.v1'); }),
+    null, 'und der alte Eintrag ist aufgeräumt');
 }
 
 /* Eine Kamera, die selbst bis 4× zoomt. Die Zahl am Schieber ist die
  * Vergrößerung, die man sieht: bis 4× macht die Kamera alles, darüber wird
- * nur der Rest gerechnet. Vorher wurde der Schieber auf den Bereich der
- * Kamera umgelegt – dann hieß „3×“ auf jedem Gerät etwas anderes. */
+ * nur der Rest gerechnet. */
 async function lupeKamerazoom(page, t) {
   await page.evaluate(function () { localStorage.setItem('__kameraZoom', '4'); });
   await page.reload({ waitUntil: 'networkidle' });
@@ -734,19 +793,91 @@ async function lupeKamerazoom(page, t) {
     'sagt, wie weit die Kamera selbst zoomt');
 
   t.gleich(await bestellt(), 3, 'bei 3× zoomt die Kamera genau 3×');
-  t.gleich(await skala(page, 'loupe-video'), 'scale(1)', 'und es wird nichts dazugerechnet');
+  t.gleich(await skala(page, 'loupe-video'), 1, 'und es wird nichts dazugerechnet');
 
   await schieber(page, 6);
   t.gleich(await bestellt(), 4, 'bei 6× zoomt die Kamera so weit sie kann');
-  t.gleich(await skala(page, 'loupe-video'), 'scale(1.5)', 'und nur der Rest wird gerechnet');
+  t.gleich(await skala(page, 'loupe-video'), 1.5, 'und nur der Rest wird gerechnet');
 
   await page.click('#btn-freeze');
   await page.waitForTimeout(200);
-  t.gleich(await skala(page, 'loupe-still'), 'scale(1.5)', 'das Standbild bleibt so groß');
+  t.gleich(await skala(page, 'loupe-still'), 1.5, 'das Standbild bleibt so groß');
 
   await schieber(page, 2);
   t.gleich(await page.textContent('#loupe-zoom-out'), '4,0×',
     'im Standbild geht es nicht unter das, was die Kamera schon gezoomt hatte');
+}
+
+/* Der Browser bekommt drei vorgetäuschte Kameras (run.js). Jedes Objektiv
+ * merkt sich seinen eigenen Zoom – 3× am Tele ist etwas anderes als 3× an
+ * der Hauptkamera – und das gewählte bleibt gewählt. */
+async function lupeObjektive(page, t) {
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(700);
+
+  let s = await stand(page);
+  const knoepfe = function () {
+    return page.evaluate(function () {
+      return Array.prototype.map.call(document.querySelectorAll('#loupe-lenses .seg__btn'), function (b) {
+        return { id: b.dataset.lens, an: b.classList.contains('is-active') };
+      });
+    });
+  };
+
+  t.gleich(s.lenses.length, 3, 'drei Objektive gefunden');
+  t.gleich(await page.isVisible('#loupe-lenses'), true, 'die Auswahl steht da');
+  let k = await knoepfe();
+  t.gleich(k.filter(function (b) { return b.an; }).map(function (b) { return b.id; }), [s.lens],
+    'das offene Objektiv ist markiert');
+
+  const drittes = s.lenses[2];
+  await page.click('#loupe-lenses .seg__btn[data-lens="' + drittes + '"]');
+  await page.waitForTimeout(700);
+
+  s = await stand(page);
+  t.gleich(s.lens, drittes, 'ein Druck öffnet das gewählte Objektiv');
+  t.gleich(await laeuft(page), true, 'und das Bild läuft');
+  t.gleich(await page.isVisible('#loupe-tools'), true, 'die Werkzeuge bleiben dabei stehen');
+
+  await schieber(page, 6);
+  await page.click('#loupe-lenses .seg__btn[data-lens="' + s.lenses[0] + '"]');
+  await page.waitForTimeout(700);
+  t.gleich(await page.textContent('#loupe-zoom-out'), '3,0×', 'das erste Objektiv hat seinen eigenen Zoom');
+
+  await page.click('#loupe-lenses .seg__btn[data-lens="' + drittes + '"]');
+  await page.waitForTimeout(700);
+  t.gleich(await page.textContent('#loupe-zoom-out'), '6,0×', 'das dritte seinen');
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(800);
+  s = await stand(page);
+  t.gleich(s.lens, drittes, 'nach dem Neuladen ist das gewählte Objektiv wieder offen');
+  t.gleich(await page.textContent('#loupe-zoom-out'), '6,0×', 'mit seinem Zoom');
+
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(150);
+  t.gleich(await page.evaluate(function () {
+    return Array.prototype.every.call(document.querySelectorAll('#loupe-lenses .seg__btn'), function (b) { return b.disabled; });
+  }), true, 'im Standbild lässt sich das Objektiv nicht wechseln');
+}
+
+/* Die vorgetäuschten Kameras haben keine Lampe. Der Knopf steht trotzdem
+ * da – blasser –, und ein Druck sagt, warum nichts angeht, statt
+ * stillschweigend nichts zu tun. */
+async function lupeLicht(page, t) {
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(700);
+
+  t.gleich(await page.isVisible('#btn-torch'), true, 'der Lichtschalter steht da');
+  t.gleich(await page.evaluate(function () {
+    return document.getElementById('btn-torch').classList.contains('is-unsure');
+  }), true, 'blasser, weil die Kamera keine Lampe meldet');
+
+  await page.click('#btn-torch');
+  await page.waitForTimeout(300);
+  t.ok((await page.textContent('#loupe-info-text')).indexOf('Lampe nicht frei') >= 0,
+    'ein Druck sagt, dass die Lampe nicht freigegeben ist');
+  t.gleich(await page.getAttribute('#btn-torch', 'aria-pressed'), 'false', 'und der Schalter steht nicht auf an');
 }
 
 /* ---------- Tableiste ---------- */
@@ -796,6 +927,9 @@ module.exports = {
     { name: 'Lupe: ohne Freigabe', lauf: lupeOhneFreigabe },
     { name: 'Lupe: Startwert', lauf: lupeStartwert },
     { name: 'Lupe: Kamerazoom', lauf: lupeKamerazoom },
+    { name: 'Lupe: Standbild verschieben', lauf: lupeVerschieben },
+    { name: 'Lupe: Objektive', lauf: lupeObjektive },
+    { name: 'Lupe: Licht', lauf: lupeLicht },
     { name: 'Tableiste: Platz', lauf: tableiste }
   ]
 };

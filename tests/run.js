@@ -34,11 +34,12 @@ async function main() {
   }
 
   const server = await lib.serve(WURZEL);
-  /* Eine vorgetäuschte Kamera, damit die Lupe prüfbar ist – ein echtes Bild
-   * braucht keine dieser Prüfungen, wohl aber einen laufenden Datenstrom. */
+  /* Drei vorgetäuschte Kameras, damit die Lupe prüfbar ist – samt
+   * Objektivwahl. Ein echtes Bild braucht keine dieser Prüfungen, wohl aber
+   * einen laufenden Datenstrom. */
   const browser = await chromium.launch({
     executablePath: browserPfad,
-    args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream']
+    args: ['--use-fake-device-for-media-stream=device-count=3', '--use-fake-ui-for-media-stream']
   });
 
   console.log('Zollstock – Prüfstrecke');
