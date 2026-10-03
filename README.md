@@ -274,9 +274,12 @@ Das einzige Werkzeug, das nicht rechnet, sondern nur hinsieht. Gedacht für
 das, was die anderen drei nicht können: die Zahl auf einem Bohrer lesen, der
 schon ein paar Jahre in der Kiste liegt.
 
-Vergrößert wird bis achtfach. Kann die Kamera selbst zoomen – auf Android
-meistens –, dann tut sie es, und das Bild bleibt scharf; sonst wird
-gerechnet, und irgendwann sieht man die Bildpunkte. Das **Standbild** ist der
+Los geht es bei 3×, danach bei dem Wert, den du zuletzt eingestellt hast.
+Die Zahl am Schieber ist immer die Vergrößerung, die du siehst. Den Teil, den
+die Kamera selbst schafft, übernimmt sie, und das Bild bleibt schärfer; nur
+was darüber hinausgeht, wird gerechnet. Wie weit deine Kamera selbst zoomt,
+steht über dem Schieber. Ob dieser Zoom optisch ist oder schon in der Kamera
+gerechnet wird, verrät kein Browser. Das **Standbild** ist der
 eigentliche Kniff: einfrieren, das Gerät aus der Ecke zurückholen und in Ruhe
 ablesen. Ins Standbild lässt sich weiter hineinzoomen, es liegt in der vollen
 Auflösung der Kamera vor. Wo der Browser die Taschenlampe hergibt, steht ein

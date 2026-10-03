@@ -18,22 +18,27 @@ window.Loupe = (function () {
   var starting = false;  /* getUserMedia unterwegs */
   var frozen = false;
   var torchOn = false;
+  var hintDone = false;  /* der Hinweis hat seinen Dienst getan */
 
-  /* Der Schieber läuft immer von 1 bis 8, unabhängig davon, ob die Kamera
-   * selbst zoomen kann. Sonst stünde auf zwei Geräten dieselbe Zahl für
-   * verschiedene Vergrößerungen. */
+  /* Die Zahl am Schieber ist die Vergrößerung, die man sieht – auf jedem
+   * Gerät dieselbe. Den Teil, den die Kamera selbst schafft, übernimmt sie;
+   * nur was darüber hinausgeht, wird gerechnet. */
+  var STORE_KEY = 'zollstock.loupe.v1';
   var MIN_ZOOM = 1;
-  var MAX_ZOOM = 8;
-  var zoom = 1;
+  var MAX_ZOOM = 8;      /* gerechnet geht es nicht sinnvoll weiter */
+  var LIMIT = 10;        /* auch wenn die Kamera selbst mehr verspricht */
+  /* Mit 1× ist eine Lupe keine. Beim ersten Mal 3×, danach der Wert vom
+   * letzten Mal. */
+  var START_ZOOM = 3;
+  var zoom = load();
 
   /* Kann die Kamera selbst zoomen, liegen hier ihre Grenzen. Das ist dem
-   * Vergrößern im Nachhinein vorzuziehen: Es bleibt scharf. */
+   * Vergrößern im Nachhinein vorzuziehen: Es bleibt schärfer. */
   var native = null;
-  /* Mit welchem Zoom das Standbild aufgenommen wurde – und ob die Kamera
-   * dabei selbst gezoomt hat. Davon hängt ab, ob die Vergrößerung schon im
-   * festgehaltenen Rahmen steckt oder erst beim Anzeigen entsteht. */
-  var frozenAt = 1;
-  var frozenNative = false;
+  /* Wie viel Vergrößerung schon im festgehaltenen Rahmen steckt – den Teil,
+   * den die Kamera beim Einfrieren selbst gezoomt hatte. Der Rest entsteht
+   * erst beim Anzeigen. */
+  var baked = 1;
 
   /* ---------- Anzeige ---------- */
 
@@ -62,9 +67,9 @@ window.Loupe = (function () {
     var live = !!stream;
 
     els.tools.hidden = !live;
-    /* Ohne Bild gibt es nichts aufzuziehen – dann soll der Hinweis auch
-     * keinen Schieber versprechen, der gar nicht dasteht. */
-    els.hint.hidden = !live;
+    /* Der Hinweis steht im Werkzeugkasten: Ohne Bild verschwindet er mit
+     * ihm und verspricht keinen Schieber, der gar nicht dasteht. */
+    els.hint.hidden = hintDone;
     els.freeze.classList.toggle('is-on', frozen);
     els.freeze.setAttribute('aria-pressed', frozen ? 'true' : 'false');
     els.freeze.textContent = frozen ? 'Weiter' : 'Standbild';
@@ -76,8 +81,30 @@ window.Loupe = (function () {
     els.torch.setAttribute('aria-pressed', torchOn ? 'true' : 'false');
   }
 
+  function short(value) {
+    return (Math.round(value * 10) / 10).toString().replace('.', ',') + '×';
+  }
+
+  /* Was die Kamera über sich meldet. Ob ein Zoom optisch ist, sagt kein
+   * Browser – nur, ob die Kamera überhaupt selbst zoomt und wie weit. Das
+   * ist schon die Hälfte: Bis dorthin bleibt das Bild schärfer als
+   * gerechnet. */
+  function showInfo() {
+    if (!stream) {
+      els.info.hidden = true;
+      return;
+    }
+
+    els.infoText.textContent = native
+      ? 'Die Kamera zoomt selbst bis ' + short(native.max) +
+        (native.max < maxZoom() ? ', darüber wird gerechnet' : '')
+      : 'Die Kamera zoomt nicht selbst – die Vergrößerung wird gerechnet';
+    els.info.hidden = false;
+  }
+
   function hideHint() {
-    els.hint.classList.add('is-hidden');
+    hintDone = true;
+    els.hint.hidden = true;
   }
 
   /* ---------- Vergrößerung ---------- */
@@ -94,50 +121,77 @@ window.Loupe = (function () {
     }
   }
 
+  function load() {
+    try {
+      var value = parseFloat(localStorage.getItem(STORE_KEY));
+      return isFinite(value) && value >= MIN_ZOOM && value <= LIMIT ? value : START_ZOOM;
+    } catch (err) {
+      return START_ZOOM;
+    }
+  }
+
+  function persist() {
+    try {
+      localStorage.setItem(STORE_KEY, String(zoom));
+    } catch (err) {
+      /* Privater Modus – dann beginnt es beim nächsten Mal wieder bei 3×. */
+    }
+  }
+
   function readNativeZoom() {
     var range = capability('zoom');
 
-    native = range && isFinite(range.min) && isFinite(range.max) && range.max > range.min
+    native = range && isFinite(range.min) && isFinite(range.max) && range.max > 1
       ? { min: range.min, max: range.max }
       : null;
   }
 
-  /* Im Standbild einer selbst zoomenden Kamera ist der Zoom von damals die
-   * Untergrenze: Was nicht im Rahmen steht, holt kein Schieber zurück. */
+  /* Was die Kamera selbst übernimmt: so viel wie gewünscht, höchstens so
+   * viel, wie sie kann. */
+  function nativePart() {
+    return native ? Math.max(native.min, Math.min(native.max, zoom)) : 1;
+  }
+
+  function maxZoom() {
+    return native ? Math.max(MAX_ZOOM, Math.min(LIMIT, native.max)) : MAX_ZOOM;
+  }
+
+  /* Im Standbild ist der Zoom, den die Kamera beim Einfrieren selbst hatte,
+   * die Untergrenze: Was nicht im Rahmen steht, holt kein Schieber zurück. */
   function floor() {
-    return frozen && frozenNative ? frozenAt : MIN_ZOOM;
+    return frozen ? baked : MIN_ZOOM;
   }
 
   function setZoom(value) {
-    zoom = Math.max(floor(), Math.min(MAX_ZOOM, value));
+    zoom = Math.max(floor(), Math.min(maxZoom(), value));
     applyZoom();
   }
 
   function applyZoom() {
-    var factor = 1;
+    var factor;
 
     if (frozen) {
-      /* Hat die Kamera selbst gezoomt, steckt die Vergrößerung bereits im
-       * festgehaltenen Rahmen – darüber hinaus geht es nur noch rechnerisch.
-       * Sonst war sie von Anfang an rechnerisch und gilt für das Standbild
-       * genauso wie vorher für das laufende Bild. Ohne diese Unterscheidung
+      /* Was die Kamera beim Einfrieren selbst gezoomt hatte, steckt schon im
+       * Rahmen; nur der Rest wird draufgerechnet. Ohne diese Unterscheidung
        * spränge das Bild beim Einfrieren auf 1× zurück. */
-      factor = frozenNative ? zoom / frozenAt : zoom;
-    } else if (native) {
-      var want = native.min + (zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM) * (native.max - native.min);
-      try {
-        track.applyConstraints({ advanced: [{ zoom: want }] });
-      } catch (err) {
-        /* Dann bleibt es beim Bild, wie die Kamera es liefert. */
-      }
+      factor = zoom / baked;
     } else {
-      factor = zoom;
+      var part = nativePart();
+      factor = zoom / part;
+
+      if (native) {
+        track.applyConstraints({ advanced: [{ zoom: part }] }).catch(function () {
+          /* Dann bleibt es beim Bild, wie die Kamera es liefert. */
+        });
+      }
     }
 
     shown().style.transform = 'scale(' + factor + ')';
     els.range.min = floor();
+    els.range.max = maxZoom();
     els.range.value = zoom;
     els.out.textContent = fmt(zoom);
+    persist();
   }
 
   /* ---------- Standbild ---------- */
@@ -154,9 +208,8 @@ window.Loupe = (function () {
     els.still.height = h;
     els.still.getContext('2d').drawImage(els.video, 0, 0, w, h);
 
+    baked = nativePart();
     frozen = true;
-    frozenAt = zoom;
-    frozenNative = !!native;
     els.video.hidden = true;
     els.still.hidden = false;
 
@@ -167,8 +220,7 @@ window.Loupe = (function () {
 
   function thaw() {
     frozen = false;
-    frozenAt = 1;
-    frozenNative = false;
+    baked = 1;
     els.still.hidden = true;
     els.still.style.transform = 'scale(1)';
     els.video.hidden = false;
@@ -225,7 +277,10 @@ window.Loupe = (function () {
       video: {
         facingMode: { ideal: 'environment' },
         width: { ideal: 1920 },
-        height: { ideal: 1080 }
+        height: { ideal: 1080 },
+        /* Chrome rückt die Zoomfähigkeit der Kamera nur heraus, wenn danach
+         * gefragt wird. Kann sie es nicht, kommt das Bild trotzdem. */
+        zoom: true
       },
       audio: false
     }).then(function (opened) {
@@ -249,7 +304,10 @@ window.Loupe = (function () {
       readNativeZoom();
       showGate(null);
       showTools();
-      applyZoom();
+      showInfo();
+      /* setZoom statt applyZoom: Der gemerkte Wert kann über dem liegen, was
+       * dieses Gerät hergibt. */
+      setZoom(zoom);
     }).catch(function (err) {
       starting = false;
       showGate(message(err), 'Kamera freigeben');
@@ -268,6 +326,7 @@ window.Loupe = (function () {
     native = null;
     torchOn = false;
     els.video.srcObject = null;
+    showInfo();
 
     thaw();
   }
@@ -368,6 +427,8 @@ window.Loupe = (function () {
     els.tools = document.getElementById('loupe-tools');
     els.range = document.getElementById('loupe-zoom');
     els.out = document.getElementById('loupe-zoom-out');
+    els.info = document.getElementById('loupe-info');
+    els.infoText = document.getElementById('loupe-info-text');
     els.freeze = document.getElementById('btn-freeze');
     els.torch = document.getElementById('btn-torch');
     els.gate = document.getElementById('loupe-gate');
@@ -387,7 +448,6 @@ window.Loupe = (function () {
     } else {
       stop();
       showGate(null);
-      setZoom(1);
     }
   }
 
@@ -396,9 +456,15 @@ window.Loupe = (function () {
     return !!stream && stream.getTracks().some(function (t) { return t.readyState === 'live'; });
   }
 
+  /* Für die Prüfstrecke: wie sich die Vergrößerung gerade aufteilt. */
+  function split() {
+    return { zoom: zoom, kamera: frozen ? baked : nativePart(), max: maxZoom() };
+  }
+
   return {
     init: init,
     setActive: setActive,
-    running: running
+    running: running,
+    split: split
   };
 })();

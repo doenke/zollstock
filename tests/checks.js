@@ -684,6 +684,71 @@ async function lupeOhneFreigabe(page, t) {
     'und sagt, dass die Freigabe fehlt');
 }
 
+async function schieber(page, wert) {
+  await page.evaluate(function (w) {
+    const r = document.getElementById('loupe-zoom');
+    r.value = String(w);
+    r.dispatchEvent(new Event('input'));
+  }, wert);
+}
+
+async function skala(page, id) {
+  return page.evaluate(function (i) { return document.getElementById(i).style.transform; }, id);
+}
+
+/* Mit 1× ist eine Lupe keine: Beim ersten Mal geht es bei 3× los, danach
+ * beim Wert vom letzten Mal – auch nach einem Wechsel und nach Neuladen. */
+async function lupeStartwert(page, t) {
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(600);
+
+  t.gleich(await page.textContent('#loupe-zoom-out'), '3,0×', 'beim ersten Mal 3×');
+  t.gleich(await skala(page, 'loupe-video'), 'scale(3)', 'und so groß ist das Bild auch');
+
+  await schieber(page, 5);
+  await inAnsicht(page, 'ruler');
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(600);
+  t.gleich(await page.textContent('#loupe-zoom-out'), '5,0×', 'nach dem Wechsel bleibt es bei 5×');
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  t.gleich(await page.textContent('#loupe-zoom-out'), '5,0×', 'und auch nach dem Neuladen');
+  t.ok((await page.textContent('#loupe-info-text')).indexOf('nicht selbst') >= 0,
+    'ohne Kamerazoom steht da, dass gerechnet wird');
+}
+
+/* Eine Kamera, die selbst bis 4× zoomt. Die Zahl am Schieber ist die
+ * Vergrößerung, die man sieht: bis 4× macht die Kamera alles, darüber wird
+ * nur der Rest gerechnet. Vorher wurde der Schieber auf den Bereich der
+ * Kamera umgelegt – dann hieß „3×“ auf jedem Gerät etwas anderes. */
+async function lupeKamerazoom(page, t) {
+  await page.evaluate(function () { localStorage.setItem('__kameraZoom', '4'); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(700);
+
+  const bestellt = function () { return page.evaluate(function () { return window.__zoom[window.__zoom.length - 1]; }); };
+
+  t.ok((await page.textContent('#loupe-info-text')).indexOf('bis 4×') >= 0,
+    'sagt, wie weit die Kamera selbst zoomt');
+
+  t.gleich(await bestellt(), 3, 'bei 3× zoomt die Kamera genau 3×');
+  t.gleich(await skala(page, 'loupe-video'), 'scale(1)', 'und es wird nichts dazugerechnet');
+
+  await schieber(page, 6);
+  t.gleich(await bestellt(), 4, 'bei 6× zoomt die Kamera so weit sie kann');
+  t.gleich(await skala(page, 'loupe-video'), 'scale(1.5)', 'und nur der Rest wird gerechnet');
+
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(200);
+  t.gleich(await skala(page, 'loupe-still'), 'scale(1.5)', 'das Standbild bleibt so groß');
+
+  await schieber(page, 2);
+  t.gleich(await page.textContent('#loupe-zoom-out'), '4,0×',
+    'im Standbild geht es nicht unter das, was die Kamera schon gezoomt hatte');
+}
+
 /* ---------- Tableiste ---------- */
 
 /* Mit vier Werkzeugen und vier Beschriftungen wäre die Leiste 429 px breit
@@ -729,6 +794,8 @@ module.exports = {
     { name: 'Lupe: Kamera an und aus', lauf: lupeStrom },
     { name: 'Lupe: Standbild', lauf: lupeStandbild },
     { name: 'Lupe: ohne Freigabe', lauf: lupeOhneFreigabe },
+    { name: 'Lupe: Startwert', lauf: lupeStartwert },
+    { name: 'Lupe: Kamerazoom', lauf: lupeKamerazoom },
     { name: 'Tableiste: Platz', lauf: tableiste }
   ]
 };

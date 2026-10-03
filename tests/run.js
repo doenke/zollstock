@@ -104,6 +104,36 @@ async function main() {
         /* ohne Speicher bleibt die Kamera erlaubt */
       }
 
+      /* Die vorgetäuschte Kamera kann nicht selbst zoomen. Eine Prüfung
+       * braucht eine, die es kann: Sie meldet dann einen Zoombereich, und
+       * was bei ihr bestellt wird, landet in window.__zoom. */
+      var kameraZoom = NaN;
+      try {
+        kameraZoom = parseFloat(localStorage.getItem('__kameraZoom'));
+      } catch (err) {
+        /* ohne Speicher zoomt die Kamera eben nicht */
+      }
+
+      if (isFinite(kameraZoom)) {
+        window.__zoom = [];
+        var faehig = MediaStreamTrack.prototype.getCapabilities;
+        var anwenden = MediaStreamTrack.prototype.applyConstraints;
+
+        MediaStreamTrack.prototype.getCapabilities = function () {
+          var c = faehig ? faehig.call(this) : {};
+          c.zoom = { min: 1, max: kameraZoom, step: 0.1 };
+          return c;
+        };
+        MediaStreamTrack.prototype.applyConstraints = function (wunsch) {
+          var z = wunsch && wunsch.advanced && wunsch.advanced[0] && wunsch.advanced[0].zoom;
+          if (z !== undefined) {
+            window.__zoom.push(z);
+            return Promise.resolve();
+          }
+          return anwenden.call(this, wunsch);
+        };
+      }
+
       if (kameraAus && navigator.mediaDevices) {
         navigator.mediaDevices.getUserMedia = function () {
           var err = new Error('abgelehnt');

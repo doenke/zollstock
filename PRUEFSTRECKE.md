@@ -14,7 +14,7 @@ Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
 reicht, ob Gemerktes ein Neuladen übersteht, ob die Kamera der Lupe
-tatsächlich wieder ausgeht. 79 Behauptungen in zwanzig Prüfungen; ein
+tatsächlich wieder ausgeht. 91 Behauptungen in zweiundzwanzig Prüfungen; ein
 Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 ## Wie gemessen wird
@@ -29,7 +29,8 @@ Bildschirmdrehung und `localStorage` werden vor dem Laden gesetzt, damit die
 App unter bekannten Bedingungen startet. Für die Lupe bringt Chromium eine
 vorgetäuschte Kamera mit: Das Bild interessiert dabei nicht, wohl aber, ob
 ein Datenstrom läuft – und vor allem, ob er beim Wegschalten wieder
-aufhört.
+aufhört. Für den Zoom lässt sich der Kamera ein Zoombereich unterschieben;
+geprüft wird dann, was bei ihr bestellt und was dazugerechnet wird.
 
 ## Was dazugehört
 

@@ -259,10 +259,6 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
 
 .hint.is-hidden { opacity: 0; }
 
-/* In der Lupe steht die Werkzeugleiste auf der üblichen Höhe – der Hinweis
-   muss darüber. */
-.hint--loupe { bottom: calc(var(--safe-b) + 136px); }
-
 /* ---------- Lupe ---------- */
 /* Schwarz als Grund, auch bei hellem Grund: Ein weißer Rahmen um ein
    Kamerabild blendet und verfälscht den Eindruck von dem, was man ansieht. */
@@ -286,12 +282,34 @@ body.is-measuring .topbar, body.is-measuring .tabbar { opacity: .18; }
   transform-origin: center;
 }
 
+/* Hinweis und Kameraangabe stehen als eigene Zeilen im Werkzeugkasten,
+   nicht frei darüber: Wie hoch der Kasten wird, hängt an der Breite und
+   daran, ob es Licht gibt – fest daneben gesetzt lägen sie irgendwann
+   übereinander. Mit Grund, weil blanker Text auf einem Kamerabild oft nicht
+   zu lesen ist. */
+.loupe__info {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.loupe__info span {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
 /* Der Schieber braucht Platz; daneben stünde er sonst als Strich. */
 .zoomer {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: min(280px, 64vw);
+  width: min(240px, 52vw);
   padding: 7px 14px;
   border-radius: 12px;
   border: 1px solid var(--line);
