@@ -42,7 +42,7 @@ Handgriffen selbst hin (siehe [Loslegen](#loslegen)).
   und 45° gibt das Gerät einen Stups. Praktisch dort, wo du den Bildschirm
   beim Anlegen nicht siehst.
 - **Hell oder dunkel anlegen** – ein dunkler Bohrer auf schwarzem Grund ist
-  kaum zu beurteilen; ein Knopf macht die Fläche weiß.
+  kaum zu beurteilen; ein Schalter in der Werkzeugwahl macht die Fläche weiß.
 - **Lesen, was zu klein ist** – die Lupe nimmt die Kamera, vergrößert bis
   achtfach und hält auf Knopfdruck ein Standbild fest. Für die eingeprägte
   Zahl auf dem Bohrer, die Schlüsselweite auf der Mutter, das Typenschild
@@ -322,18 +322,20 @@ angehalten. Gespeichert oder verschickt wird nichts – siehe
 
 ## Drehsperre und heller Grund
 
-Zwei Knöpfe in der Kopfzeile, die beim Anlegen helfen:
+Zwei Dinge, die beim Anlegen helfen:
 
-Das **Vorhängeschloss** sperrt den Bildschirm auf die Lage, in der das Gerät
+Das **Vorhängeschloss** in der Kopfzeile sperrt den Bildschirm auf die Lage, in der das Gerät
 gerade ist – sonst kippt beim Anlegen ständig die Ansicht weg. Chrome erlaubt
 das nur einer installierten App oder im Vollbild; läuft Zollstock im
 Browsertab, holt es sich das Vollbild dazu und verlässt es beim Freigeben
 wieder. Auf iOS gibt es die Schnittstelle nicht, dort erscheint der Knopf
 gar nicht erst.
 
-Der **halb gefüllte Kreis** macht die Fläche weiß. Ein dunkler Bohrer vor
-schwarzem Bildschirm ist kaum zu beurteilen, vor Weiß steht sein Umriss – und
-bei Sonne ist es ohnehin besser lesbar.
+**Heller Grund** in der Werkzeugwahl, unter den vier Werkzeugen, macht die
+Fläche weiß. Ein dunkler Bohrer vor schwarzem Bildschirm ist kaum zu
+beurteilen, vor Weiß steht sein Umriss – und bei Sonne ist es ohnehin besser
+lesbar. Die Auswahl bleibt beim Umschalten offen, du siehst dahinter gleich,
+wie es aussieht.
 
 ## Wie genau ist das?
 

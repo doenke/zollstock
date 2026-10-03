@@ -137,7 +137,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 }
 
 /* ---------- Werkzeugwahl ---------- */
-.toolcards { gap: 10px; }
+/* Kein Fuß unter dem Blatt – der Abstand zum Home-Balken kommt hierher. */
+.toolcards { gap: 10px; padding-bottom: calc(var(--safe-b) + 18px); }
 
 .toolcard {
   display: flex;
@@ -161,6 +162,52 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 
 .toolcard.is-active { border-color: var(--accent); }
 .toolcard.is-active svg { color: var(--accent); }
+
+/* Der helle Grund als Schalter unter den Werkzeugen. Das Blatt bleibt beim
+   Umschalten offen – man sieht dahinter gleich, wie es aussieht. */
+.switchrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 16px 4px 2px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.switchrow__text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.switchrow__text strong { font-size: 15px; }
+.switchrow__text span { font-size: 13px; line-height: 1.4; color: var(--text-dim); }
+
+.switch {
+  flex: none;
+  position: relative;
+  width: 46px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--line);
+  transition: background .18s;
+}
+
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform .18s;
+}
+
+.switchrow.is-on .switch { background: var(--accent); }
+.switchrow.is-on .switch__knob { transform: translateX(18px); background: var(--accent-ink); }
 
 /* Während des Messens tritt die Kopfzeile zurück. */
 .topbar { transition: opacity .18s; }

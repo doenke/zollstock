@@ -239,8 +239,7 @@
 
     var button = document.getElementById('btn-theme');
     button.classList.toggle('is-on', light);
-    button.setAttribute('aria-pressed', light ? 'true' : 'false');
-    button.title = light ? 'Zurück auf dunklen Grund' : 'Heller Grund zum Anlegen';
+    button.setAttribute('aria-checked', light ? 'true' : 'false');
 
     /* Auch die Leiste des Browsers soll mitgehen. */
     var meta = document.querySelector('meta[name="theme-color"]');

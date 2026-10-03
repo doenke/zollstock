@@ -555,8 +555,16 @@ async function hellerGrund(page, t) {
   await inAnsicht(page, 'gauge');
   const vorher = await strichHelligkeit(page);
 
+  t.gleich(await page.evaluate(function () { return !!document.querySelector('.topbar #btn-theme'); }), false,
+    'der Schalter steht nicht mehr in der Kopfzeile');
+
+  await page.click('#btn-tools');
   await page.click('#btn-theme');
   await page.waitForTimeout(200);
+
+  t.gleich(await page.getAttribute('#btn-theme', 'aria-checked'), 'true', 'der Schalter steht auf an');
+  t.gleich(await page.isVisible('#toolsheet'), true, 'die Auswahl bleibt dabei offen');
+  await page.keyboard.press('Escape');
 
   t.gleich(await page.evaluate(function () { return document.documentElement.getAttribute('data-theme'); }),
     'light', 'heller Grund gesetzt');

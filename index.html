@@ -118,10 +118,6 @@
     <button class="iconbtn" id="btn-rotation" type="button" title="Drehung des Bildschirms sperren" aria-label="Drehung sperren" aria-pressed="false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></svg>
     </button>
-    <button class="iconbtn" id="btn-theme" type="button" title="Heller Grund zum Anlegen" aria-label="Heller Grund" aria-pressed="false">
-      <!-- Kontrastzeichen: halb gefüllter Kreis – die Sonne wäre vom Zahnrad daneben kaum zu unterscheiden. -->
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>
-    </button>
     <button class="iconbtn" id="btn-calibrate" type="button" title="Einstellungen" aria-label="Einstellungen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
     </button>
@@ -177,6 +173,16 @@
           <strong>Lupe</strong>
           <span>Kleines lesen – mit Standbild, Licht und Objektivwahl.</span>
         </span>
+      </button>
+
+      <!-- Gilt für alle Werkzeuge, deshalb hier und nicht in den Einstellungen,
+           die nur Lineal und Lehre betreffen. -->
+      <button class="switchrow" id="btn-theme" type="button" role="switch" aria-checked="false">
+        <span class="switchrow__text">
+          <strong>Heller Grund</strong>
+          <span>Zum Anlegen dunkler Teile – und bei Sonne besser lesbar.</span>
+        </span>
+        <span class="switch" aria-hidden="true"><span class="switch__knob"></span></span>
       </button>
     </div>
   </div>
