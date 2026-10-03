@@ -123,8 +123,8 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .tab {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 16px;
+  gap: 0;
+  padding: 9px 11px;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -135,7 +135,21 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
   cursor: pointer;
 }
 
-.tab.is-active { background: var(--accent); color: var(--accent-ink); }
+/* Nur die offene Ansicht trägt ihren Namen. Mit vier Werkzeugen und vier
+ * Beschriftungen wäre die Leiste 429 px breit und passte auf kein Telefon –
+ * mit dreien stand sie bei 320 px schon über. So bleibt sie unter 260 px,
+ * und man sieht trotzdem, wo man ist. Die Namen stehen weiter in den
+ * aria-label der Schaltflächen. */
+.tab span { display: none; }
+
+.tab.is-active {
+  gap: 7px;
+  padding: 9px 14px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tab.is-active span { display: inline; }
 
 /* Während des Messens treten Kopfzeile und Tableiste zurück. */
 .topbar, .tabbar { transition: opacity .18s; }
