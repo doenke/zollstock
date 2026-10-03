@@ -19,6 +19,7 @@ window.Loupe = (function () {
   var switching = false;  /* zwischen zwei Objektiven */
   var frozen = false;
   var torchOn = false;
+  var lightBefore = false;  /* brannte das Licht vor dem Einfrieren? */
   var hintDone = false;   /* der Hinweis hat seinen Dienst getan */
   var noticeTimer = null;
 
@@ -136,10 +137,11 @@ window.Loupe = (function () {
     els.freeze.setAttribute('aria-pressed', frozen ? 'true' : 'false');
     els.freeze.textContent = frozen ? 'Weiter' : 'Standbild';
 
-    /* Das Licht steht immer da. Meldet die Kamera keine Lampe, ist der
-     * Knopf blasser – versucht wird es trotzdem, und wenn nichts angeht,
-     * steht da, warum. Manche Kameras melden sie erst gar nicht. */
-    els.torch.hidden = !live;
+    /* Das Licht steht da, solange das Bild läuft – im Standbild leuchtet es
+     * nichts mehr aus. Meldet die Kamera keine Lampe, ist der Knopf
+     * blasser; versucht wird es trotzdem, und wenn nichts angeht, steht da,
+     * warum. Manche Kameras melden sie erst gar nicht. */
+    els.torch.hidden = !live || frozen;
     els.torch.classList.toggle('is-on', torchOn);
     els.torch.classList.toggle('is-unsure', !capability('torch'));
     els.torch.setAttribute('aria-pressed', torchOn ? 'true' : 'false');
@@ -300,6 +302,13 @@ window.Loupe = (function () {
     els.still.height = h;
     els.still.getContext('2d').drawImage(els.video, 0, 0, w, h);
 
+    /* Das Bild ist mit Licht festgehalten; ab hier braucht es keins mehr. */
+    lightBefore = torchOn;
+    if (torchOn) {
+      setTorch(false);
+      torchOn = false;
+    }
+
     baked = nativePart();
     liveZoom = zoom;
     pan.x = 0;
@@ -315,9 +324,13 @@ window.Loupe = (function () {
   }
 
   /* Zurück zum laufenden Bild – mit dem Zoom, der vor dem Einfrieren
-   * eingestellt war. */
-  function thaw() {
+   * eingestellt war, und auf Wunsch mit dem Licht von vorher. Beim
+   * Schließen der Kamera bleibt es aus. */
+  function thaw(relight) {
     if (!frozen) return;
+
+    var light = relight && lightBefore;
+    lightBefore = false;
 
     frozen = false;
     baked = 1;
@@ -331,6 +344,7 @@ window.Loupe = (function () {
     showTools();
     showInfo();
     setZoom(zoom);
+    if (light) setTorch(true);
   }
 
   /* ---------- Licht ---------- */
@@ -554,7 +568,7 @@ window.Loupe = (function () {
   /* Schließt den Datenstrom. Die Lampe geht mit dem Strom aus – das Licht
    * ist an die Kamera gebunden, nicht an die App. */
   function closeStream() {
-    thaw();
+    thaw(false);
 
     if (stream) {
       stream.getTracks().forEach(function (t) { t.stop(); });
@@ -667,7 +681,7 @@ window.Loupe = (function () {
     });
 
     els.freeze.addEventListener('click', function () {
-      if (frozen) thaw();
+      if (frozen) thaw(true);
       else freeze();
     });
 

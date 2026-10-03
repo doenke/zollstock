@@ -14,7 +14,7 @@ Geprüft wird, was sich nachrechnen lässt: die lichten Weiten der Schlitze, die
 Maße der Sechskante und Halbkreise, wo die Null im Lineal sitzt, die
 Umrechnungen des Winkelmessers, ob die Messfläche bis an die Bildschirmkante
 reicht, ob Gemerktes ein Neuladen übersteht, ob die Kamera der Lupe
-tatsächlich wieder ausgeht. 115 Behauptungen in fünfundzwanzig Prüfungen; ein
+tatsächlich wieder ausgeht. 120 Behauptungen in sechsundzwanzig Prüfungen; ein
 Teilwort als Argument läuft nur die passenden (`npm test lehre`).
 
 ## Wie gemessen wird

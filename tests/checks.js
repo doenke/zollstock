@@ -879,6 +879,31 @@ async function lupeLicht(page, t) {
   t.gleich(await page.getAttribute('#btn-torch', 'aria-pressed'), 'false', 'und der Schalter steht nicht auf an');
 }
 
+/* Im Standbild leuchtet die Lampe nichts mehr aus: Sie geht beim Einfrieren
+ * aus, der Schalter verschwindet, und mit „Weiter“ ist beides wieder da. */
+async function lupeLichtImStandbild(page, t) {
+  await page.evaluate(function () { localStorage.setItem('__lampe', '1'); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await inAnsicht(page, 'loupe');
+  await page.waitForTimeout(700);
+
+  const lampe = function () { return page.evaluate(function () { return window.__lampe.slice(); }); };
+
+  await page.click('#btn-torch');
+  await page.waitForTimeout(150);
+  t.gleich(await lampe(), [true], 'Licht an');
+
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(150);
+  t.gleich(await lampe(), [true, false], 'beim Einfrieren geht es aus');
+  t.gleich(await page.isVisible('#btn-torch'), false, 'und der Schalter verschwindet');
+
+  await page.click('#btn-freeze');
+  await page.waitForTimeout(150);
+  t.gleich(await lampe(), [true, false, true], 'mit „Weiter“ wieder an');
+  t.gleich(await page.getAttribute('#btn-torch', 'aria-pressed'), 'true', 'und der Schalter zeigt es');
+}
+
 /* ---------- Tableiste ---------- */
 
 /* Mit vier Werkzeugen und vier Beschriftungen wäre die Leiste 429 px breit
@@ -929,6 +954,7 @@ module.exports = {
     { name: 'Lupe: Standbild verschieben', lauf: lupeVerschieben },
     { name: 'Lupe: Objektive', lauf: lupeObjektive },
     { name: 'Lupe: Licht', lauf: lupeLicht },
+    { name: 'Lupe: Licht im Standbild', lauf: lupeLichtImStandbild },
     { name: 'Tableiste: Platz', lauf: tableiste }
   ]
 };

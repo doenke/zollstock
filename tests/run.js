@@ -135,6 +135,35 @@ async function main() {
         };
       }
 
+      /* Ebenso eine Kamera mit Lampe: Sie meldet eine, und was an Licht
+       * bestellt wird, landet in window.__lampe. */
+      var lampe = false;
+      try {
+        lampe = localStorage.getItem('__lampe') === '1';
+      } catch (err) {
+        /* ohne Speicher keine Lampe */
+      }
+
+      if (lampe) {
+        window.__lampe = [];
+        var lampeFaehig = MediaStreamTrack.prototype.getCapabilities;
+        var lampeAnwenden = MediaStreamTrack.prototype.applyConstraints;
+
+        MediaStreamTrack.prototype.getCapabilities = function () {
+          var c = lampeFaehig ? lampeFaehig.call(this) : {};
+          c.torch = true;
+          return c;
+        };
+        MediaStreamTrack.prototype.applyConstraints = function (wunsch) {
+          var a = wunsch && wunsch.advanced && wunsch.advanced[0];
+          if (a && a.torch !== undefined) {
+            window.__lampe.push(a.torch);
+            return Promise.resolve();
+          }
+          return lampeAnwenden.call(this, wunsch);
+        };
+      }
+
       if (kameraAus && navigator.mediaDevices) {
         navigator.mediaDevices.getUserMedia = function () {
           var err = new Error('abgelehnt');

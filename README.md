@@ -299,7 +299,9 @@ bessere Wahl.
 **Licht** schaltet die Taschenlampe. Eine eingeprägte Zahl liest man ohne
 Streiflicht oft gar nicht. Die Lampe gehört zu einer bestimmten Kamera, oft
 nur zur Hauptkamera. Meldet die offene Kamera keine, ist der Knopf blasser;
-versucht wird es trotzdem, und wenn nichts angeht, steht da, warum.
+versucht wird es trotzdem, und wenn nichts angeht, steht da, warum. Im
+Standbild ist das Licht aus und der Schalter weg – mit **Weiter** brennt es
+wieder, wenn es vorher an war.
 
 Zwei Dinge, die die Lupe nicht kann: Sie misst nicht. Ohne bekannten Bezug im
 Bild wäre jede Zahl erfunden, und dieses Spiel fängt eine App, die ihre
