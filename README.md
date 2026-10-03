@@ -279,9 +279,8 @@ Los geht es bei 3×, danach bei dem Wert, den du zuletzt eingestellt hast –
 für jedes Objektiv getrennt.
 Die Zahl am Schieber ist immer die Vergrößerung, die du siehst. Den Teil, den
 die Kamera selbst schafft, übernimmt sie, und das Bild bleibt schärfer; nur
-was darüber hinausgeht, wird gerechnet. Wie weit deine Kamera selbst zoomt,
-steht über dem Schieber. Ob dieser Zoom optisch ist oder schon in der Kamera
-gerechnet wird, verrät kein Browser. Das **Standbild** ist der
+was darüber hinausgeht, wird gerechnet. Ob der Zoom der Kamera optisch ist
+oder schon in ihr gerechnet wird, verrät kein Browser. Das **Standbild** ist der
 eigentliche Kniff: einfrieren, das Gerät aus der Ecke zurückholen und in Ruhe
 ablesen. Ins Standbild geht es mit zwei Fingern bis zum Vierfachen dessen
 weiter, was beim Einfrieren zu sehen war, und zwar um den Punkt zwischen den

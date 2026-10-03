@@ -111,10 +111,6 @@ window.Loupe = (function () {
     return value.toFixed(1).replace('.', ',') + '×';
   }
 
-  function short(value) {
-    return (Math.round(value * 10) / 10).toString().replace('.', ',') + '×';
-  }
-
   function showGate(text, action) {
     if (!text) {
       els.gate.hidden = true;
@@ -151,35 +147,22 @@ window.Loupe = (function () {
     showLenses();
   }
 
-  /* Die Zeile über dem Schieber: was die Kamera über sich meldet, im
-   * Standbild, wie es sich bedienen lässt. */
+  /* Die Zeile über dem Schieber steht nur im Standbild – dort ist nicht
+   * selbstverständlich, dass sich das Bild mit einem Finger verschieben
+   * lässt. Im laufenden Bild bleibt sie Meldungen vorbehalten. */
   function showInfo() {
     if (noticeTimer) return;  /* eine Meldung steht gerade */
 
-    if (!stream && !switching) {
+    if (!frozen || (!stream && !switching)) {
       els.info.hidden = true;
       return;
     }
 
-    var text;
-
-    if (frozen) {
-      text = 'Standbild – mit zwei Fingern vergrößern, mit einem verschieben';
-    } else if (native) {
-      /* Ob ein Zoom optisch ist, sagt kein Browser – nur, ob die Kamera
-       * überhaupt selbst zoomt und wie weit. Bis dorthin bleibt das Bild
-       * schärfer als gerechnet. */
-      text = 'Die Kamera zoomt selbst bis ' + short(native.max) +
-        (native.max < liveMax() ? ', darüber wird gerechnet' : '');
-    } else {
-      text = 'Die Kamera zoomt nicht selbst – die Vergrößerung wird gerechnet';
-    }
-
-    els.infoText.textContent = text;
+    els.infoText.textContent = 'Standbild – mit zwei Fingern vergrößern, mit einem verschieben';
     els.info.hidden = false;
   }
 
-  /* Eine Meldung für ein paar Sekunden an Stelle der Kamerazeile. */
+  /* Eine Meldung für ein paar Sekunden in der Zeile über dem Schieber. */
   function notice(text) {
     clearTimeout(noticeTimer);
     els.infoText.textContent = text;

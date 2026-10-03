@@ -641,6 +641,9 @@ async function lupeStandbild(page, t) {
   t.gleich(bild.inhalt, true, 'und es steht wirklich etwas darauf');
   t.gleich(bild.voll, true, 'festgehalten in der vollen Auflösung der Kamera');
   t.gleich(await skala(page, 'loupe-still'), 4, 'ohne Sprung: so groß wie vorher das laufende Bild');
+  t.ok((await page.isVisible('#loupe-info')) &&
+    (await page.textContent('#loupe-info-text')).indexOf('verschieben') >= 0,
+    'im Standbild steht, wie es sich bedienen lässt');
 
   await schieber(page, 8);
   t.gleich(await skala(page, 'loupe-still'), 8, 'im Standbild geht es weiter hinein');
@@ -762,8 +765,7 @@ async function lupeStartwert(page, t) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(700);
   t.gleich(await page.textContent('#loupe-zoom-out'), '5,0×', 'und auch nach dem Neuladen');
-  t.ok((await page.textContent('#loupe-info-text')).indexOf('nicht selbst') >= 0,
-    'ohne Kamerazoom steht da, dass gerechnet wird');
+  t.gleich(await page.isVisible('#loupe-info'), false, 'im laufenden Bild steht keine Zeile über dem Schieber');
 
   /* Bis zur Objektivwahl stand der Zoom als bloße Zahl unter einem anderen
    * Schlüssel. Der Wert soll den Umzug überstehen. */
@@ -788,9 +790,6 @@ async function lupeKamerazoom(page, t) {
   await page.waitForTimeout(700);
 
   const bestellt = function () { return page.evaluate(function () { return window.__zoom[window.__zoom.length - 1]; }); };
-
-  t.ok((await page.textContent('#loupe-info-text')).indexOf('bis 4×') >= 0,
-    'sagt, wie weit die Kamera selbst zoomt');
 
   t.gleich(await bestellt(), 3, 'bei 3× zoomt die Kamera genau 3×');
   t.gleich(await skala(page, 'loupe-video'), 1, 'und es wird nichts dazugerechnet');
