@@ -68,6 +68,13 @@ async function main() {
      * gibt. */
     await ctx.addInitScript(function (pxPerMm) {
       localStorage.setItem('zollstock.calibration.v1', JSON.stringify({ pxPerMm: pxPerMm, source: 'manual' }));
+
+      /* Ohne gemerkte Ansicht hält die App das für den ersten Start und
+       * öffnet die Werkzeugwahl – die stünde jeder Prüfung im Weg. Nur die
+       * Prüfung des ersten Starts will genau das sehen. */
+      if (localStorage.getItem('__ersterStart') !== '1' && localStorage.getItem('zollstock.view.v1') === null) {
+        localStorage.setItem('zollstock.view.v1', 'ruler');
+      }
       window.__stups = [];
       navigator.vibrate = function (muster) { window.__stups.push(muster); return true; };
 

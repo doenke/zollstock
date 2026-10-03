@@ -106,6 +106,12 @@
 <!-- ---------- Kopfzeile ---------- -->
 <header class="topbar">
   <div class="topbar__actions">
+    <!-- Zeigt, wo man ist, und ist zugleich der Weg zu den anderen Werkzeugen. -->
+    <button class="toolpill" id="btn-tools" type="button" aria-haspopup="dialog" title="Werkzeug wählen">
+      <span class="toolpill__icon" id="btn-tools-icon" aria-hidden="true"></span>
+      <span class="toolpill__name" id="btn-tools-name">Lineal</span>
+      <svg class="toolpill__more" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
+    </button>
     <button class="iconbtn" id="btn-zeropoint" type="button" title="Nullpunkt wechseln" aria-label="Nullpunkt wechseln">
       <span class="iconbtn__arrow" id="btn-zeropoint-arrow">↓</span><span class="iconbtn__tag" id="btn-zeropoint-tag"></span>
     </button>
@@ -131,25 +137,50 @@
 <!-- ---------- Kurze Meldung ---------- -->
 <p class="toast" id="toast" hidden></p>
 
-<!-- ---------- Tableiste ---------- -->
-<nav class="tabbar">
-  <button class="tab is-active" data-view="ruler" type="button" aria-label="Lineal" title="Lineal">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
-    <span>Lineal</span>
-  </button>
-  <button class="tab" data-view="gauge" type="button" aria-label="Lehre" title="Lehre">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>
-    <span>Lehre</span>
-  </button>
-  <button class="tab" data-view="protractor" type="button" aria-label="Winkel" title="Winkel">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17a9 9 0 0 1 18 0z"/><path d="M12 17V9M7.5 17v-3M16.5 17v-3"/></svg>
-    <span>Winkel</span>
-  </button>
-  <button class="tab" data-view="loupe" type="button" aria-label="Lupe" title="Lupe">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
-    <span>Lupe</span>
-  </button>
-</nav>
+
+<!-- ---------- Werkzeugwahl ---------- -->
+<div class="sheet" id="toolsheet" hidden>
+  <div class="sheet__backdrop" data-close></div>
+  <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="toolsheet-title">
+    <div class="sheet__head">
+      <h1 id="toolsheet-title">Werkzeug</h1>
+      <button class="iconbtn" type="button" data-close aria-label="Schließen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet__body toolcards">
+      <button class="toolcard" data-view="ruler" data-name="Lineal" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8h20v8H2z"/><path d="M6 8v4M10 8v6M14 8v4M18 8v6"/></svg>
+        <span class="toolcard__text">
+          <strong>Lineal</strong>
+          <span>Messen in Originalgröße – die Null liegt, wo du sie brauchst, bis an die Gerätekante.</span>
+        </span>
+      </button>
+      <button class="toolcard" data-view="gauge" data-name="Lehre" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6"/></svg>
+        <span class="toolcard__text">
+          <strong>Lehre</strong>
+          <span>Bohrer, Schrauben, Muttern und Rohre auflegen und bestimmen.</span>
+        </span>
+      </button>
+      <button class="toolcard" data-view="protractor" data-name="Winkel" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17a9 9 0 0 1 18 0z"/><path d="M12 17V9M7.5 17v-3M16.5 17v-3"/></svg>
+        <span class="toolcard__text">
+          <strong>Winkel</strong>
+          <span>Neigung und Gefälle – an der Kante angelegt oder flach aufgelegt.</span>
+        </span>
+      </button>
+      <button class="toolcard" data-view="loupe" data-name="Lupe" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+        <span class="toolcard__text">
+          <strong>Lupe</strong>
+          <span>Kleines lesen – mit Standbild, Licht und Objektivwahl.</span>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ---------- Kalibrierung ---------- -->
 <div class="sheet" id="sheet" hidden>

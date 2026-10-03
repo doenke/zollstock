@@ -29,9 +29,7 @@
     document.querySelectorAll('.view').forEach(function (view) {
       view.classList.toggle('is-active', view.id === 'view-' + name);
     });
-    document.querySelectorAll('.tab').forEach(function (tab) {
-      tab.classList.toggle('is-active', tab.dataset.view === name);
-    });
+    showToolPill(name);
     /* Der Nullpunkt gehört zum Lineal. Die Kalibrierung gilt auch für die
      * Messlehre – nur beim Winkelmesser hat beides nichts zu melden. */
     document.getElementById('btn-zeropoint').hidden = name !== 'ruler';
@@ -45,9 +43,56 @@
     if (name === 'gauge') window.Gauge.draw();
   }
 
-  function setupTabs() {
-    document.querySelectorAll('.tab').forEach(function (tab) {
-      tab.addEventListener('click', function () { showView(tab.dataset.view); });
+  /* ---------- Werkzeugwahl ---------- */
+
+  /* Die Pille zeigt das offene Werkzeug – Zeichen und Name, beides aus der
+   * Karte im Auswahlblatt, damit es nur eine Stelle gibt, an der sie
+   * stehen. */
+  function showToolPill(name) {
+    var card = null;
+
+    document.querySelectorAll('.toolcard').forEach(function (c) {
+      var on = c.dataset.view === name;
+      c.classList.toggle('is-active', on);
+      if (on) {
+        c.setAttribute('aria-current', 'true');
+        card = c;
+      } else {
+        c.removeAttribute('aria-current');
+      }
+    });
+    if (!card) return;
+
+    var icon = document.getElementById('btn-tools-icon');
+    icon.innerHTML = '';
+    icon.appendChild(card.querySelector('svg').cloneNode(true));
+    document.getElementById('btn-tools-name').textContent = card.dataset.name;
+    document.getElementById('btn-tools').setAttribute('aria-label', 'Werkzeug: ' + card.dataset.name + ' – wechseln');
+  }
+
+  function openTools() {
+    document.getElementById('toolsheet').hidden = false;
+  }
+
+  function closeTools() {
+    document.getElementById('toolsheet').hidden = true;
+  }
+
+  function setupTools() {
+    var sheet = document.getElementById('toolsheet');
+
+    document.getElementById('btn-tools').addEventListener('click', openTools);
+    sheet.querySelectorAll('[data-close]').forEach(function (el) {
+      el.addEventListener('click', closeTools);
+    });
+    sheet.querySelectorAll('.toolcard').forEach(function (card) {
+      card.addEventListener('click', function () {
+        closeTools();
+        showView(card.dataset.view);
+      });
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !sheet.hidden) closeTools();
     });
 
     var stored = null;
@@ -58,6 +103,22 @@
     }
 
     showView(VIEWS.indexOf(stored) >= 0 ? stored : 'ruler');
+
+    /* Beim allerersten Start steht die Auswahl offen – so sieht jeder die
+     * Erklärungen einmal. Danach öffnet die App das zuletzt benutzte
+     * Werkzeug, wie bisher. Ohne Speicher lässt sich das nicht
+     * unterscheiden; dann bleibt es beim Lineal, statt die Auswahl bei
+     * jedem Start aufzudrängen. */
+    if (stored === null && remembered()) openTools();
+  }
+
+  /* Hat showView die Ansicht eben speichern können? */
+  function remembered() {
+    try {
+      return localStorage.getItem(VIEW_KEY) !== null;
+    } catch (err) {
+      return false;
+    }
   }
 
   /* ---------- Kurze Meldung ---------- */
@@ -381,7 +442,7 @@
      * Ansicht kurz in den falschen Farben. */
     setupTheme();
     setupRotationLock();
-    setupTabs();
+    setupTools();
     setupToolbar();
     showBuild();
     updateHint();

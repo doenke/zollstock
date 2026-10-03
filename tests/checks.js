@@ -50,7 +50,8 @@ async function messen(page, auftrag) {
 }
 
 async function inAnsicht(page, name) {
-  await page.click('.tab[data-view="' + name + '"]');
+  await page.click('#btn-tools');
+  await page.click('.toolcard[data-view="' + name + '"]');
   await page.waitForTimeout(120);
 }
 
@@ -904,26 +905,92 @@ async function lupeLichtImStandbild(page, t) {
   t.gleich(await page.getAttribute('#btn-torch', 'aria-pressed'), 'true', 'und der Schalter zeigt es');
 }
 
-/* ---------- Tableiste ---------- */
+/* ---------- Werkzeugwahl ---------- */
 
-/* Mit vier Werkzeugen und vier Beschriftungen wäre die Leiste 429 px breit
- * gewesen – mit dreien stand sie auf einem 320-px-Display schon über. */
-async function tableiste(page, t) {
+/* Die Pille zeigt, wo man ist, und führt zur Auswahl. Jede Karte öffnet ihr
+ * Werkzeug und schließt das Blatt. Unten steht keine Leiste mehr. */
+async function werkzeugwahl(page, t) {
+  t.gleich(await page.textContent('#btn-tools-name'), 'Lineal', 'die Pille zeigt das offene Werkzeug');
+  t.gleich(await page.evaluate(function () { return document.querySelector('.tabbar'); }), null,
+    'unten steht keine Leiste mehr');
+
+  await page.click('#btn-tools');
+  t.gleich(await page.isVisible('#toolsheet'), true, 'ein Druck öffnet die Auswahl');
+
+  const karten = await page.evaluate(function () {
+    return Array.prototype.map.call(document.querySelectorAll('.toolcard'), function (k) {
+      return { view: k.dataset.view, text: k.querySelector('.toolcard__text span').textContent.length };
+    });
+  });
+  t.gleich(karten.map(function (k) { return k.view; }), ['ruler', 'gauge', 'protractor', 'loupe'], 'vier Werkzeuge');
+  t.ok(karten.every(function (k) { return k.text > 20; }), 'jedes mit einer Zeile Erklärung');
+
+  const namen = { ruler: 'Lineal', gauge: 'Lehre', protractor: 'Winkel', loupe: 'Lupe' };
+  for (const view of ['gauge', 'protractor', 'loupe', 'ruler']) {
+    if (!(await page.isVisible('#toolsheet'))) await page.click('#btn-tools');
+    await page.click('.toolcard[data-view="' + view + '"]');
+    await page.waitForTimeout(150);
+
+    const ist = await page.evaluate(function () {
+      return {
+        offen: document.querySelector('.view.is-active').id,
+        blatt: !document.getElementById('toolsheet').hidden,
+        pille: document.getElementById('btn-tools-name').textContent
+      };
+    });
+    t.gleich(ist, { offen: 'view-' + view, blatt: false, pille: namen[view] },
+      namen[view] + ': geöffnet, Auswahl zu, Pille stimmt');
+  }
+
+  await page.click('#btn-tools');
+  await page.keyboard.press('Escape');
+  t.gleich(await page.isVisible('#toolsheet'), false, 'Escape schließt die Auswahl');
+}
+
+/* Die Knöpfe oben rechts dürfen nicht bis über die Millimeterstriche der
+ * Hauptskala am linken Rand reichen – auch nicht im Lineal, wo alle fünf
+ * dastehen, und nicht auf einem 320 px schmalen Gerät. */
+async function kopfzeilePlatz(page, t) {
   for (const breite of [320, 360]) {
     await page.setViewportSize({ width: breite, height: HOEHE });
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(150);
 
     const mass = await page.evaluate(function () {
-      const bar = document.querySelector('.tabbar').getBoundingClientRect();
-      return { links: bar.left, rechts: bar.right, kacheln: document.querySelectorAll('.tab').length };
+      const r = document.querySelector('.topbar__actions').getBoundingClientRect();
+      /* Millimeterstriche: 0,36 des Hauptstrichs, der höchstens 104 px lang ist. */
+      const quer = window.innerWidth;
+      const strich = Math.min(quer * 0.3, 104) * 0.36;
+      return { links: r.left, rechts: r.right, strich: strich };
     });
 
-    t.gleich(mass.kacheln, 4, 'vier Werkzeuge in der Leiste (' + breite + ' px)');
-    t.ok(mass.links >= 0 && mass.rechts <= breite,
-      'die Leiste bleibt im Bild (' + breite + ' px): ' + Math.round(mass.links) + '…' + Math.round(mass.rechts));
+    t.ok(mass.rechts <= breite, 'Knopfgruppe bleibt im Bild (' + breite + ' px)');
+    t.ok(mass.links > mass.strich,
+      'und lässt die Millimeterstriche frei (' + breite + ' px): beginnt bei ' +
+      Math.round(mass.links) + ', Striche bis ' + Math.round(mass.strich));
   }
 }
 
+/* Beim allerersten Start steht die Auswahl offen; danach geht es mit dem
+ * zuletzt benutzten Werkzeug los. */
+async function ersterStart(page, t) {
+  await page.evaluate(function () {
+    localStorage.setItem('__ersterStart', '1');
+    localStorage.removeItem('zollstock.view.v1');
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(150);
+
+  t.gleich(await page.isVisible('#toolsheet'), true, 'beim ersten Start steht die Auswahl offen');
+
+  await page.click('.toolcard[data-view="protractor"]');
+  await page.waitForTimeout(150);
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(150);
+
+  t.gleich(await page.isVisible('#toolsheet'), false, 'beim nächsten Start nicht mehr');
+  t.gleich(await page.evaluate(function () { return document.querySelector('.view.is-active').id; }),
+    'view-protractor', 'sondern gleich das zuletzt benutzte Werkzeug');
+}
 
 module.exports = {
   PX_PER_MM: PX_PER_MM,
@@ -955,6 +1022,8 @@ module.exports = {
     { name: 'Lupe: Objektive', lauf: lupeObjektive },
     { name: 'Lupe: Licht', lauf: lupeLicht },
     { name: 'Lupe: Licht im Standbild', lauf: lupeLichtImStandbild },
-    { name: 'Tableiste: Platz', lauf: tableiste }
+    { name: 'Werkzeugwahl', lauf: werkzeugwahl },
+    { name: 'Werkzeugwahl: Platz in der Kopfzeile', lauf: kopfzeilePlatz },
+    { name: 'Werkzeugwahl: erster Start', lauf: ersterStart }
   ]
 };

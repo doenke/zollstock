@@ -76,7 +76,9 @@ Abhängigkeiten, kein Konto. Entweder du nimmst
 kopierst dir das Verzeichnis auf deinen eigenen Webspace und rufst die
 Adresse auf – mehr braucht es nicht.
 
-1. **Seite öffnen.**
+1. **Seite öffnen.** Beim ersten Mal steht die Werkzeugwahl offen, mit einer
+   Zeile zu jedem Werkzeug. Später kommst du über die Pille oben rechts
+   dorthin – sie zeigt immer, wo du gerade bist.
 2. **Zum Startbildschirm hinzufügen.** Als installierte App läuft Zollstock im
    Vollbild – nur dann reicht der Bildschirm bis an den Rand, und nur dann
    stimmt das Messen an der Gerätekante.
@@ -84,6 +86,11 @@ Adresse auf – mehr braucht es nicht.
    EC-Karte anlegen. Zehn Sekunden, und du weißt, ob die Erkennung stimmt.
 
 ## Ein erster Rundgang
+
+Gewechselt wird über die Pille oben rechts, etwa **Lineal ▾**: antippen,
+Werkzeug wählen. Unten bleibt dadurch alles frei für das, was gemessen wird.
+Die App merkt sich, womit du zuletzt gearbeitet hast, und öffnet beim
+nächsten Mal genau dort.
 
 ### 1. Den Maßstab prüfen
 
