@@ -373,12 +373,12 @@
       location.reload();
     }
 
-    chip.addEventListener('click', reloadOnce);
+    if (chip) chip.addEventListener('click', reloadOnce);
 
     navigator.serviceWorker.addEventListener('controllerchange', function () {
       if (!hadController) return;
       pending = true;
-      chip.hidden = false;
+      if (chip) chip.hidden = false;
       /* Wer gerade nicht hinsieht, bekommt die neue Fassung sofort. */
       if (document.visibilityState !== 'visible') reloadOnce();
     });
@@ -415,6 +415,13 @@
   }
 
   function start() {
+    /* Als Erstes, vor allem anderen: Wenn irgendetwas weiter unten
+     * scheitert – etwa weil eine halb hochgeladene Fassung neues HTML mit
+     * altem Skript zusammengebracht hat –, muss die App sich trotzdem die
+     * nächste Fassung holen können. Sonst bliebe sie kaputt, bis jemand von
+     * Hand die Websitedaten löscht. */
+    registerServiceWorker();
+
     window.Calibration.init();
     window.ScaleCheck.init();
     window.Edge.init();
@@ -447,7 +454,6 @@
     showBuild();
     updateHint();
     setupLifecycle();
-    registerServiceWorker();
     requestWakeLock();
 
     /* Das Gerätemodell verrät Chrome nur über die Client Hints und nur

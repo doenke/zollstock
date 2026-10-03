@@ -1,4 +1,9 @@
-/* Service Worker: hält die App offline verfügbar. */
+/* Service Worker: hält die App offline verfügbar.
+ *
+ * An dieser Datei erkennen Browser eine neue Fassung – deshalb wird sie beim
+ * Aufspielen als Letzte hochgeladen. Kommt sie vor den übrigen an, holt sich
+ * ein Telefon, das gerade nachsieht, eine Mischung aus neuen und alten
+ * Dateien und behält sie bis zur nächsten Fassung. */
 // Der Deploy ersetzt den Platzhalter durch den Commit-SHA (.github/workflows/deploy.yml).
 const VERSION = '__BUILD__';
 const CACHE = `zollstock-${VERSION}`;

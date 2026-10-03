@@ -493,6 +493,12 @@ Das Verzeichnis auf den eigenen Webspace kopieren, fertig. Alle Pfade sind
 relativ, es läuft also in jedem Unterordner. `tests/` und `docs/` gehören
 nicht dazu – sie werden im Betrieb nicht gebraucht.
 
+Bei einer neuen Fassung kommt `sw.js` als Letztes hoch. An ihr erkennen die
+Browser, dass sich etwas geändert hat, und holen sich dann sofort alle
+übrigen Dateien. Steht die neue `sw.js` schon da, die übrigen aber noch
+nicht, bleibt bei jedem, der in diesem Moment hinsieht, eine Mischung aus
+alt und neu hängen.
+
 Eine Sache musst du dabei anfassen: In `kontakt.html` und `datenschutz.html`
 stehe ich als Verantwortlicher. Stellst du die App öffentlich hin, gehört dort
 dein Name hin, nicht meiner.

@@ -182,6 +182,18 @@ jobs:
             echo "Trockenlauf – es wird nichts verändert."
           fi
 
+          # sw.js geht als Letztes hoch. Sie ist es, an der Browser eine neue
+          # Fassung erkennen; sieht ein Telefon sie, holt es sich sofort alle
+          # Dateien und hebt sie unter der neuen Versionsnummer auf. Lädt der
+          # Spiegel sie mit den übrigen hoch, kommt sie vor css/ und js/ an –
+          # lftp nimmt Unterordner zuletzt –, und wer in diesen Sekunden die
+          # App öffnet, behält neues HTML mit altem Skript, bis zum nächsten
+          # Deploy. Genau das ist passiert: Die Werkzeugpille tat nichts.
+          LAST="put -O \"$REMOTE_DIR\" sw.js;"
+          if [ -n "$DRY" ]; then
+            LAST="echo 'Danach als Letztes: sw.js';"
+          fi
+
           lftp -c "
             set cmd:fail-exit yes;
             set net:max-retries 3;
@@ -195,7 +207,9 @@ jobs:
                    --exclude '^\.gitignore$' \
                    --exclude '^tests/' \
                    --exclude '^docs/' \
+                   --exclude '^sw\.js$' \
                    ./ \"$REMOTE_DIR\";
+            $LAST
           "
 
       - name: Ergebnis
