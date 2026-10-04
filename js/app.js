@@ -30,10 +30,9 @@
       view.classList.toggle('is-active', view.id === 'view-' + name);
     });
     showToolPill(name);
-    /* Der Nullpunkt gehört zum Lineal. Die Kalibrierung gilt auch für die
-     * Messlehre – nur beim Winkelmesser hat beides nichts zu melden. */
+    /* Der Nullpunkt gehört zum Lineal. Das Zahnrad steht überall: Hinter
+     * ihm liegen Schalter, die für alle Werkzeuge gelten. */
     document.getElementById('btn-zeropoint').hidden = name !== 'ruler';
-    document.getElementById('btn-calibrate').hidden = name === 'protractor' || name === 'loupe';
 
     /* Winkelmesser und Lupe greifen beide auf Geräte zu – Lagesensor und
      * Kamera laufen nur, solange ihre Ansicht offen ist. */
@@ -141,8 +140,7 @@
   function showRotation() {
     var button = document.getElementById('btn-rotation');
     button.classList.toggle('is-on', rotationLocked);
-    button.setAttribute('aria-pressed', rotationLocked ? 'true' : 'false');
-    button.title = rotationLocked ? 'Drehung wieder freigeben' : 'Drehung des Bildschirms sperren';
+    button.setAttribute('aria-checked', rotationLocked ? 'true' : 'false');
   }
 
   /* Gesperrt wird auf die Lage, in der das Gerät gerade ist. Chrome erlaubt
@@ -302,8 +300,37 @@
 
     showZeroPoint();
 
+    setupSettings();
+  }
+
+  /* ---------- Einstellungen ---------- */
+
+  /* Ein Blatt, zwei Seiten: vorn die Schalter und der Weg zur Kalibrierung,
+   * dahinter Maßstab und Gerätekante. Geschlossen wird es weiterhin von
+   * calibration.js, das auch die Vollbildansichten darunter mit schließt. */
+  function showSettingsPage(name) {
+    var main = name === 'main';
+
+    document.getElementById('settings-main').hidden = !main;
+    document.getElementById('settings-cal').hidden = main;
+    document.getElementById('sheet-back').hidden = main;
+    document.getElementById('sheet-title').textContent = main ? 'Einstellungen' : 'Kalibrieren';
+    document.querySelector('#sheet .sheet__body').scrollTop = 0;
+  }
+
+  function setupSettings() {
     document.getElementById('btn-calibrate').addEventListener('click', function () {
+      showSettingsPage('main');
+      document.getElementById('sheet').hidden = false;
+    });
+
+    document.getElementById('btn-open-cal').addEventListener('click', function () {
       window.Calibration.open();
+      showSettingsPage('cal');
+    });
+
+    document.getElementById('sheet-back').addEventListener('click', function () {
+      showSettingsPage('main');
     });
   }
 
@@ -316,9 +343,15 @@
       detected.confidence !== 'hoch';
 
     hint.textContent = unsure
-      ? 'Bildschirm nicht sicher erkannt – bitte einmalig kalibrieren (Zahnrad oben rechts)'
+      ? 'Bildschirm nicht sicher erkannt – bitte einmalig kalibrieren (Zahnrad → Kalibrieren)'
       : 'Tippen oder ziehen, um die Messmarke zu setzen';
     button.classList.toggle('is-on', unsure);
+
+    /* Im Menü zeigt die Zeile selbst, warum das Zahnrad leuchtet. */
+    document.getElementById('btn-open-cal').classList.toggle('is-on', unsure);
+    document.getElementById('open-cal-sub').textContent = unsure
+      ? 'Bildschirm nicht sicher erkannt – einmal mit einer Karte prüfen.'
+      : 'Maßstab prüfen und die Gerätekante vermessen.';
   }
 
   /* Bildschirm während des Messens wach halten. */

@@ -117,9 +117,6 @@
     <button class="iconbtn" id="btn-zeropoint" type="button" title="Nullpunkt wechseln" aria-label="Nullpunkt wechseln">
       <span class="iconbtn__arrow" id="btn-zeropoint-arrow">↓</span><span class="iconbtn__tag" id="btn-zeropoint-tag"></span>
     </button>
-    <button class="iconbtn" id="btn-rotation" type="button" title="Drehung des Bildschirms sperren" aria-label="Drehung sperren" aria-pressed="false">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></svg>
-    </button>
     <button class="iconbtn" id="btn-calibrate" type="button" title="Einstellungen" aria-label="Einstellungen">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
     </button>
@@ -176,25 +173,18 @@
           <span>Kleines lesen – mit Standbild, Licht und Objektivwahl.</span>
         </span>
       </button>
-
-      <!-- Gilt für alle Werkzeuge, deshalb hier und nicht in den Einstellungen,
-           die nur Lineal und Lehre betreffen. -->
-      <button class="switchrow" id="btn-theme" type="button" role="switch" aria-checked="false">
-        <span class="switchrow__text">
-          <strong>Heller Grund</strong>
-          <span>Zum Anlegen dunkler Teile – und bei Sonne besser lesbar.</span>
-        </span>
-        <span class="switch" aria-hidden="true"><span class="switch__knob"></span></span>
-      </button>
     </div>
   </div>
 </div>
 
-<!-- ---------- Kalibrierung ---------- -->
+<!-- ---------- Einstellungen: Menü und Kalibrierung ---------- -->
 <div class="sheet" id="sheet" hidden>
   <div class="sheet__backdrop" data-close></div>
   <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
     <div class="sheet__head">
+      <button class="iconbtn sheet__back" id="sheet-back" type="button" aria-label="Zurück zu den Einstellungen" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
       <h1 id="sheet-title">Einstellungen</h1>
       <button class="iconbtn" type="button" data-close aria-label="Schließen">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
@@ -202,6 +192,41 @@
     </div>
 
     <div class="sheet__body">
+      <!-- Seite 1: die Schalter, die für alle Werkzeuge gelten, und der Weg
+           zur Kalibrierung. -->
+      <div class="sheet__page" id="settings-main">
+        <div class="menu">
+          <button class="switchrow" id="btn-theme" type="button" role="switch" aria-checked="false">
+            <span class="switchrow__text">
+              <strong>Heller Grund</strong>
+              <span>Zum Anlegen dunkler Teile – und bei Sonne besser lesbar.</span>
+            </span>
+            <span class="switch" aria-hidden="true"><span class="switch__knob"></span></span>
+          </button>
+
+          <button class="switchrow" id="btn-rotation" type="button" role="switch" aria-checked="false">
+            <span class="switchrow__text">
+              <strong>Drehung sperren</strong>
+              <span>Hält den Bildschirm in der Lage, in der das Gerät gerade ist – sonst kippt beim Anlegen die Ansicht weg.</span>
+            </span>
+            <span class="switch" aria-hidden="true"><span class="switch__knob"></span></span>
+          </button>
+
+          <button class="navrow" id="btn-open-cal" type="button">
+            <span class="switchrow__text">
+              <strong>Kalibrieren</strong>
+              <span id="open-cal-sub">Maßstab prüfen und die Gerätekante vermessen.</span>
+            </span>
+            <svg class="navrow__more" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <p class="legal"><a href="kontakt.html">Kontakt</a> · <a href="datenschutz.html">Datenschutz</a></p>
+        <p class="build">Stand: <span id="build-value">lokal</span></p>
+      </div>
+
+      <!-- Seite 2: Maßstab und Gerätekante. -->
+      <div class="sheet__page" id="settings-cal" hidden>
       <section class="group">
         <h2 class="group__title">Kalibrierung</h2>
 
@@ -283,9 +308,7 @@
 
         <p class="note">Erst den Maßstab kalibrieren, dann den Rand messen – die Randmessung rechnet mit dem eingestellten Maßstab.</p>
       </section>
-
-      <p class="legal"><a href="kontakt.html">Kontakt</a> · <a href="datenschutz.html">Datenschutz</a></p>
-      <p class="build">Stand: <span id="build-value">lokal</span></p>
+      </div>
     </div>
 
     <div class="sheet__foot">

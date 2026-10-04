@@ -55,6 +55,19 @@ async function inAnsicht(page, name) {
   await page.waitForTimeout(120);
 }
 
+/* Zahnrad → Einstellungen. */
+async function einstellungen(page) {
+  await page.click('#btn-calibrate');
+  await page.waitForTimeout(120);
+}
+
+/* Zahnrad → Kalibrieren. */
+async function kalibrieren(page) {
+  await einstellungen(page);
+  await page.click('#btn-open-cal');
+  await page.waitForTimeout(120);
+}
+
 async function lage(page, beta, gamma) {
   await page.evaluate(function (werte) {
     for (let i = 0; i < 90; i++) {
@@ -410,8 +423,7 @@ async function winkelStups(page, t) {
  * der Bedienleiste, die Linie kam nie ans Kartenende. */
 async function kanteMessen(page, t) {
   for (const seite of ['top', 'bottom']) {
-    await page.click('#btn-calibrate');
-    await page.waitForTimeout(120);
+    await kalibrieren(page);
     await page.click('[data-edge-side="' + seite + '"]');
     await page.waitForTimeout(80);
     await page.click('#edge-measure');
@@ -447,8 +459,7 @@ async function kanteMessen(page, t) {
 /* ---------- Maßstabsprobe ---------- */
 
 async function probe(page, t) {
-  await page.click('#btn-calibrate');
-  await page.waitForTimeout(120);
+  await kalibrieren(page);
   await page.click('#cal-check-open');
   await page.waitForTimeout(200);
 
@@ -502,23 +513,26 @@ async function gemerktes(page, t) {
 
 async function drehsperre(page, t) {
   const gedrueckt = function () {
-    return page.getAttribute('#btn-rotation', 'aria-pressed');
+    return page.getAttribute('#btn-rotation', 'aria-checked');
   };
 
-  t.gleich(await page.isVisible('#btn-rotation'), true, 'Knopf da, wo die Schnittstelle da ist');
+  t.gleich(await page.evaluate(function () { return !!document.querySelector('.topbar #btn-rotation'); }), false,
+    'die Sperre steht nicht mehr in der Kopfzeile');
+  await einstellungen(page);
+  t.gleich(await page.isVisible('#btn-rotation'), true, 'Schalter da, wo die Schnittstelle da ist');
   t.gleich(await gedrueckt(), 'false', 'anfangs nicht gesperrt');
 
   await page.click('#btn-rotation');
   await page.waitForTimeout(150);
   t.gleich(await page.evaluate(function () { return window.__sperre.slice(); }),
     ['portrait-primary'], 'sperrt auf die Lage, in der das Gerät gerade ist');
-  t.gleich(await gedrueckt(), 'true', 'Knopf zeigt die Sperre');
+  t.gleich(await gedrueckt(), 'true', 'Schalter zeigt die Sperre');
 
   await page.click('#btn-rotation');
   await page.waitForTimeout(150);
   t.gleich(await page.evaluate(function () { return window.__sperre.slice(); }),
     ['portrait-primary', 'frei'], 'zweiter Druck gibt wieder frei');
-  t.gleich(await gedrueckt(), 'false', 'Knopf wieder aus');
+  t.gleich(await gedrueckt(), 'false', 'Schalter wieder aus');
 }
 
 /* Ohne die Schnittstelle – auf iOS – darf keine tote Taste stehenbleiben. */
@@ -527,7 +541,11 @@ async function drehsperreOhne(page, t) {
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(150);
 
-  t.gleich(await page.isVisible('#btn-rotation'), false, 'Knopf bleibt weg, wenn nichts zu sperren ist');
+  /* Bei offenem Menü nachsehen – geschlossen wäre der Schalter ohnehin
+   * unsichtbar, und die Prüfung bewiese nichts. */
+  await einstellungen(page);
+  t.gleich(await page.isVisible('#settings-main'), true, 'Menü ist offen');
+  t.gleich(await page.isVisible('#btn-rotation'), false, 'Schalter bleibt weg, wenn nichts zu sperren ist');
 }
 
 /* ---------- Heller Grund ---------- */
@@ -555,15 +573,16 @@ async function hellerGrund(page, t) {
   await inAnsicht(page, 'gauge');
   const vorher = await strichHelligkeit(page);
 
-  t.gleich(await page.evaluate(function () { return !!document.querySelector('.topbar #btn-theme'); }), false,
-    'der Schalter steht nicht mehr in der Kopfzeile');
+  t.gleich(await page.evaluate(function () {
+    return !!document.querySelector('.topbar #btn-theme') || !!document.querySelector('#toolsheet #btn-theme');
+  }), false, 'der Schalter steht weder in der Kopfzeile noch in der Werkzeugwahl');
 
-  await page.click('#btn-tools');
+  await einstellungen(page);
   await page.click('#btn-theme');
   await page.waitForTimeout(200);
 
   t.gleich(await page.getAttribute('#btn-theme', 'aria-checked'), 'true', 'der Schalter steht auf an');
-  t.gleich(await page.isVisible('#toolsheet'), true, 'die Auswahl bleibt dabei offen');
+  t.gleich(await page.isVisible('#sheet'), true, 'die Einstellungen bleiben dabei offen');
   await page.keyboard.press('Escape');
 
   t.gleich(await page.evaluate(function () { return document.documentElement.getAttribute('data-theme'); }),
@@ -962,6 +981,49 @@ async function lupeKontrast(page, t) {
   t.ok((await filter('loupe-video')).indexOf('contrast') >= 0, 'Kontrast bleibt an');
 }
 
+/* ---------- Einstellungen ---------- */
+
+/* Das Zahnrad steht in jedem Werkzeug. Dahinter: die Schalter, die für alle
+ * gelten, und der Weg zur Kalibrierung, die als zweite Seite im selben
+ * Blatt aufgeht. Die Kopfzeile trägt nur noch Pille, Zahnrad und – im
+ * Lineal – den Nullpunkt. */
+async function einstellungenMenue(page, t) {
+  for (const view of ['ruler', 'gauge', 'protractor', 'loupe']) {
+    await inAnsicht(page, view);
+    const knoepfe = await page.evaluate(function () {
+      return Array.prototype.filter.call(document.querySelectorAll('.topbar__actions > button'), function (b) {
+        return !b.hidden;
+      }).map(function (b) { return b.id; });
+    });
+    t.gleich(knoepfe, view === 'ruler' ? ['btn-tools', 'btn-zeropoint', 'btn-calibrate'] : ['btn-tools', 'btn-calibrate'],
+      'Kopfzeile in ' + view);
+  }
+
+  await inAnsicht(page, 'ruler');
+  await einstellungen(page);
+  t.gleich(await page.textContent('#sheet-title'), 'Einstellungen', 'das Zahnrad öffnet die Einstellungen');
+  t.gleich(await page.isVisible('#btn-theme') && await page.isVisible('#btn-rotation') && await page.isVisible('#btn-open-cal'),
+    true, 'mit beiden Schaltern und dem Weg zur Kalibrierung');
+  t.gleich(await page.isVisible('#cal-save'), false, 'die Kalibrierung selbst liegt dahinter');
+
+  await page.click('#btn-open-cal');
+  await page.waitForTimeout(120);
+  t.gleich(await page.textContent('#sheet-title'), 'Kalibrieren', 'Kalibrieren öffnet die zweite Seite');
+  t.gleich(await page.isVisible('#cal-save') && await page.isVisible('#edge-measure'), true,
+    'mit Maßstab und Gerätekante');
+  t.ok((await page.textContent('#facts')).length > 10, 'und den erkannten Werten');
+
+  await page.click('#sheet-back');
+  await page.waitForTimeout(120);
+  t.gleich(await page.isVisible('#btn-theme') && !(await page.isVisible('#cal-save')), true, 'der Pfeil führt zurück');
+
+  await page.click('#btn-open-cal');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(120);
+  await einstellungen(page);
+  t.gleich(await page.textContent('#sheet-title'), 'Einstellungen', 'wieder geöffnet, beginnt es vorn');
+}
+
 /* ---------- Werkzeugwahl ---------- */
 
 /* Die Pille zeigt, wo man ist, und führt zur Auswahl. Jede Karte öffnet ihr
@@ -1080,6 +1142,7 @@ module.exports = {
     { name: 'Lupe: Licht', lauf: lupeLicht },
     { name: 'Lupe: Licht im Standbild', lauf: lupeLichtImStandbild },
     { name: 'Lupe: Kontrast und Relief', lauf: lupeKontrast },
+    { name: 'Einstellungen', lauf: einstellungenMenue },
     { name: 'Werkzeugwahl', lauf: werkzeugwahl },
     { name: 'Werkzeugwahl: Platz in der Kopfzeile', lauf: kopfzeilePlatz },
     { name: 'Werkzeugwahl: erster Start', lauf: ersterStart }

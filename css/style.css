@@ -140,6 +140,19 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 /* Kein Fuß unter dem Blatt – der Abstand zum Home-Balken kommt hierher. */
 .toolcards { gap: 10px; padding-bottom: calc(var(--safe-b) + 18px); }
 
+/* ---------- Einstellungen ---------- */
+/* Zwei Seiten im selben Blatt: das Menü und die Kalibrierung. Der Pfeil
+   oben links führt zurück. */
+.sheet__page { display: flex; flex-direction: column; gap: 16px; }
+.sheet__head h1 { flex: 1; }
+.sheet__back { margin-right: 10px; }
+
+.menu { display: flex; flex-direction: column; }
+.menu > * + * { border-top: 1px solid var(--line); }
+
+.navrow__more { flex: none; width: 20px; height: 20px; color: var(--text-dim); }
+.navrow.is-on strong, .navrow.is-on .navrow__more { color: var(--accent); }
+
 .toolcard {
   display: flex;
   align-items: flex-start;
@@ -163,17 +176,16 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round
 .toolcard.is-active { border-color: var(--accent); }
 .toolcard.is-active svg { color: var(--accent); }
 
-/* Der helle Grund als Schalter unter den Werkzeugen. Das Blatt bleibt beim
-   Umschalten offen – man sieht dahinter gleich, wie es aussieht. */
-.switchrow {
+/* Eine Zeile im Menü: Text links, rechts ein Schalter oder ein Pfeil. Das
+   Blatt bleibt beim Umschalten offen – man sieht dahinter gleich, was sich
+   geändert hat. */
+.switchrow, .navrow {
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
-  margin-top: 6px;
-  padding: 16px 4px 2px;
+  padding: 14px 2px;
   border: 0;
-  border-top: 1px solid var(--line);
   background: transparent;
   color: var(--text);
   font: inherit;
