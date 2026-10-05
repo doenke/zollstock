@@ -171,6 +171,39 @@ async function main() {
         };
       }
 
+      /* Kameras, die verschieden weit zoomen: Die Liste gibt je vorgetäuschter
+       * Kamera (fake_device_0, _1, …) an, bis wohin sie selbst zoomt. Und
+       * gezählt wird, wie oft eine Kamera geöffnet wurde (window.__gum). */
+      var reichweite = null;
+      try {
+        reichweite = JSON.parse(localStorage.getItem('__reichweite'));
+      } catch (err) {
+        /* ohne Speicher zoomt keine */
+      }
+
+      if (Array.isArray(reichweite)) {
+        window.__gum = 0;
+        var oeffnen = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+        navigator.mediaDevices.getUserMedia = function (wunsch) {
+          window.__gum++;
+          return oeffnen(wunsch);
+        };
+
+        var weitFaehig = MediaStreamTrack.prototype.getCapabilities;
+        MediaStreamTrack.prototype.getCapabilities = function () {
+          var c = weitFaehig ? weitFaehig.call(this) : {};
+          var n = parseInt(String(this.label).replace(/\D/g, ''), 10);
+          if (isFinite(reichweite[n]) && reichweite[n] > 1) c.zoom = { min: 1, max: reichweite[n], step: 0.1 };
+          return c;
+        };
+        var weitAnwenden = MediaStreamTrack.prototype.applyConstraints;
+        MediaStreamTrack.prototype.applyConstraints = function (wunsch) {
+          var a = wunsch && wunsch.advanced && wunsch.advanced[0];
+          if (a && a.zoom !== undefined) return Promise.resolve();
+          return weitAnwenden.call(this, wunsch);
+        };
+      }
+
       if (kameraAus && navigator.mediaDevices) {
         navigator.mediaDevices.getUserMedia = function () {
           var err = new Error('abgelehnt');

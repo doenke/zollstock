@@ -70,6 +70,20 @@ window.Loupe = (function () {
   var lenses = [];
   var lensId = null;
 
+  /* Beim Öffnen der Lupe geht das Objektiv mit dem größten Zoom auf. Wie weit
+   * eines zoomt, verrät der Browser erst, wenn es offen ist – beim ersten
+   * Mal wird deshalb jedes unbekannte kurz geöffnet und der Wert gemerkt.
+   * Danach steht die Wahl schon vor dem Öffnen fest.
+   *
+   *   pickBest     die Wahl steht für dieses Öffnen noch aus
+   *   sessionLens  das Objektiv dieses Öffnens, ob gewählt oder getippt
+   *   probing      die Objektive werden gerade verglichen
+   *   skip         ließen sich nicht öffnen – in diesem Lauf nicht nochmal */
+  var pickBest = false;
+  var sessionLens = null;
+  var probing = false;
+  var skip = {};
+
   /* ---------- Speicher ---------- */
 
   function validZoom(value) {
@@ -77,20 +91,24 @@ window.Loupe = (function () {
   }
 
   function load() {
-    var fresh = { lens: null, zooms: {}, first: START_ZOOM };
+    var fresh = { zooms: {}, reach: {}, first: START_ZOOM };
 
     try {
       var parsed = JSON.parse(localStorage.getItem(STORE_KEY));
       if (parsed && typeof parsed === 'object') {
         var zooms = {};
+        var reach = {};
         Object.keys(parsed.zooms || {}).forEach(function (id) {
           if (validZoom(parsed.zooms[id])) zooms[id] = parsed.zooms[id];
         });
-        return {
-          lens: typeof parsed.lens === 'string' ? parsed.lens : null,
-          zooms: zooms,
-          first: START_ZOOM
-        };
+        /* Wie weit jedes Objektiv selbst zoomt. Ein früher gemerktes
+         * „gewähltes Objektiv“ gibt es nicht mehr – die Wahl trifft jetzt die
+         * Reichweite. */
+        Object.keys(parsed.reach || {}).forEach(function (id) {
+          var r = parsed.reach[id];
+          if (typeof r === 'number' && isFinite(r) && r >= 1 && r <= 100) reach[id] = r;
+        });
+        return { zooms: zooms, reach: reach, first: START_ZOOM };
       }
 
       /* Bis zur Objektivwahl stand hier nur eine Zahl. Sie gilt weiter für
@@ -106,7 +124,7 @@ window.Loupe = (function () {
 
   function persist() {
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ lens: store.lens, zooms: store.zooms }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ zooms: store.zooms, reach: store.reach }));
       localStorage.removeItem(OLD_KEY);
     } catch (err) {
       /* Privater Modus – dann beginnt es beim nächsten Mal wieder bei 3×. */
@@ -179,6 +197,13 @@ window.Loupe = (function () {
 
     els.infoText.textContent = 'Standbild – mit zwei Fingern vergrößern, mit einem verschieben';
     els.info.hidden = false;
+  }
+
+  /* Eine Meldung vorzeitig wegnehmen, wenn sie nicht mehr stimmt. */
+  function clearNotice() {
+    clearTimeout(noticeTimer);
+    noticeTimer = null;
+    showInfo();
   }
 
   /* Eine Meldung für ein paar Sekunden in der Zeile über dem Schieber. */
@@ -518,24 +543,168 @@ window.Loupe = (function () {
     return String(index + 1);
   }
 
-  function listLenses() {
-    if (!navigator.mediaDevices.enumerateDevices) return;
+  function candidatesOf(devices) {
+    var video = devices.filter(function (d) { return d.kind === 'videoinput' && d.deviceId; });
+    var back = video.filter(function (d) { return BACK.test(d.label); });
+    /* Steht nirgends, wohin eine Kamera schaut (am Rechner etwa), gilt
+     * jede, die nicht ausdrücklich nach vorn zeigt. */
+    var candidates = back.length ? back : video.filter(function (d) { return !FRONT.test(d.label); });
+
+    return candidates.map(function (d, i) {
+      return { id: d.deviceId, label: d.label, name: nameOf(d.label, i) };
+    });
+  }
+
+  /* Ohne Liste gibt es nichts zu wählen – dann ist die Wahl mit dem offenen
+   * Objektiv getroffen, statt ewig auszustehen. */
+  function listLenses(then) {
+    if (!navigator.mediaDevices.enumerateDevices) {
+      if (then) then([]);
+      return;
+    }
 
     navigator.mediaDevices.enumerateDevices().then(function (devices) {
-      var video = devices.filter(function (d) { return d.kind === 'videoinput' && d.deviceId; });
-      var back = video.filter(function (d) { return BACK.test(d.label); });
-      /* Steht nirgends, wohin eine Kamera schaut (am Rechner etwa), gilt
-       * jede, die nicht ausdrücklich nach vorn zeigt. */
-      var candidates = back.length ? back : video.filter(function (d) { return !FRONT.test(d.label); });
-
-      lenses = candidates.map(function (d, i) {
-        return { id: d.deviceId, label: d.label, name: nameOf(d.label, i) };
-      });
+      lenses = candidatesOf(devices);
       showLenses();
+      if (then) then(lenses);
     }).catch(function () {
       lenses = [];
       showLenses();
+      if (then) then([]);
     });
+  }
+
+  /* ---------- Das Objektiv mit dem größten Zoom ---------- */
+
+  /* Ob ein Zoom optisch ist, sagt kein Browser – wohl aber, wie weit ein
+   * Objektiv selbst zoomt. Nennt der Browser eines „Tele“ (iOS tut das),
+   * gilt das als das weiteste; sonst entscheidet der gemeldete Zoom. Bei
+   * Gleichstand bleibt es beim ersten der Liste, meist der Hauptkamera. */
+  function isTele(lens) {
+    return /tele/i.test(lens.label);
+  }
+
+  function known(lens) {
+    return store.reach[lens.id] !== undefined || skip[lens.id];
+  }
+
+  function decided(list) {
+    return list.some(isTele) || list.every(known);
+  }
+
+  function bestOf(list) {
+    var tele = list.filter(isTele);
+    if (tele.length) return tele[0];
+
+    var top = null;
+    list.forEach(function (lens) {
+      if (skip[lens.id]) return;
+      if (!top || (store.reach[lens.id] || 1) > (store.reach[top.id] || 1)) top = lens;
+    });
+    return top;
+  }
+
+  function reachOf(t) {
+    try {
+      var caps = t && t.getCapabilities ? t.getCapabilities() : null;
+      var z = caps && caps.zoom;
+      return z && isFinite(z.max) && z.max > 1 ? z.max : 1;
+    } catch (err) {
+      return 1;
+    }
+  }
+
+  /* Was das offene Objektiv gerade über sich meldet, festhalten. */
+  function noteReach() {
+    if (!lensId || !track) return;
+    var r = native ? native.max : 1;
+    if (store.reach[lensId] !== r) {
+      store.reach[lensId] = r;
+      persist();
+    }
+  }
+
+  /* Die noch unbekannten Objektive nacheinander kurz öffnen und ihre
+   * Reichweite lesen. Nacheinander, weil viele Telefone nicht zwei Kameras
+   * zugleich öffnen. Wird die Lupe dabei verlassen, hört es sofort auf. */
+  function probeLenses(ids, done) {
+    var i = 0;
+
+    function next() {
+      if (!active || document.visibilityState !== 'visible') {
+        probing = false;
+        return;
+      }
+      if (i >= ids.length) {
+        probing = false;
+        persist();
+        done();
+        return;
+      }
+
+      var id = ids[i++];
+      navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: id }, zoom: true },
+        audio: false
+      }).then(function (opened) {
+        var t = opened.getVideoTracks()[0];
+
+        function finish(r) {
+          store.reach[id] = r;
+          opened.getTracks().forEach(function (x) { x.stop(); });
+          next();
+        }
+
+        /* Manche Browser melden den Zoom erst einen Augenblick nach dem
+         * Öffnen – einmal nachfassen, bevor „zoomt nicht“ gemerkt wird. */
+        var r = reachOf(t);
+        if (r > 1) finish(r);
+        else setTimeout(function () { finish(reachOf(t)); }, 250);
+      }).catch(function () {
+        skip[id] = true;
+        next();
+      });
+    }
+
+    probing = true;
+    next();
+  }
+
+  /* Nachdem die Lupe mit irgendeinem Objektiv aufgegangen ist: Steht die
+   * Wahl noch aus, jetzt treffen – notfalls nach einem Vergleich. */
+  function settleLens(list) {
+    if (!pickBest || !active) return;
+
+    if (decided(list)) {
+      pickBest = false;
+      openLens(bestOf(list));
+      return;
+    }
+
+    var unknown = list.filter(function (l) { return !known(l); }).map(function (l) { return l.id; });
+    switching = true;
+    closeStream();
+    notice('Objektive werden verglichen …');
+    probeLenses(unknown, function () {
+      /* Der Hinweis gilt genau so lange, wie verglichen wird. */
+      clearNotice();
+      pickBest = false;
+      var best = bestOf(list);
+      sessionLens = best ? best.id : null;
+      start();
+    });
+  }
+
+  /* Auf ein Objektiv wechseln – erst zu, dann auf. */
+  function openLens(lens) {
+    if (!lens || lens.id === lensId) {
+      sessionLens = lensId;
+      return;
+    }
+    sessionLens = lens.id;
+    switching = true;
+    closeStream();
+    start();
   }
 
   function showLenses() {
@@ -568,16 +737,17 @@ window.Loupe = (function () {
       var on = b.dataset.lens === lensId;
       b.classList.toggle('is-active', on);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.disabled = frozen;
+      b.disabled = frozen || probing;
     });
     box.hidden = false;
   }
 
+  /* Von Hand getippt: gilt bis zum Verlassen der Lupe. */
   function chooseLens(id) {
-    if (id === lensId || starting || frozen) return;
+    if (id === lensId || starting || frozen || probing) return;
 
-    store.lens = id;
-    persist();
+    pickBest = false;
+    sessionLens = id;
 
     /* Viele Telefone öffnen nicht zwei Kameras zugleich – erst zu, dann auf. */
     switching = true;
@@ -611,8 +781,8 @@ window.Loupe = (function () {
       zoom: true
     };
 
-    if (store.lens) {
-      video.deviceId = { exact: store.lens };
+    if (sessionLens) {
+      video.deviceId = { exact: sessionLens };
     } else {
       /* ideal statt exact: Ein Gerät mit nur einer Kamera nach vorn soll
        * nicht leer ausgehen. */
@@ -623,7 +793,7 @@ window.Loupe = (function () {
   }
 
   function start() {
-    if (stream || starting) return;
+    if (stream || starting || probing) return;
 
     /* Ohne sichere Verbindung gibt kein Browser die Kamera heraus. */
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -633,7 +803,26 @@ window.Loupe = (function () {
 
     starting = true;
 
-    navigator.mediaDevices.getUserMedia(constraints()).then(function (opened) {
+    /* Sind alle Objektive schon vermessen und gibt der Browser ihre Namen
+     * heraus (die Freigabe ist also schon erteilt), steht das beste vor dem
+     * Öffnen fest – dann geht es gleich auf, ohne Umweg über ein anderes. */
+    var ready = pickBest && navigator.mediaDevices.enumerateDevices
+      ? navigator.mediaDevices.enumerateDevices().then(function (devices) {
+          var list = candidatesOf(devices);
+          var named = list.length && list.every(function (l) { return l.label; });
+          if (named && decided(list)) {
+            var best = bestOf(list);
+            if (best) sessionLens = best.id;
+            pickBest = false;
+          }
+        }).catch(function () {
+          /* Dann eben auf dem Umweg. */
+        })
+      : Promise.resolve();
+
+    ready.then(function () {
+      return navigator.mediaDevices.getUserMedia(constraints());
+    }).then(function (opened) {
       starting = false;
 
       /* In der Zwischenzeit kann längst weitergeschaltet worden sein. Dann
@@ -658,6 +847,7 @@ window.Loupe = (function () {
       zoom = zoomFor(lensId);
 
       readNativeZoom();
+      noteReach();
       showGate(null);
       showTools();
       showInfo();
@@ -665,16 +855,18 @@ window.Loupe = (function () {
        * dieses Gerät hergibt. */
       setZoom(zoom);
       /* Die Bezeichnungen der Kameras gibt der Browser erst nach der
-       * Freigabe heraus – deshalb wird erst jetzt nachgesehen. */
-      listLenses();
+       * Freigabe heraus – deshalb wird erst jetzt nachgesehen, und erst
+       * jetzt lässt sich das beste Objektiv bestimmen. */
+      listLenses(settleLens);
     }).catch(function (err) {
       starting = false;
 
-      /* Das gemerkte Objektiv gibt es nicht mehr (anderes Gerät, Browser
+      /* Das gewählte Objektiv gibt es nicht mehr (anderes Gerät, Browser
        * zurückgesetzt): vergessen und die übliche Kamera nehmen. */
-      if (store.lens && (err.name === 'OverconstrainedError' || err.name === 'NotFoundError')) {
-        store.lens = null;
+      if (sessionLens && (err.name === 'OverconstrainedError' || err.name === 'NotFoundError')) {
+        delete store.reach[sessionLens];
         persist();
+        sessionLens = null;
         start();
         return;
       }
@@ -828,6 +1020,7 @@ window.Loupe = (function () {
     els.video.addEventListener('playing', function () {
       if (!stream) return;
       readNativeZoom();
+      noteReach();
       showTools();
       showInfo();
       if (!frozen) setZoom(zoom);
@@ -875,6 +1068,10 @@ window.Loupe = (function () {
     active = on;
 
     if (on) {
+      /* Jedes Öffnen beginnt beim Objektiv mit dem größten Zoom. Kommt die
+       * App nur aus dem Hintergrund zurück, bleibt es beim offenen. */
+      pickBest = true;
+      sessionLens = null;
       start();
     } else {
       stop();
@@ -896,7 +1093,8 @@ window.Loupe = (function () {
       max: maxZoom(),
       pan: { x: pan.x, y: pan.y },
       lens: lensId,
-      lenses: lenses.map(function (l) { return l.id; })
+      lenses: lenses.map(function (l) { return l.id; }),
+      busy: probing || starting || switching || pickBest
     };
   }
 

@@ -301,11 +301,19 @@ laufenden Bild mit dem Zoom von vorher zurück.
 
 **Objektiv** wählt zwischen den Kameras auf der Rückseite, soweit der Browser
 sie einzeln zeigt. iOS nennt sie beim Namen (Weit, Tele), Android meist nur
-mit Nummer – welche das Tele ist, findest du durch Ausprobieren heraus. Das
-gewählte Objektiv bleibt gewählt. Zeigt der Browser nur eine Kamera, gibt es
-nichts zu wählen und die Auswahl erscheint nicht. Ein Tele stellt auf kurze
-Entfernung meist nicht scharf; für Dinge weiter weg ist es trotzdem die
-bessere Wahl.
+mit Nummer. Zeigt der Browser nur eine Kamera, gibt es nichts zu wählen und
+die Auswahl erscheint nicht.
+
+Geöffnet wird die Lupe immer mit dem Objektiv, das am weitesten zoomt. Ob ein
+Zoom optisch ist, verrät kein Browser, wohl aber, wie weit jedes Objektiv
+selbst zoomt; heißt eines ausdrücklich „Tele“, gewinnt das. Um das
+herauszufinden, öffnet die Lupe beim allerersten Mal jedes Objektiv kurz –
+dabei steht „Objektive werden verglichen …“ und das Bild bleibt einen Moment
+schwarz. Danach ist es gemerkt, und das richtige Objektiv geht sofort auf.
+Von Hand umschalten geht jederzeit; das gilt, bis du die Lupe verlässt.
+Kommt die App nur aus dem Hintergrund zurück, bleibt das offene Objektiv.
+Ein Tele stellt auf kurze Entfernung meist nicht scharf – ist das Bild
+unscharf, das nächste Objektiv nehmen.
 
 **Kontrast** macht das Bild grau und steiler, im laufenden Bild wie im
 Standbild. Eingeprägte Zahlen haben kaum Farbe; sie bestehen nur aus Licht

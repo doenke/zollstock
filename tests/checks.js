@@ -614,9 +614,19 @@ async function laeuft(page) {
   return page.evaluate(function () { return window.Loupe.running(); });
 }
 
+/* Bis die Lupe ruht: Bild läuft, und weder Vergleich noch Wechsel noch die
+ * Wahl des Objektivs stehen aus. Beim ersten Öffnen öffnet sie dafür jedes
+ * Objektiv einmal kurz – eine feste Pause wäre mal zu kurz, mal vergeudet. */
+async function lupeBereit(page) {
+  await page.waitForFunction(function () {
+    return window.Loupe.running() && !window.Loupe.split().busy;
+  }, null, { timeout: 8000 });
+  await page.waitForTimeout(80);
+}
+
 async function lupeStrom(page, t) {
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(600);
+  await lupeBereit(page);
 
   t.gleich(await laeuft(page), true, 'Kamera läuft, sobald die Lupe offen ist');
   t.gleich(await page.isVisible('#loupe-tools'), true, 'Werkzeuge stehen da');
@@ -627,7 +637,7 @@ async function lupeStrom(page, t) {
   t.gleich(await laeuft(page), false, 'Kamera aus, sobald das Lineal übernimmt');
 
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(600);
+  await lupeBereit(page);
   t.gleich(await laeuft(page), true, 'und beim Zurückkommen wieder an');
 
   /* Weggelegt heißt aus, ohne dass die Ansicht wechselt. */
@@ -644,7 +654,7 @@ async function lupeStrom(page, t) {
  * zurück, weil der festgehaltene Rahmen den rechnerischen Zoom nicht enthält. */
 async function lupeStandbild(page, t) {
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(600);
+  await lupeBereit(page);
 
   await schieber(page, 4);
   t.gleich(await skala(page, 'loupe-video'), 4, 'der Schieber vergrößert das laufende Bild');
@@ -710,7 +720,7 @@ async function stand(page) {
  * Was beim Aufsetzen dort lag, liegt hinterher immer noch dort. */
 async function lupeVerschieben(page, t) {
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(600);
+  await lupeBereit(page);
   await schieber(page, 2);
   await page.click('#btn-freeze');
   await page.waitForTimeout(150);
@@ -779,7 +789,7 @@ async function skala(page, id) {
  * beim Wert vom letzten Mal – auch nach einem Wechsel und nach Neuladen. */
 async function lupeStartwert(page, t) {
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(600);
+  await lupeBereit(page);
 
   t.gleich(await page.textContent('#loupe-zoom-out'), '3,0×', 'beim ersten Mal 3×');
   t.gleich(await skala(page, 'loupe-video'), 3, 'und so groß ist das Bild auch');
@@ -787,11 +797,11 @@ async function lupeStartwert(page, t) {
   await schieber(page, 5);
   await inAnsicht(page, 'ruler');
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(600);
+  await lupeBereit(page);
   t.gleich(await page.textContent('#loupe-zoom-out'), '5,0×', 'nach dem Wechsel bleibt es bei 5×');
 
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
   t.gleich(await page.textContent('#loupe-zoom-out'), '5,0×', 'und auch nach dem Neuladen');
   t.gleich(await page.isVisible('#loupe-info'), false, 'im laufenden Bild steht keine Zeile über dem Schieber');
 
@@ -802,7 +812,7 @@ async function lupeStartwert(page, t) {
     localStorage.setItem('zollstock.loupe.v1', '6');
   });
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
   t.gleich(await page.textContent('#loupe-zoom-out'), '6,0×', 'der alte gemerkte Zoom gilt weiter');
   t.gleich(await page.evaluate(function () { return localStorage.getItem('zollstock.loupe.v1'); }),
     null, 'und der alte Eintrag ist aufgeräumt');
@@ -815,7 +825,7 @@ async function lupeKamerazoom(page, t) {
   await page.evaluate(function () { localStorage.setItem('__kameraZoom', '4'); });
   await page.reload({ waitUntil: 'networkidle' });
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
 
   const bestellt = function () { return page.evaluate(function () { return window.__zoom[window.__zoom.length - 1]; }); };
 
@@ -840,7 +850,7 @@ async function lupeKamerazoom(page, t) {
  * der Hauptkamera – und das gewählte bleibt gewählt. */
 async function lupeObjektive(page, t) {
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
 
   let s = await stand(page);
   const knoepfe = function () {
@@ -859,7 +869,7 @@ async function lupeObjektive(page, t) {
 
   const drittes = s.lenses[2];
   await page.click('#loupe-lenses .seg__btn[data-lens="' + drittes + '"]');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
 
   s = await stand(page);
   t.gleich(s.lens, drittes, 'ein Druck öffnet das gewählte Objektiv');
@@ -868,18 +878,21 @@ async function lupeObjektive(page, t) {
 
   await schieber(page, 6);
   await page.click('#loupe-lenses .seg__btn[data-lens="' + s.lenses[0] + '"]');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
   t.gleich(await page.textContent('#loupe-zoom-out'), '3,0×', 'das erste Objektiv hat seinen eigenen Zoom');
 
   await page.click('#loupe-lenses .seg__btn[data-lens="' + drittes + '"]');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
   t.gleich(await page.textContent('#loupe-zoom-out'), '6,0×', 'das dritte seinen');
 
+  /* Getippt gilt nur bis zum Verlassen: Neu geöffnet beginnt die Lupe beim
+   * Objektiv mit dem größten Zoom – hier zoomt keines selbst, also beim
+   * ersten. */
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForTimeout(800);
+  await lupeBereit(page);
   s = await stand(page);
-  t.gleich(s.lens, drittes, 'nach dem Neuladen ist das gewählte Objektiv wieder offen');
-  t.gleich(await page.textContent('#loupe-zoom-out'), '6,0×', 'mit seinem Zoom');
+  t.gleich(s.lens, s.lenses[0], 'neu geöffnet bei Gleichstand das erste Objektiv');
+  t.gleich(await page.textContent('#loupe-zoom-out'), '3,0×', 'mit seinem Zoom');
 
   await page.click('#btn-freeze');
   await page.waitForTimeout(150);
@@ -888,12 +901,56 @@ async function lupeObjektive(page, t) {
   }), true, 'im Standbild lässt sich das Objektiv nicht wechseln');
 }
 
+/* Drei Kameras, die selbst verschieden weit zoomen: 2×, 6× und 4×. Beim
+ * ersten Öffnen werden alle einmal kurz geöffnet und verglichen, die mit 6×
+ * gewinnt. Ab dann ist das bekannt – beim nächsten Öffnen geht sie sofort
+ * auf, ohne Umweg über die anderen. Von Hand getippt gilt nur, bis die
+ * Lupe verlassen wird. */
+async function lupeWeitestesObjektiv(page, t) {
+  await page.evaluate(function () { localStorage.setItem('__reichweite', '[2, 6, 4]'); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await inAnsicht(page, 'loupe');
+  await lupeBereit(page);
+
+  let s = await stand(page);
+  const label = function () {
+    return page.evaluate(function () {
+      return document.getElementById('loupe-video').srcObject.getVideoTracks()[0].label;
+    });
+  };
+  t.gleich(await label(), 'fake_device_1', 'das Objektiv mit dem größten Zoom (6×) ist offen');
+  t.gleich(await page.evaluate(function () {
+    const b = document.querySelector('#loupe-lenses .seg__btn.is-active');
+    return b ? b.dataset.lens : null;
+  }), s.lens, 'und in der Auswahl markiert');
+  t.gleich(await page.evaluate(function () {
+    return Object.keys(JSON.parse(localStorage.getItem('zollstock.loupe.v2')).reach).length;
+  }), 3, 'die Reichweite aller drei ist gemerkt');
+
+  /* Von Hand ein anderes – das gilt, bis die Lupe verlassen wird. */
+  await page.click('#loupe-lenses .seg__btn[data-lens="' + s.lenses[2] + '"]');
+  await lupeBereit(page);
+  t.gleich(await label(), 'fake_device_2', 'von Hand gewählt');
+
+  await inAnsicht(page, 'ruler');
+  await inAnsicht(page, 'loupe');
+  await lupeBereit(page);
+  t.gleich(await label(), 'fake_device_1', 'neu geöffnet wieder das weiteste');
+
+  /* Beim nächsten Start ist alles bekannt: ein einziges Öffnen. */
+  await page.reload({ waitUntil: 'networkidle' });
+  await lupeBereit(page);
+  t.gleich(await label(), 'fake_device_1', 'nach dem Neuladen gleich das weiteste');
+  t.gleich(await page.evaluate(function () { return window.__gum; }), 1,
+    'und dafür nur eine Kamera geöffnet, ohne Umweg');
+}
+
 /* Die vorgetäuschten Kameras haben keine Lampe. Der Knopf steht trotzdem
  * da – blasser –, und ein Druck sagt, warum nichts angeht, statt
  * stillschweigend nichts zu tun. */
 async function lupeLicht(page, t) {
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
 
   t.gleich(await page.isVisible('#btn-torch'), true, 'der Lichtschalter steht da');
   t.gleich(await page.evaluate(function () {
@@ -913,7 +970,7 @@ async function lupeLichtImStandbild(page, t) {
   await page.evaluate(function () { localStorage.setItem('__lampe', '1'); });
   await page.reload({ waitUntil: 'networkidle' });
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
 
   const lampe = function () { return page.evaluate(function () { return window.__lampe.slice(); }); };
 
@@ -937,7 +994,7 @@ async function lupeLichtImStandbild(page, t) {
  * Ausschalten muss genau das Original zurückkommen, nicht eine Näherung. */
 async function lupeKontrast(page, t) {
   await inAnsicht(page, 'loupe');
-  await page.waitForTimeout(700);
+  await lupeBereit(page);
 
   const filter = function (id) {
     return page.evaluate(function (i) { return document.getElementById(i).style.filter; }, id);
@@ -1139,6 +1196,7 @@ module.exports = {
     { name: 'Lupe: Kamerazoom', lauf: lupeKamerazoom },
     { name: 'Lupe: Standbild verschieben', lauf: lupeVerschieben },
     { name: 'Lupe: Objektive', lauf: lupeObjektive },
+    { name: 'Lupe: Objektiv mit dem größten Zoom', lauf: lupeWeitestesObjektiv },
     { name: 'Lupe: Licht', lauf: lupeLicht },
     { name: 'Lupe: Licht im Standbild', lauf: lupeLichtImStandbild },
     { name: 'Lupe: Kontrast und Relief', lauf: lupeKontrast },
