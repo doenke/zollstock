@@ -31,7 +31,6 @@ window.Loupe = (function () {
   var contrastOn = false;
   var reliefOn = false;
   var stillData = null;     /* das Standbild ohne Relief, zum Zurückschalten */
-  var hintDone = false;   /* der Hinweis hat seinen Dienst getan */
   var noticeTimer = null;
 
   /* Die Zahl am Schieber ist die Vergrößerung, die man sieht – auf jedem
@@ -159,9 +158,6 @@ window.Loupe = (function () {
     var live = !!stream || switching;
 
     els.tools.hidden = !live;
-    /* Der Hinweis steht im Werkzeugkasten: Ohne Bild verschwindet er mit
-     * ihm und verspricht keinen Schieber, der gar nicht dasteht. */
-    els.hint.hidden = hintDone;
     els.freeze.classList.toggle('is-on', frozen);
     els.freeze.setAttribute('aria-pressed', frozen ? 'true' : 'false');
     els.freeze.textContent = frozen ? 'Weiter' : 'Standbild';
@@ -215,11 +211,6 @@ window.Loupe = (function () {
       noticeTimer = null;
       showInfo();
     }, 4000);
-  }
-
-  function hideHint() {
-    hintDone = true;
-    els.hint.hidden = true;
   }
 
   /* ---------- Vergrößerung ---------- */
@@ -461,7 +452,6 @@ window.Loupe = (function () {
     els.video.hidden = true;
     els.still.hidden = false;
 
-    hideHint();
     showTools();
     showInfo();
     applyZoom();
@@ -953,7 +943,6 @@ window.Loupe = (function () {
 
       if (points.length === 2 && base && base.spread > 0) {
         var target = base.zoom * spread() / base.spread;
-        hideHint();
 
         if (!frozen) {
           setZoom(target);
@@ -990,7 +979,6 @@ window.Loupe = (function () {
   function bind() {
     els.range.addEventListener('input', function () {
       setZoom(parseFloat(els.range.value));
-      hideHint();
     });
 
     els.freeze.addEventListener('click', function () {
@@ -1044,7 +1032,6 @@ window.Loupe = (function () {
     els.stage = document.getElementById('loupe-stage');
     els.video = document.getElementById('loupe-video');
     els.still = document.getElementById('loupe-still');
-    els.hint = document.getElementById('loupe-hint');
     els.tools = document.getElementById('loupe-tools');
     els.lenses = document.getElementById('loupe-lenses');
     els.range = document.getElementById('loupe-zoom');
